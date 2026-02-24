@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:wallet/core/theme/color_extension.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/database/providers.dart';
@@ -6,6 +8,7 @@ import '../../../core/database/models/transaction_model.dart';
 import '../../search/presentation/search_screen.dart';
 import '../../../shared/widgets/paisa_list_tile.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../core/theme/theme_provider.dart';
 import 'add_edit_transaction_screen.dart';
 
 class TransactionListScreen extends ConsumerWidget {
@@ -14,6 +17,7 @@ class TransactionListScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final transactionsAsync = ref.watch(transactionsStreamProvider);
+    final themeState = ref.watch(themeControllerProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -32,46 +36,36 @@ class TransactionListScreen extends ConsumerWidget {
           }
 
           return ListView.builder(
+            padding: const EdgeInsets.only(bottom: 120.0),
             itemCount: transactions.length,
             itemBuilder: (context, index) {
               final tx = transactions[index];
               final account = tx.account.value;
               final category = tx.category.value;
 
-              return Dismissible(
-                key: ValueKey(tx.id),
-                direction: DismissDirection.endToStart,
-                background: Container(
-                  margin: const EdgeInsets.symmetric(vertical: 4),
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  decoration: BoxDecoration(
-                    color: Colors.red.shade400,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  alignment: Alignment.centerRight,
-                  child: const Icon(Icons.delete_outline, color: Colors.white),
-                ),
-                onDismissed: (direction) {
-                  ref.read(transactionServiceProvider).deleteTransaction(tx);
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Transaction deleted')));
-                },
-                child: PaisaListTile(
-                  title: category?.name ?? 'Unknown',
-                  subtitle: '${account?.name ?? 'Unknown'} • ${DateFormat.yMMMd().format(tx.date)}',
-                  amount: '${tx.type == TransactionType.expense ? '-' : '+'}${tx.amount.toStringAsFixed(2)}',
-                  amountColor: tx.type == TransactionType.expense ? Colors.red : Colors.green,
-                  icon: Icons.category, // Replace with dynamic icon if available in Category model
-                  iconColor: Colors.white,
-                  iconBackgroundColor: Color(int.parse(category?.color ?? '0xFF9E9E9E')),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => AddEditTransactionScreen(transaction: tx),
-                      ),
-                    );
+              return PaisaListTile(
+                title: category?.name ?? 'Unknown',
+                subtitle: '${account?.name ?? 'Unknown'} • ${DateFormat.yMMMd().format(tx.date)}',
+                amount: '${tx.type == TransactionType.expense ? '-' : '+'}${themeState.currencySymbol}${tx.amount.toStringAsFixed(2)}',
+                amountColor: tx.type == TransactionType.expense ? Colors.red : Colors.green,
+                icon: Icons.category, // Replace with dynamic icon if available in Category model
+                iconColor: Colors.white,
+                iconBackgroundColor: (category?.color ?? '0xFF9E9E9E').parseHexColor(),
+                trailing: IconButton(
+                  icon: const Icon(Icons.delete_outline, color: Colors.red),
+                  onPressed: () {
+                    ref.read(transactionServiceProvider).deleteTransaction(tx);
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Transaction deleted')));
                   },
                 ),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AddEditTransactionScreen(transaction: tx),
+                    ),
+                  );
+                },
               ).animate(delay: (index * 50).ms).fade(duration: 300.ms).slideX(begin: 0.1, end: 0, curve: Curves.easeOutQuad);
             },
           );

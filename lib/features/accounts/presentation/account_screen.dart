@@ -5,6 +5,9 @@ import '../../../core/database/providers.dart';
 import '../../../core/database/models/account.dart';
 import '../../../shared/widgets/paisa_list_tile.dart';
 import '../../../shared/widgets/app_button.dart';
+import '../../../shared/widgets/material_icon_picker.dart';
+import 'widgets/active_account_card.dart';
+import 'widgets/account_tab_filters.dart';
 
 class AccountScreen extends ConsumerWidget {
   const AccountScreen({super.key});
@@ -19,27 +22,48 @@ class AccountScreen extends ConsumerWidget {
         data: (accounts) {
           if (accounts.isEmpty) return const Center(child: Text('No accounts found.'));
           
-          return ListView.builder(
-            itemCount: accounts.length,
-            itemBuilder: (context, index) {
-              final acc = accounts[index];
-              final color = Color(int.parse(acc.color));
-              
-              return PaisaListTile(
-                title: acc.name,
-                subtitle: acc.type.name.toUpperCase(),
-                amount: '\$${acc.balance.toStringAsFixed(2)}',
-                amountColor: Theme.of(context).colorScheme.primary,
-                icon: Icons.account_balance_wallet,
-                iconColor: Colors.white,
-                iconBackgroundColor: color,
-                trailing: IconButton(
-                  icon: const Icon(Icons.delete_outline, color: Colors.red),
-                  onPressed: () => ref.read(accountServiceProvider).deleteAccount(acc.id),
+          final themeState = ref.watch(themeControllerProvider); 
+
+          return CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 8.0, bottom: 16.0),
+                  child: AccountTabFilters(),
                 ),
-                onTap: () => _showAddEditAccountDialog(context, ref, acc),
-              );
-            },
+              ),
+              const SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  child: ActiveAccountCard(),
+                ),
+              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 16)),
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final acc = accounts[index];
+                    final color = (acc.color).parseHexColor();
+                    
+                    return PaisaListTile(
+                      title: acc.name,
+                      subtitle: acc.type.name.toUpperCase(),
+                      amount: '${themeState.currencySymbol}${acc.balance.toStringAsFixed(2)}',
+                      amountColor: Theme.of(context).colorScheme.primary,
+                      icon: getIconDataFromString(acc.icon),
+                      iconColor: Colors.white,
+                      iconBackgroundColor: color,
+                      trailing: IconButton(
+                        icon: const Icon(Icons.delete_outline, color: Colors.red),
+                        onPressed: () => ref.read(accountServiceProvider).deleteAccount(acc.id),
+                      ),
+                      onTap: () => _showAddEditAccountDialog(context, ref, acc),
+                    );
+                  },
+                  childCount: accounts.length,
+                ),
+              ),
+            ],
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),

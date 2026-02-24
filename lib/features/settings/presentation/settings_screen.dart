@@ -7,8 +7,11 @@ import '../../finance/presentation/budget_screen.dart';
 import '../../finance/presentation/loan_screen.dart';
 import '../../finance/presentation/goal_screen.dart';
 import '../../finance/presentation/recurring_transaction_screen.dart';
+import '../../finance/presentation/bill_splitter_screen.dart';
 import '../../categories/presentation/category_screen.dart';
 import '../../accounts/presentation/account_screen.dart';
+import '../../people/presentation/people_screen.dart';
+import 'currency_selection_screen.dart';
 import 'package:wallet/features/ai/presentation/insights_screen.dart';
 import 'about_screen.dart';
 class SettingsScreen extends ConsumerWidget {
@@ -22,6 +25,7 @@ class SettingsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
       body: ListView(
+        padding: const EdgeInsets.only(bottom: 120.0),
         children: [
           const _SectionHeader(title: 'Appearance'),
           SwitchListTile(
@@ -108,11 +112,26 @@ class SettingsScreen extends ConsumerWidget {
             title: const Text('Accounts'),
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AccountScreen())),
           ),
+          ListTile(
+            leading: const Icon(Icons.people),
+            title: const Text('People & Payees'),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PeopleScreen())),
+          ),
+          ListTile(
+            leading: const Icon(Icons.currency_exchange),
+            title: const Text('Global Currency'),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CurrencySelectionScreen())),
+          ),
           const _SectionHeader(title: 'Finance'),
           ListTile(
             leading: const Icon(Icons.pie_chart),
             title: const Text('Budgets'),
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BudgetScreen())),
+          ),
+          ListTile(
+            leading: const Icon(Icons.receipt_long),
+            title: const Text('Bill Splitter'),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BillSplitterScreen())),
           ),
           ListTile(
             leading: const Icon(Icons.handshake),

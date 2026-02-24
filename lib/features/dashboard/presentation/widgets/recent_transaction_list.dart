@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:wallet/core/theme/color_extension.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/database/providers.dart';
@@ -6,6 +8,7 @@ import '../../../../core/database/models/transaction_model.dart';
 
 import '../../../../shared/widgets/paisa_list_tile.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../../core/theme/theme_provider.dart';
 
 class RecentTransactions extends ConsumerWidget {
   final VoidCallback onSeeAll;
@@ -15,6 +18,7 @@ class RecentTransactions extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final transactionsAsync = ref.watch(transactionsStreamProvider);
+    final themeState = ref.watch(themeControllerProvider);
 
     return Column(
       children: [
@@ -47,19 +51,20 @@ class RecentTransactions extends ConsumerWidget {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: recent.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 4), // M3 lists often have space instead of dividers
+              separatorBuilder: (_, __) => const SizedBox(height: 4),
               itemBuilder: (context, index) {
                 final tx = recent[index];
                 final category = tx.category.value;
                 final isExpense = tx.type == TransactionType.expense;
                 final amountColor = isExpense ? Colors.red : Colors.green;
-                final iconColor = Color(int.parse(category?.color ?? '0xFF9E9E9E'));
+                final iconColor = (category?.color ?? '0xFF9E9E9E').parseHexColor();
                 
                 return PaisaListTile(
                   title: category?.name ?? 'Unknown',
-                  subtitle: DateFormat.yMMMd().format(tx.date),
-                  amount: '${isExpense ? '-' : '+'}\$${tx.amount.toStringAsFixed(2)}',
+                  subtitle: DateFormat.yMMMd().format(tx.date) + ' • ' + (tx.account.value?.name ?? ''),
+                  amount: '${isExpense ? '-' : ''}${themeState.currencySymbol}${tx.amount.toStringAsFixed(2)}',
                   amountColor: amountColor,
+                  trailingSubtitle: DateFormat.jm().format(tx.date),
                   icon: Icons.category, // Replace with actual category icon later
                   iconColor: iconColor,
                   iconBackgroundColor: iconColor.withOpacity(0.1),

@@ -8,6 +8,8 @@ class ThemeState {
   final Color? customColor;
   final bool isLiquid;
   final String fontFamily;
+  final String currencySymbol;
+  final String currencyCode;
 
   const ThemeState({
     required this.themeMode,
@@ -15,6 +17,8 @@ class ThemeState {
     this.customColor,
     required this.isLiquid,
     required this.fontFamily,
+    required this.currencySymbol,
+    required this.currencyCode,
   });
 
   ThemeState copyWith({
@@ -23,6 +27,8 @@ class ThemeState {
     Color? customColor,
     bool? isLiquid,
     String? fontFamily,
+    String? currencySymbol,
+    String? currencyCode,
   }) {
     return ThemeState(
       themeMode: themeMode ?? this.themeMode,
@@ -30,6 +36,8 @@ class ThemeState {
       customColor: customColor ?? this.customColor,
       isLiquid: isLiquid ?? this.isLiquid,
       fontFamily: fontFamily ?? this.fontFamily,
+      currencySymbol: currencySymbol ?? this.currencySymbol,
+      currencyCode: currencyCode ?? this.currencyCode,
     );
   }
 }
@@ -40,6 +48,8 @@ class ThemeController extends Notifier<ThemeState> {
   static const _keyCustomColor = 'custom_color';
   static const _keyIsLiquid = 'is_liquid';
   static const _keyFontFamily = 'font_family';
+  static const _keyCurrencySymbol = 'currency_symbol';
+  static const _keyCurrencyCode = 'currency_code';
 
   @override
   ThemeState build() {
@@ -51,6 +61,8 @@ class ThemeController extends Notifier<ThemeState> {
       customColor: null,
       isLiquid: false,
       fontFamily: 'ProductSans',
+      currencySymbol: '\$',
+      currencyCode: 'USD',
     );
   }
 
@@ -62,6 +74,8 @@ class ThemeController extends Notifier<ThemeState> {
     final customColorVal = prefs.getInt(_keyCustomColor);
     final isLiquid = prefs.getBool(_keyIsLiquid) ?? false;
     final fontFamily = prefs.getString(_keyFontFamily) ?? 'ProductSans';
+    final currencySymbol = prefs.getString(_keyCurrencySymbol) ?? '\$';
+    final currencyCode = prefs.getString(_keyCurrencyCode) ?? 'USD';
 
     ThemeMode mode;
     switch (modeIndex) {
@@ -76,6 +90,8 @@ class ThemeController extends Notifier<ThemeState> {
       customColor: customColorVal != null ? Color(customColorVal) : null,
       isLiquid: isLiquid,
       fontFamily: fontFamily,
+      currencySymbol: currencySymbol,
+      currencyCode: currencyCode,
     );
   }
 
@@ -114,6 +130,13 @@ class ThemeController extends Notifier<ThemeState> {
     state = state.copyWith(fontFamily: family);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyFontFamily, family);
+  }
+
+  Future<void> setCurrency(String symbol, String code) async {
+    state = state.copyWith(currencySymbol: symbol, currencyCode: code);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyCurrencySymbol, symbol);
+    await prefs.setString(_keyCurrencyCode, code);
   }
 }
 

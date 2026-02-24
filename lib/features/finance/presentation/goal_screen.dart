@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:wallet/core/theme/color_extension.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/auxiliary_models.dart';
@@ -26,7 +28,7 @@ class GoalScreen extends ConsumerWidget {
               amountColor: Theme.of(context).colorScheme.primary,
               icon: Icons.flag,
               iconColor: Colors.white,
-              iconBackgroundColor: Color(int.parse(goal.color)),
+              iconBackgroundColor: (goal.color).parseHexColor(),
               onTap: () {
                 // Simple dialog to update amount
                 _showUpdateDialog(context, ref, goal);

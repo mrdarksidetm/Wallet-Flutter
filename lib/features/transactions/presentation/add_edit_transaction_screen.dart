@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:wallet/core/theme/color_extension.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/database/providers.dart';
@@ -6,6 +8,7 @@ import '../../../core/database/models/transaction_model.dart';
 import '../../../core/database/models/account.dart';
 import '../../../core/database/models/category.dart';
 import '../../../core/database/models/auxiliary_models.dart';
+import '../../../core/theme/theme_provider.dart';
 import '../../../shared/widgets/paisa_calculator.dart';
 
 class AddEditTransactionScreen extends ConsumerStatefulWidget {
@@ -105,7 +108,7 @@ class _AddEditTransactionScreenState extends ConsumerState<AddEditTransactionScr
             final cat = filtered[index];
             return ListTile(
               leading: CircleAvatar(
-                backgroundColor: Color(int.parse(cat.color)),
+                backgroundColor: (cat.color).parseHexColor(),
                 child: const Icon(Icons.category, color: Colors.white, size: 20),
               ),
               title: Text(cat.name),
@@ -158,7 +161,7 @@ class _AddEditTransactionScreenState extends ConsumerState<AddEditTransactionScr
             final p = persons[index];
             return ListTile(
               leading: CircleAvatar(
-                backgroundColor: Color(int.parse(p.color)),
+                backgroundColor: (p.color).parseHexColor(),
                 child: Text(p.name[0].toUpperCase(), style: const TextStyle(color: Colors.white)),
               ),
               title: Text(p.name),
@@ -176,6 +179,7 @@ class _AddEditTransactionScreenState extends ConsumerState<AddEditTransactionScr
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final themeState = ref.watch(themeControllerProvider);
     final accountsAsync = ref.watch(accountsStreamProvider);
     final categoriesAsync = ref.watch(categoriesStreamProvider);
     final personsAsync = ref.watch(personsStreamProvider);
@@ -236,7 +240,7 @@ class _AddEditTransactionScreenState extends ConsumerState<AddEditTransactionScr
                     FittedBox(
                       fit: BoxFit.scaleDown,
                       child: Text(
-                        '\$$_amountString',
+                        '${themeState.currencySymbol}$_amountString',
                         style: TextStyle(
                           fontSize: 64,
                           fontWeight: FontWeight.bold,
@@ -256,7 +260,7 @@ class _AddEditTransactionScreenState extends ConsumerState<AddEditTransactionScr
                         categoriesAsync.when(
                           data: (categories) => ActionChip(
                             avatar: _selectedCategory != null 
-                                ? CircleAvatar(backgroundColor: Color(int.parse(_selectedCategory!.color)), radius: 12, child: const Icon(Icons.category, size: 12, color: Colors.white)) 
+                                ? CircleAvatar(backgroundColor: (_selectedCategory!.color).parseHexColor(), radius: 12, child: const Icon(Icons.category, size: 12, color: Colors.white)) 
                                 : const Icon(Icons.category, size: 16),
                             label: Text(_selectedCategory?.name ?? 'Category'),
                             onPressed: () => _showCategoryPicker(categories),
@@ -293,7 +297,7 @@ class _AddEditTransactionScreenState extends ConsumerState<AddEditTransactionScr
                           personsAsync.when(
                             data: (persons) => ActionChip(
                               avatar: _selectedPerson != null 
-                                  ? CircleAvatar(backgroundColor: Color(int.parse(_selectedPerson!.color)), radius: 12, child: Text(_selectedPerson!.name[0].toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 10))) 
+                                  ? CircleAvatar(backgroundColor: (_selectedPerson!.color).parseHexColor(), radius: 12, child: Text(_selectedPerson!.name[0].toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 10))) 
                                   : const Icon(Icons.person_outline, size: 16),
                               label: Text(_selectedPerson?.name ?? 'Person'),
                               onPressed: () => _showPersonPicker(persons),

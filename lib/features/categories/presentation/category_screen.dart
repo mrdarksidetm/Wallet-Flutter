@@ -1,10 +1,33 @@
 import 'package:flex_color_picker/flex_color_picker.dart';
+import 'package:wallet/core/theme/color_extension.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/category.dart';
 import '../../../shared/widgets/paisa_list_tile.dart';
 import '../../../shared/widgets/app_button.dart';
+import '../../../shared/widgets/material_icon_picker.dart';
+
+// Helper to reliably convert the IconData string representation back into an IconData object
+IconData getIconDataFromString(String iconString) {
+  // Simple heuristic for our custom generic storage format:
+  // Usually looks like "IconData(U+0E14B)" or just "U+0E14B"
+  try {
+    if (iconString.startsWith('U+')) {
+      final codePoint = int.parse(iconString.substring(2), radix: 16);
+      return IconData(codePoint, fontFamily: 'MaterialIcons');
+    }
+    // Fallback if we accidentally saved the name 'category' early on
+    return Icons.category;
+  } catch (e) {
+    return Icons.category;
+  }
+}
+
+String getStringFromIconData(IconData icon) {
+  return 'U+${icon.codePoint.toRadixString(16).toUpperCase()}';
+}
 
 class CategoryScreen extends ConsumerWidget {
   const CategoryScreen({super.key});
@@ -23,12 +46,12 @@ class CategoryScreen extends ConsumerWidget {
             itemCount: categories.length,
             itemBuilder: (context, index) {
               final cat = categories[index];
-              final color = Color(int.parse(cat.color));
+              final color = (cat.color).parseHexColor();
               
               return PaisaListTile(
                 title: cat.name,
                 subtitle: cat.type.name.toUpperCase(),
-                icon: Icons.category, // Replace with dynamic icon if saved
+                icon: getIconDataFromString(cat.icon),
                 iconColor: Colors.white,
                 iconBackgroundColor: color,
                 trailing: IconButton(
@@ -71,13 +94,15 @@ class _AddEditCategoryDialogState extends ConsumerState<AddEditCategoryDialog> {
   late String _name;
   late Color _color;
   late CategoryType _type;
+  late IconData _icon;
 
   @override
   void initState() {
     super.initState();
     _name = widget.category?.name ?? '';
-    _color = widget.category != null ? Color(int.parse(widget.category!.color)) : Colors.blue;
+    _color = widget.category != null ? (widget.category!.color).parseHexColor() : Colors.blue;
     _type = widget.category?.type ?? CategoryType.expense;
+    _icon = widget.category != null ? getIconDataFromString(widget.category!.icon) : Icons.category;
   }
 
   @override
@@ -123,6 +148,25 @@ class _AddEditCategoryDialogState extends ConsumerState<AddEditCategoryDialog> {
                   },
                 ),
               ),
+              ListTile(
+                title: const Text('Icon'),
+                trailing: Icon(_icon),
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (context) => SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.6,
+                      child: MaterialIconPicker(
+                        initialIcon: _icon,
+                        onIconSelected: (icon) {
+                          setState(() => _icon = icon);
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ),
+                  );
+                },
+              ),
             ],
           ),
         ),
@@ -139,7 +183,7 @@ class _AddEditCategoryDialogState extends ConsumerState<AddEditCategoryDialog> {
               if (widget.category == null) {
                 await ref.read(categoryServiceProvider).addCategory(
                   name: _name,
-                  icon: 'category',
+                  icon: getStringFromIconData(_icon),
                   color: colorString,
                   type: _type,
                 );
@@ -147,7 +191,7 @@ class _AddEditCategoryDialogState extends ConsumerState<AddEditCategoryDialog> {
                 final upd = Category()
                   ..id = widget.category!.id
                   ..name = _name
-                  ..icon = 'category'
+                  ..icon = getStringFromIconData(_icon)
                   ..color = colorString
                   ..type = _type
                   ..budgetLimit = widget.category!.budgetLimit;

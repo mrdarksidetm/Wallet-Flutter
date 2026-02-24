@@ -11,10 +11,12 @@ import 'services/statistics_service.dart';
 import 'services/budget_service.dart';
 import 'services/loan_service.dart';
 import 'services/goal_service.dart';
-import 'services/recurring_service.dart';
 import 'services/csv_service.dart';
+import 'services/person_service.dart';
 import 'services/account_service.dart';
 import 'services/category_service.dart';
+import 'services/recurring_service.dart';
+import '../services/exchange_rate_service.dart';
 import 'models/account.dart';
 import 'models/category.dart';
 import 'models/transaction_model.dart';
@@ -112,6 +114,12 @@ final categoryServiceProvider = Provider<CategoryService>((ref) {
   return CategoryService(isar: isar, categoryRepository: repo);
 });
 
+final personServiceProvider = Provider<PersonService>((ref) {
+  final isar = ref.watch(isarProvider).value!;
+  final repo = ref.watch(personRepositoryProvider);
+  return PersonService(isar: isar, personRepository: repo);
+});
+
 final loanServiceProvider = Provider<LoanService>((ref) {
   final isar = ref.watch(isarProvider).value!;
   final repo = ref.watch(loanRepositoryProvider);
@@ -132,6 +140,11 @@ final recurringServiceProvider = Provider<RecurringService>((ref) {
 final csvServiceProvider = Provider<CsvService>((ref) {
   final isar = ref.watch(isarProvider).value!;
   return CsvService(isar);
+});
+
+// Re-export the exchange rate service provider for convenience
+final appExchangeRateProvider = Provider<ExchangeRateService>((ref) {
+  return ref.watch(exchangeRateServiceProvider);
 });
 
 // --- Stream Providers ---

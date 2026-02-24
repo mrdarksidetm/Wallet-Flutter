@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:wallet/core/theme/color_extension.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/database/providers.dart';
@@ -141,7 +143,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                          amountColor: tx.type == TransactionType.expense ? Colors.red : Colors.green,
                          icon: Icons.category,
                          iconColor: Colors.white,
-                         iconBackgroundColor: Color(int.parse(tx.category.value?.color ?? '0xFF9E9E9E')),
+                         iconBackgroundColor: (tx.category.value?.color ?? '0xFF9E9E9E').parseHexColor(),
                        );
                      },
                    ),

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:wallet/core/theme/color_extension.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/auxiliary_models.dart';
@@ -31,9 +33,9 @@ class BudgetScreen extends ConsumerWidget {
                 amountColor: Theme.of(context).colorScheme.primary,
                 icon: Icons.account_balance_wallet,
                 iconColor: Colors.white,
-                iconBackgroundColor: Color(int.parse(budget.category.value?.color ?? '0xFF9E9E9E')),
+                iconBackgroundColor: (budget.category.value?.color ?? '0xFF9E9E9E').parseHexColor(),
                 trailing: IconButton(
-                   icon: const Icon(Icons.delete),
+                   icon: const Icon(Icons.delete_outline, color: Colors.red),
                    onPressed: () {
                      ref.read(budgetServiceProvider).deleteBudget(budget.id);
                    },

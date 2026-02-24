@@ -10,6 +10,8 @@ class PaisaListTile extends StatelessWidget {
   final Color iconBackgroundColor;
   final VoidCallback? onTap;
   final Widget? trailing;
+  final String? trailingSubtitle;
+  final Color? trailingSubtitleColor;
 
   const PaisaListTile({
     super.key,
@@ -19,9 +21,11 @@ class PaisaListTile extends StatelessWidget {
     this.amountColor,
     required this.icon,
     required this.iconColor,
-    required this.iconBackgroundColor,
+    this.iconBackgroundColor,
     this.onTap,
     this.trailing,
+    this.trailingSubtitle,
+    this.trailingSubtitleColor,
   });
 
   @override
@@ -30,36 +34,60 @@ class PaisaListTile extends StatelessWidget {
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       onTap: onTap,
       leading: Container(
-        width: 48,
-        height: 48,
+        width: 44, 
+        height: 44,
         decoration: BoxDecoration(
           color: iconBackgroundColor,
           shape: BoxShape.circle,
         ),
-        child: Icon(icon, color: iconColor),
+        child: Icon(icon, color: iconColor, size: 22),
       ),
-      title: Text(
-        title,
-        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
+      title: Padding(
+        padding: const EdgeInsets.only(bottom: 2.0),
+        child: Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.w600, 
+            fontSize: 16,
+            letterSpacing: 0.2, // Subtle tracking for readability
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
       ),
       subtitle: Text(
         subtitle,
         style: TextStyle(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
+          color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.8), // Softer subtitle
           fontSize: 13,
+          fontWeight: FontWeight.w400,
         ),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
-      trailing: trailing ?? (amount != null ? Text(
-        amount!,
-        style: TextStyle(
-          color: amountColor,
-          fontWeight: FontWeight.bold,
-          fontSize: 16,
-        ),
+      trailing: trailing ?? (amount != null ? Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Text(
+            amount!,
+            style: TextStyle(
+              color: amountColor,
+              fontWeight: FontWeight.w500,
+              fontSize: 15,
+            ),
+          ),
+          if (trailingSubtitle != null) ...[
+            const SizedBox(height: 2),
+            Text(
+              trailingSubtitle!,
+              style: TextStyle(
+                color: trailingSubtitleColor ?? Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.6),
+                fontSize: 11,
+              ),
+            ),
+          ],
+        ],
       ) : null),
     );
   }
