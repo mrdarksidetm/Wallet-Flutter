@@ -27,4 +27,5 @@ class Category {
 enum CategoryType {
   income,
   expense,
+  transfer,
 }

@@ -26,19 +26,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final dashboard = DashboardScreen(
-      onNavigateToTransactions: () => setState(() => _currentIndex = 1),
-    );
     return Scaffold(
       extendBody: true,
+      backgroundColor: const Color(0xFFFCF8F7), // M3 background color from screenshot
       body: Stack(
         children: [
-          _currentIndex == 0 ? dashboard : _pages[_currentIndex],
+          _currentIndex == 0 ? DashboardScreen(onNavigateToTransactions: () => setState(() => _currentIndex = 1)) : _pages[_currentIndex],
           Positioned(
             left: 16,
             right: 16,
             bottom: 24, // Floating above bottom edge
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Expanded(
                   child: PaisaNavigationBar(
@@ -47,14 +46,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                FloatingActionButton(
-                  onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const AddEditTransactionScreen()));
-                  },
-                  backgroundColor: const Color(0xFFFF9E80), // True Paisa Orange
-                  elevation: 4,
-                  shape: const CircleBorder(),
-                  child: const Icon(Icons.add, color: Colors.black, size: 28),
+                SizedBox(
+                  height: 64, // Matching navigation bar height roughly
+                  width: 64,
+                  child: FloatingActionButton(
+                    onPressed: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const AddEditTransactionScreen()));
+                    },
+                    backgroundColor: const Color(0xFF8B5145), // Dark brown FAB matching screenshot
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+                    child: const Icon(Icons.add, color: Colors.white, size: 28),
+                  ),
                 ),
               ],
             ),

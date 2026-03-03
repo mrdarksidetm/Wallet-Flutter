@@ -73,9 +73,8 @@ class TransactionListScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('Error: $err')),
       ),
-      floatingActionButton: Hero(
-        tag: 'fab_add',
-        child: FloatingActionButton(
+      floatingActionButton: FloatingActionButton(
+        heroTag: 'fab_add',
         onPressed: () {
           Navigator.push(
             context,
@@ -85,7 +84,6 @@ class TransactionListScreen extends ConsumerWidget {
           );
         },
         child: const Icon(Icons.add),
-        ),
       ),
     );
   }

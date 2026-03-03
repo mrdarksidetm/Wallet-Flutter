@@ -73,17 +73,17 @@ class AnalyticsOverviewCards extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              Expanded(
+              const Expanded(
                 child: _GridCard(
                   title: 'Weekly',
                   icon: Icons.calendar_view_week,
                   height: 160,
                   content: [
-                    const Spacer(),
-                    const Center(child: Icon(Icons.calendar_today, size: 48, color: Colors.grey)),
-                    const SizedBox(height: 8),
-                    const Center(child: Text('No transactions this week', style: TextStyle(fontSize: 11, color: Colors.grey))),
-                    const Spacer(),
+                    Spacer(),
+                    Center(child: Icon(Icons.calendar_today, size: 48, color: Colors.grey)),
+                    SizedBox(height: 8),
+                    Center(child: Text('No transactions this week', style: TextStyle(fontSize: 11, color: Colors.grey))),
+                    Spacer(),
                   ],
                 ),
               ),

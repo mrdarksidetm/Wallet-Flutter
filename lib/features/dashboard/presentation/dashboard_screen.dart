@@ -20,6 +20,7 @@ class DashboardScreen extends ConsumerWidget {
     final greeting = ref.watch(greetingServiceProvider).getGreeting();
     
     return Scaffold(
+      backgroundColor: Colors.transparent, // Let parent handle background
       body: CustomScrollView(
         slivers: [
           SliverSafeArea(
@@ -33,36 +34,48 @@ class DashboardScreen extends ConsumerWidget {
                      Row(
                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                        children: [
-                         // Placeholder for Paisa Icon
-                         Container(
-                           width: 32,
-                           height: 32,
-                           decoration: BoxDecoration(
-                             color: const Color(0xFFE5A48F).withOpacity(0.2),
-                             borderRadius: BorderRadius.circular(8),
+                         // Paisa Icon - Golden colored and angled per screenshot
+                         Transform.rotate(
+                           angle: -0.2,
+                           child: Container(
+                             width: 44,
+                             height: 44,
+                             decoration: BoxDecoration(
+                               color: const Color(0xFFD6A848).withOpacity(0.15),
+                               borderRadius: BorderRadius.circular(12),
+                             ),
+                             child: const Icon(Icons.wallet, color: Color(0xFFD6A848), size: 28),
                            ),
-                           child: const Icon(Icons.wallet, color: Color(0xFFE5A48F), size: 18),
                          ),
                          Row(
                            children: [
+                             // "New" badge added as it's visibly next to the Avatar
                              Container(
                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                decoration: BoxDecoration(
-                                 color: const Color(0xFF8B5145).withOpacity(0.5),
-                                 borderRadius: BorderRadius.circular(16),
+                                 color: const Color(0xFF8B3A2B), // Dark red
+                                 borderRadius: BorderRadius.circular(12),
                                ),
-                               child: const Row(
-                                 children: [
-                                   Icon(Icons.diamond_outlined, color: Color(0xFFE5A48F), size: 14),
-                                   SizedBox(width: 4),
-                                   Text('PREMIUM', style: TextStyle(color: Color(0xFFE5A48F), fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
-                                 ],
-                               ),
+                               child: const Text('New', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold, fontFamily: 'ProductSans')),
                              ),
-                             const SizedBox(width: 12),
-                             const CircleAvatar(
-                               radius: 16,
-                               backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=a042581f4e29026704d'), // Random placeholder
+                             const SizedBox(width: 8),
+                             Hero(
+                               tag: 'profile_avatar',
+                               child: Material(
+                                 elevation: 2,
+                                 shape: const CircleBorder(),
+                                 clipBehavior: Clip.antiAlias,
+                                 child: Container(
+                                   decoration: BoxDecoration(
+                                     shape: BoxShape.circle,
+                                     border: Border.all(color: Colors.white, width: 2), // Thin border around avatar
+                                   ),
+                                   child: const CircleAvatar(
+                                     radius: 18,
+                                     backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=a042581f4e29026704d'), // Random placeholder
+                                   ),
+                                 ),
+                               ),
                              ),
                            ],
                          ),
@@ -72,22 +85,36 @@ class DashboardScreen extends ConsumerWidget {
                      RichText(
                        text: TextSpan(
                          style: const TextStyle(
-                           color: Colors.white70,
+                           fontFamily: 'ProductSans',
+                           color: Color(0xFF7A706D), // M3 expressive muted text color matches screenshot
                            fontSize: 16,
                            fontWeight: FontWeight.w500,
-                           height: 1.4,
+                           height: 1.5,
+                           letterSpacing: 0.1,
                          ),
                          children: [
-                           TextSpan(text: greeting),
-                           const TextSpan(text: ' Abhijeet Yadav.\n', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                           TextSpan(text: '$greeting '),
+                           const TextSpan(text: 'Abhijeet Yadav. ', style: TextStyle(color: Color(0xFF3E3634), fontWeight: FontWeight.bold, fontSize: 18)),
                            const TextSpan(text: 'You have '),
-                           const WidgetSpan(child: Padding(padding: EdgeInsets.symmetric(horizontal: 2), child: Icon(Icons.cloud_done_outlined, size: 16, color: Colors.white70))),
-                           const TextSpan(text: ' backup, '),
-                           const WidgetSpan(child: Padding(padding: EdgeInsets.symmetric(horizontal: 2), child: Icon(Icons.star_outline, size: 16, color: Colors.white70))),
+                           const WidgetSpan(
+                             alignment: PlaceholderAlignment.middle,
+                             child: Padding(
+                               padding: EdgeInsets.symmetric(horizontal: 2), 
+                               child: Icon(Icons.cloud_outlined, size: 18, color: Color(0xFF7A706D))
+                             ),
+                           ),
+                           const TextSpan(text: '\nbackup, '),
+                           const WidgetSpan(
+                             alignment: PlaceholderAlignment.middle,
+                             child: Padding(
+                               padding: EdgeInsets.symmetric(horizontal: 2), 
+                               child: Icon(Icons.star_outline, size: 18, color: Color(0xFF7A706D))
+                             ),
+                           ),
                            const TextSpan(text: ' rating'),
                          ],
                        ),
-                     ).animate().fade().slideY(),
+                     ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.2, end: 0, curve: Curves.easeOutCubic),
                    ],
                  ),
                ),
@@ -97,21 +124,17 @@ class DashboardScreen extends ConsumerWidget {
             child: const BalanceCard().animate().fade(duration: 600.ms, curve: Curves.easeOutQuad).slideY(begin: 0.1, end: 0),
           ),
           SliverPadding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
+            padding: const EdgeInsets.symmetric(vertical: 24),
             sliver: SliverToBoxAdapter(
               child: const OverviewCards().animate(delay: 100.ms).fade(duration: 600.ms).slideY(begin: 0.1, end: 0),
             ),
           ),
           const SliverPadding(
-            padding: EdgeInsets.only(bottom: 16),
-            sliver: SliverToBoxAdapter(child: AnalyticsOverviewCards()),
-          ),
-          const SliverPadding(
-            padding: EdgeInsets.only(bottom: 16),
+            padding: EdgeInsets.only(bottom: 24),
             sliver: SliverToBoxAdapter(child: CalendarHeatmapCard()),
           ),
           const SliverPadding(
-            padding: EdgeInsets.only(bottom: 16),
+            padding: EdgeInsets.only(bottom: 24),
             sliver: SliverToBoxAdapter(child: TrendChartCard()),
           ),
           SliverToBoxAdapter(
@@ -120,7 +143,7 @@ class DashboardScreen extends ConsumerWidget {
                 .fade(duration: 600.ms)
                 .slideY(begin: 0.1, end: 0),
           ),
-          const SliverPadding(padding: EdgeInsets.only(bottom: 120)),
+          const SliverPadding(padding: EdgeInsets.only(bottom: 140)),
         ],
       ),
     );

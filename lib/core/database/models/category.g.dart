@@ -155,10 +155,12 @@ P _categoryDeserializeProp<P>(
 const _CategorytypeEnumValueMap = {
   r'income': r'income',
   r'expense': r'expense',
+  r'transfer': r'transfer',
 };
 const _CategorytypeValueEnumMap = {
   r'income': CategoryType.income,
   r'expense': CategoryType.expense,
+  r'transfer': CategoryType.transfer,
 };
 
 Id _categoryGetId(Category object) {

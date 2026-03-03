@@ -13,10 +13,10 @@ class TotalBalanceCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            const Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Total balance',
                   style: TextStyle(
                     fontSize: 18,
@@ -25,7 +25,7 @@ class TotalBalanceCard extends StatelessWidget {
                 ),
                 Text(
                   '₹78.00',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                     letterSpacing: -0.5,

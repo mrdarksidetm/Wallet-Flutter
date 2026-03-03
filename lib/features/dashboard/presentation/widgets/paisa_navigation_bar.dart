@@ -12,29 +12,26 @@ class PaisaNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withOpacity(0.9),
+        color: const Color(0xFFF2E6E2), // Material 3 expressive surface tone matching the screenshots
         borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: theme.dividerColor.withOpacity(0.1)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           )
-        ]
+        ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _buildItem(context, 0, Icons.home_filled, Icons.home_outlined, 'Home'),
           _buildItem(context, 1, Icons.account_balance_wallet, Icons.account_balance_wallet_outlined, 'Accounts'),
-          _buildItem(context, 2, Icons.pie_chart, Icons.pie_chart_outline, 'Reports'),
-          _buildItem(context, 3, Icons.search, Icons.search, 'Search'),
+          _buildItem(context, 2, Icons.data_usage_rounded, Icons.data_usage_outlined, 'Reports'),
+          _buildItem(context, 3, Icons.search_rounded, Icons.search_outlined, 'Search'),
         ],
       ),
     );
@@ -42,32 +39,53 @@ class PaisaNavigationBar extends StatelessWidget {
 
   Widget _buildItem(BuildContext context, int index, IconData activeIcon, IconData icon, String label) {
     final isSelected = selectedIndex == index;
-    final theme = Theme.of(context);
-    final color = isSelected ? theme.colorScheme.primaryContainer : Colors.transparent;
-    final onColor = isSelected ? theme.colorScheme.onPrimaryContainer : theme.colorScheme.onSurface.withOpacity(0.8);
+    
+    // M3 Color mappings matching the UI (Brownish active state)
+    final activeBgColor = const Color(0xFF8B5145).withOpacity(0.15);
+    final activeIconColor = const Color(0xFF8B5145);
+    final inactiveIconColor = const Color(0xFF4A4442).withOpacity(0.7);
     
     return GestureDetector(
       onTap: () => onDestinationSelected(index),
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOutCubicEmphasized, // M3 Expressive curve
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: color,
+          color: isSelected ? activeBgColor : Colors.transparent,
           borderRadius: BorderRadius.circular(24),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(isSelected ? activeIcon : icon, color: onColor, size: 24),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 10,
-                color: onColor,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 250),
+              transitionBuilder: (Widget child, Animation<double> animation) {
+                return ScaleTransition(
+                  scale: animation,
+                  child: child,
+                );
+              },
+              child: Icon(
+                isSelected ? activeIcon : icon,
+                key: ValueKey<bool>(isSelected),
+                color: isSelected ? activeIconColor : inactiveIconColor,
+                size: 26,
               ),
+            ),
+            const SizedBox(height: 4),
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOutQubic,
+              style: TextStyle(
+                fontFamily: 'ProductSans',
+                fontSize: 11,
+                color: isSelected ? activeIconColor : inactiveIconColor,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                letterSpacing: 0.2,
+              ),
+              child: Text(label),
             ),
           ],
         ),

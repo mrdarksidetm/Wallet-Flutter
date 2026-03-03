@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/color_extension.dart';
 
 class ActiveAccountCard extends StatelessWidget {
   const ActiveAccountCard({super.key});

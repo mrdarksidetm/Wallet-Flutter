@@ -7,7 +7,7 @@ class PaisaListTile extends StatelessWidget {
   final Color? amountColor;
   final IconData icon;
   final Color iconColor;
-  final Color iconBackgroundColor;
+  final Color? iconBackgroundColor;
   final VoidCallback? onTap;
   final Widget? trailing;
   final String? trailingSubtitle;

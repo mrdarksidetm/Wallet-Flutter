@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wallet/core/database/providers.dart';
 import 'package:wallet/core/theme/theme.dart';
 import 'package:wallet/core/theme/theme_provider.dart';
-import 'package:wallet/features/dashboard/presentation/home_screen.dart';
+import 'package:wallet/features/home/presentation/home_screen.dart';
 
 void main() {
   runZonedGuarded(() async {
@@ -156,24 +156,12 @@ class WalletApp extends ConsumerWidget {
     return DynamicColorBuilder(
       builder: (lightDynamic, darkDynamic) {
         // Use dynamic color if enabled and available, otherwise fall back to seeds/custom
-        final ColorScheme? lightScheme = (themeState.useMaterialYou && lightDynamic != null)
-            ? lightDynamic
-            : (themeState.customColor != null 
-                ? ColorScheme.fromSeed(seedColor: themeState.customColor!) 
-                : null);
-                
-        final ColorScheme? darkScheme = (themeState.useMaterialYou && darkDynamic != null)
-            ? darkDynamic
-            : (themeState.customColor != null 
-                ? ColorScheme.fromSeed(seedColor: themeState.customColor!, brightness: Brightness.dark) 
-                : null);
-
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           title: 'Wallet',
-          theme: AppTheme.lightTheme(lightScheme),
-          darkTheme: AppTheme.darkTheme(darkScheme),
-          themeMode: themeState.themeMode,
+          theme: AppTheme.lightTheme,
+          // darkTheme: AppTheme.darkTheme(darkScheme), // Skipping dark mode for now
+          // themeMode: themeState.themeMode,
           home: const HomeScreen(),
         );
       },

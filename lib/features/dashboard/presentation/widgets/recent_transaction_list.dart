@@ -23,17 +23,20 @@ class RecentTransactions extends ConsumerWidget {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
                 'Recent Transactions',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(fontFamily: 'ProductSans', fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF4A4442)),
               ),
               TextButton(
                 onPressed: onSeeAll,
-                child: const Text('See All'),
+                style: TextButton.styleFrom(
+                  foregroundColor: const Color(0xFF8B5145),
+                ),
+                child: const Text('See All', style: TextStyle(fontFamily: 'ProductSans', fontWeight: FontWeight.w600)),
               ),
             ],
           ),
@@ -44,7 +47,7 @@ class RecentTransactions extends ConsumerWidget {
             if (recent.isEmpty) {
               return const Padding(
                 padding: EdgeInsets.all(16.0),
-                child: Text('No recent transactions'),
+                child: Text('No recent transactions', style: TextStyle(fontFamily: 'ProductSans', color: Color(0xFF7A706D))),
               );
             }
             return ListView.separated(
@@ -56,12 +59,12 @@ class RecentTransactions extends ConsumerWidget {
                 final tx = recent[index];
                 final category = tx.category.value;
                 final isExpense = tx.type == TransactionType.expense;
-                final amountColor = isExpense ? Colors.red : Colors.green;
+                final amountColor = isExpense ? const Color(0xFFE74C3C) : const Color(0xFF2ECC71);
                 final iconColor = (category?.color ?? '0xFF9E9E9E').parseHexColor();
                 
                 return PaisaListTile(
                   title: category?.name ?? 'Unknown',
-                  subtitle: DateFormat.yMMMd().format(tx.date) + ' • ' + (tx.account.value?.name ?? ''),
+                  subtitle: '${DateFormat.yMMMd().format(tx.date)} • ${tx.account.value?.name ?? ''}',
                   amount: '${isExpense ? '-' : ''}${themeState.currencySymbol}${tx.amount.toStringAsFixed(2)}',
                   amountColor: amountColor,
                   trailingSubtitle: DateFormat.jm().format(tx.date),
@@ -71,24 +74,24 @@ class RecentTransactions extends ConsumerWidget {
                   onTap: () {
                     // Navigate to transaction details
                   },
-                ).animate(delay: (index * 100).ms).fade(duration: 400.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuad);
+                ).animate(delay: (index * 100).ms).fade(duration: 400.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutCubic);
               },
             );
           },
-          loading: () => const Padding(padding: EdgeInsets.all(16.0), child: Center(child: CircularProgressIndicator())),
+          loading: () => const Padding(padding: EdgeInsets.all(16.0), child: Center(child: CircularProgressIndicator(color: Color(0xFF8B5145)))),
           error: (err, _) => Container(
-            margin: const EdgeInsets.all(16),
+            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.red.withOpacity(0.1),
+              color: const Color(0xFFE74C3C).withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.red.withOpacity(0.3)),
+              border: Border.all(color: const Color(0xFFE74C3C).withOpacity(0.3)),
             ),
             child: Row(
               children: [
-                const Icon(Icons.error_outline, color: Colors.red),
+                const Icon(Icons.error_outline, color: Color(0xFFE74C3C)),
                 const SizedBox(width: 12),
-                Expanded(child: Text('Error: $err', style: const TextStyle(color: Colors.red))),
+                Expanded(child: Text('Error: $err', style: const TextStyle(fontFamily: 'ProductSans', color: Color(0xFFE74C3C)))),
               ],
             ),
           ),
