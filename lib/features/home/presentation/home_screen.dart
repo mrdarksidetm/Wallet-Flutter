@@ -1,337 +1,225 @@
 import 'package:flutter/material.dart';
-import '../../../../core/widgets/overview_grid_card.dart';
-import '../../../../core/widgets/transaction_list_tile.dart';
-import '../../../../core/widgets/expressive_bottom_sheet.dart';
-import '../../transactions/presentation/data_entry_screen.dart';
+import '../../budgets/presentation/budgets_screen.dart';
+import '../../budgets/presentation/add_budget_screen.dart';
+import 'widgets/home_widgets.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _currentIndex = 0;
+
+  @override
   Widget build(BuildContext context) {
+
     return Scaffold(
+      backgroundColor: const Color(0xFFFAF5F2), 
       body: CustomScrollView(
         slivers: [
-          // App Bar
-          SliverAppBar(
+          SliverPersistentHeader(
+            delegate: _SliverAppBarDelegate(const HomeAppBar()),
+            pinned: false,
             floating: true,
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Hello, User',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                ),
-                Text(
-                  'Welcome back',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              ],
-            ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.cloud_sync_outlined),
-                onPressed: () {},
-              ),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0),
-                child: CircleAvatar(
-                  radius: 18,
-                  backgroundColor: Colors.grey,
-                  child: Icon(Icons.person, color: Colors.white),
-                ),
-              ),
-            ],
           ),
           
-          // Hero Section: Total Balance
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16),
-              child: Card(
-                color: Theme.of(context).cardTheme.color,
-                child: Padding(
-                  padding: const EdgeInsets.all(28.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Total Balance',
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.green.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.arrow_upward, color: Colors.green, size: 14),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '2.5%',
-                                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                        color: Colors.green,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                '₹1,24,500.00',
-                                style: Theme.of(context).textTheme.displayLarge,
-                              ),
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: () {},
-                            icon: const Icon(Icons.visibility_off_outlined),
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+          const SliverToBoxAdapter(
+            child: HomeBalanceCard(),
+          ),
+
+          const SliverToBoxAdapter(
+            child: SectionHeader(
+              title: 'Overview',
+              trailing: Icon(Icons.grid_view_rounded, color: Color(0xFF4A4442)),
             ),
           ),
 
-          // Quick Actions (Comprehensive)
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: 100,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
-                children: [
-                  _buildQuickAction(context, Icons.receipt_long, 'Split Bill', Colors.orange),
-                  const SizedBox(width: 24),
-                  _buildQuickAction(context, Icons.people, 'People', Colors.blue),
-                  const SizedBox(width: 24),
-                  _buildQuickAction(context, Icons.pie_chart, 'Budgets', Colors.red),
-                  const SizedBox(width: 24),
-                  _buildQuickAction(context, Icons.account_balance, 'Assets', Colors.green),
-                  const SizedBox(width: 24),
-                  _buildQuickAction(context, Icons.credit_score, 'Loans', Colors.brown),
-                  const SizedBox(width: 24),
-                  _buildQuickAction(context, Icons.flag, 'Goals', Colors.purple),
-                  const SizedBox(width: 24),
-                  _buildQuickAction(context, Icons.label, 'Labels', Colors.pink),
-                  const SizedBox(width: 24),
-                  _buildQuickAction(context, Icons.analytics, 'Analytics', Colors.indigo),
-                  const SizedBox(width: 24),
-                  _buildQuickAction(context, Icons.autorenew, 'Recurring', Colors.teal),
-                  const SizedBox(width: 24),
-                  _buildQuickAction(context, Icons.place, 'Places', Colors.deepOrange),
-                ],
-              ),
-            ),
+          const OverviewGrid(),
+
+          const SliverToBoxAdapter(child: SizedBox(height: 12)),
+          
+          const AnalyticsGrid(),
+
+           const SliverToBoxAdapter(child: SizedBox(height: 12)),
+
+          const SliverToBoxAdapter(
+            child: CalendarHeatmapCard(),
           ),
+
           const SliverToBoxAdapter(child: SizedBox(height: 16)),
 
-          // Overview Grid
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            sliver: SliverGrid.count(
-              crossAxisCount: 2,
-              mainAxisSpacing: 16,
-              crossAxisSpacing: 16,
-              childAspectRatio: 1.1,
-              children: [
-                OverviewGridCard(
-                  icon: Icons.arrow_downward,
-                  title: 'Income',
-                  amount: '₹45,000',
-                  subtitle: 'This month',
-                  backgroundColor: Colors.green.withOpacity(0.05),
-                  iconColor: Colors.green,
-                ),
-                OverviewGridCard(
-                  icon: Icons.arrow_upward,
-                  title: 'Expense',
-                  amount: '₹12,400',
-                  subtitle: 'This month',
-                  backgroundColor: Colors.red.withOpacity(0.05),
-                  iconColor: Colors.red,
-                ),
-              ],
+          const SliverToBoxAdapter(
+            child: SectionHeader(
+              title: 'Trend',
+              trailing: Icon(Icons.chevron_right, color: Color(0xFF4A4442)),
+              padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
             ),
           ),
+          
+          const SliverToBoxAdapter(
+            child: TrendCard(),
+          ),
 
-          // Calendar Heatmap Placeholder
+          const SliverToBoxAdapter(child: SizedBox(height: 16)),
+
           SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
-              child: Card(
-                color: Theme.of(context).cardTheme.color,
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Activity Heatmap',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
-                      ),
-                      const SizedBox(height: 16),
-                      // Fake Heatmap using an array of containers
-                      Wrap(
-                        spacing: 4,
-                        runSpacing: 4,
-                        children: List.generate(
-                          7 * 10,
-                          (index) => Container(
-                            width: 14,
-                            height: 14,
-                            decoration: BoxDecoration(
-                              color: index % 5 == 0 
-                                  ? Colors.green.shade400 
-                                  : index % 7 == 0 
-                                      ? Colors.green.shade700 
-                                      : Theme.of(context).colorScheme.surfaceVariant,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+            child: SectionHeader(
+              title: 'Recent transactions',
+              trailing: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  border: Border.all(color: const Color(0xFF9C4F44)),
+                  borderRadius: BorderRadius.circular(16)
                 ),
+                child: const Text('See All', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF9C4F44))),
               ),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
             ),
           ),
 
-          // Trend Chart Placeholder
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
-              child: Card(
-                color: Theme.of(context).cardTheme.color,
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Spending Trend',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        height: 120,
-                        child: Center(
-                          child: Icon(
-                            Icons.show_chart,
-                            size: 64,
-                            color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.3),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          // Recent Transactions Header
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 32, 20, 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Recent Transactions',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                  ),
-                  TextButton(
-                    onPressed: () {},
-                    child: const Text('See All'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Bottom List: Recent Transactions
           SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) {
-                return TransactionListTile(
-                  categoryIcon: Icons.shopping_bag,
-                  categoryColor: Colors.blue,
-                  title: 'Groceries',
-                  subtitle: 'Supermarket',
-                  date: DateTime.now().subtract(Duration(days: index)),
-                  amount: 1250.0 + (index * 100),
-                  isExpense: true,
+                final colors = [Colors.green, Colors.red, Colors.orange, Colors.orange, Colors.red];
+                final icons = [Icons.account_balance, Icons.person, Icons.person, Icons.person, Icons.person];
+                final names = ['Rishav', 'Transfer Faiz', '3:18 PM • Aug 18', '3:18 PM • Aug 18', 'Transfer Faiz'];
+                final amounts = ['₹78.00', '-₹550.00', '-₹350.00', '-₹250.00', '-₹250.00'];
+                final badges = ['Rishav', 'Faiz', 'Shanvi', 'Shambhavi', 'Faiz'];
+                
+                if (index > 4) return const SizedBox.shrink();
+
+                return TransactionTile(
+                  name: names[index],
+                  amount: amounts[index],
+                  color: colors[index],
+                  icon: icons[index],
+                  badge: badges[index],
+                  date: 'Sep 11, 2025 • Bank Balance',
                 );
               },
-              childCount: 10,
+              childCount: 5,
             ),
           ),
           
-          const SliverPadding(padding: EdgeInsets.only(bottom: 80)), // Space for FAB
+          const SliverPadding(padding: EdgeInsets.only(bottom: 120)), 
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          ExpressiveBottomSheet.show(
-            context: context,
-            child: const DataEntryScreen(),
-          );
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _currentIndex,
+        backgroundColor: const Color(0xFFFAF5F2),
+        elevation: 0,
+        indicatorColor: const Color(0xFFEADDFF),
+        onDestinationSelected: (int index) {
+          setState(() {
+             _currentIndex = index;
+          });
         },
-        child: const Icon(Icons.add, size: 28),
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home, color: Color(0xFF381E72)),
+            label: 'Home',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.account_balance_wallet_outlined),
+            selectedIcon: Icon(Icons.account_balance_wallet),
+            label: 'Accounts',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.bar_chart_outlined),
+            selectedIcon: Icon(Icons.bar_chart),
+            label: 'Reports',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.search_outlined),
+            selectedIcon: Icon(Icons.search),
+            label: 'Search',
+          ),
+        ],
+      ),
+      floatingActionButton: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        transitionBuilder: (Widget child, Animation<double> animation) {
+          return ScaleTransition(scale: animation, child: child);
+        },
+        child: _buildDynamicFAB(),
       ),
     );
   }
 
-  Widget _buildQuickAction(BuildContext context, IconData icon, String label, Color color) {
-    return Column(
-      children: [
-        Container(
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, color: color, size: 28),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-        ),
-      ],
+  Widget _buildDynamicFAB() {
+    IconData fabIcon;
+    VoidCallback fabAction;
+    Key fabKey;
+
+    switch (_currentIndex) {
+      case 0:
+        fabIcon = Icons.add;
+        fabKey = const ValueKey('home_fab');
+        fabAction = () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AddBudgetScreen()),
+          );
+        };
+        break;
+      case 1:
+        fabIcon = Icons.account_balance;
+        fabKey = const ValueKey('accounts_fab');
+        fabAction = () {};
+        break;
+      case 2:
+        fabIcon = Icons.picture_as_pdf;
+        fabKey = const ValueKey('reports_fab');
+        fabAction = () {};
+        break;
+      case 3:
+        fabIcon = Icons.filter_list;
+        fabKey = const ValueKey('search_fab');
+        fabAction = () {};
+        break;
+      default:
+        fabIcon = Icons.add;
+        fabKey = const ValueKey('default_fab');
+        fabAction = () {};
+    }
+
+    return FloatingActionButton(
+      key: fabKey,
+      elevation: 2,
+      backgroundColor: const Color(0xFFC7A890), 
+      onPressed: fabAction,
+      child: Icon(fabIcon, size: 28, color: const Color(0xFF4A3428)),
     );
+  }
+
+  // Extracted methods remain clean
+}
+
+class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
+  final PreferredSizeWidget child;
+
+  _SliverAppBarDelegate(this.child);
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: child,
+    );
+  }
+
+  @override
+  double get maxExtent => child.preferredSize.height;
+
+  @override
+  double get minExtent => child.preferredSize.height;
+
+  @override
+  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {
+    return true;
   }
 }

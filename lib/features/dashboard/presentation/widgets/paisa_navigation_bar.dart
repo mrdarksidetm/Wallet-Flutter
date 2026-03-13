@@ -77,7 +77,7 @@ class PaisaNavigationBar extends StatelessWidget {
             const SizedBox(height: 4),
             AnimatedDefaultTextStyle(
               duration: const Duration(milliseconds: 250),
-              curve: Curves.easeOutQubic,
+              curve: Curves.easeOutCubic,
               style: TextStyle(
                 fontFamily: 'ProductSans',
                 fontSize: 11,

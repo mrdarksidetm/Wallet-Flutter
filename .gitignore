@@ -51,3 +51,6 @@ app.*.map.json
 
 # UI References
 /Goal/
+
+#TESTING Related
+/analyze_screenshots.py
