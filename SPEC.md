@@ -16,8 +16,14 @@
 | Min Android    | API 29 (Android 10)                     |
 | Target Android | API 34 (Android 14)                     |
 | Design System  | Google Material 3 Expressive            |
+| Iconography    | Adaptive Icons (Android)                |
 | Architecture   | MVVM + Unidirectional Data Flow         |
 | Network        | **Offline-first. Zero network calls.**  |
+
+### 1.1 Iconography
+- **Foreground**: Wallet Logo (`Wallet - Transparent.svg`)
+- **Background**: `#fff8f6` (Light), `#1a110e` (Dark)
+- **Monochrome Support**: Logo with `#795548`
 
 ---
 

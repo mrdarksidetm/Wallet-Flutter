@@ -51,6 +51,7 @@ dev_dependencies:
   analyzer: ^6.4.1
 
   flutter_lints: 4.0.0
+  flutter_launcher_icons: ^0.13.1
 
   # Code Generation
   build_runner: 2.4.13
@@ -99,3 +100,10 @@ flutter:
     - family: AppleColorEmoji
       fonts:
         - asset: assets/fonts/Emoji/iOS15.4_Fixed_space.ttf
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/app_icon.png"
+  adaptive_icon_background: "#fff8f6"
+  adaptive_icon_foreground: "assets/images/app_icon.png"
