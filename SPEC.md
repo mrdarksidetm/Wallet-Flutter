@@ -181,17 +181,17 @@ Dynamic M3 color is preferred. Hardcode premium defaults as fallback.
 | Add Transaction Form          | ✅      | ✅      |                               |
 | Donut Chart (Canvas)          | ✅      | ✅      |                               |
 | Spending Breakdown            | ✅      | ✅      |                               |
-| Spend Heatmap                 | ⬜      | ✅      | Not yet in Compose            |
-| Insights (AI)                 | ⬜      | ✅      | Not yet in Compose            |
-| Budgets                       | ⬜      | ✅      | Placeholder in Compose Grid   |
-| Bill Splitter                 | ⬜      | ✅      | Placeholder in Compose Grid   |
-| Goals                         | ⬜      | ✅      | Placeholder in Compose Grid   |
-| Loans                         | ⬜      | ✅      | Placeholder in Compose Grid   |
-| Recurring Transactions        | ⬜      | ✅      | Placeholder in Compose Grid   |
-| Search                        | ⬜      | ✅      | Transition added to Compose   |
-| Settings                      | ⬜      | ✅      | Placeholder added             |
-| CSV Export                    | ⬜      | ✅      | Placeholder added             |
-| People/Contacts               | ⬜      | ✅      | Placeholder added             |
+| Spend Heatmap                 | ✅      | ✅      | Compose Canvas implemented    |
+| Insights (AI / Charts)        | ✅      | ✅      | Vico & fl_chart integrated    |
+| Budgets                       | ✅      | ✅      | SQLite SUM calculations       |
+| Bill Splitter                 | ✅      | ✅      | TransactionSplit DB added     |
+| Goals                         | ✅      | ✅      | DAO and Models created        |
+| Loans                         | ✅      | ✅      | DAO and Models created        |
+| Recurring Transactions        | ✅      | ✅      | WorkManager scaffolding added |
+| Search                        | ✅      | ✅      | M3 SearchBar implemented      |
+| Settings                      | ✅      | ✅      | DataStore integrated          |
+| CSV Export                    | ✅      | ✅      | MediaStore utility added      |
+| People/Contacts               | ✅      | ✅      | Models linked                 |
 
 > ⬜ = Not yet implemented &nbsp; ✅ = Implemented
 

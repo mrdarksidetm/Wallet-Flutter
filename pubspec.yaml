@@ -69,6 +69,9 @@ flutter:
     - assets/icon/
 
   fonts:
+    - family: GoogleSansFlex
+      fonts:
+        - asset: assets/fonts/GoogleSansFlex/google_sans_flex.ttf
     - family: ProductSans
       fonts:
         - asset: assets/fonts/ProductSans/Product Sans Regular.ttf

@@ -8,14 +8,14 @@ class AppTheme {
 
   static ThemeData get lightTheme {
     final baseTextTheme = ThemeData.light().textTheme.apply(
-      fontFamily: 'ProductSans',
+      fontFamily: 'GoogleSansFlex',
       displayColor: textPrimary,
       bodyColor: textPrimary,
     );
 
     return ThemeData(
       useMaterial3: true,
-      fontFamily: 'ProductSans',
+      fontFamily: 'GoogleSansFlex',
       colorScheme: ColorScheme.fromSeed(
         seedColor: const Color(0xFF6750A4),
         surface: backgroundBase,
