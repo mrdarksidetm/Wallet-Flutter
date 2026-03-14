@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../shared/widgets/paisa_card.dart';
+import '../../../../core/widgets/animated_counter.dart';
 
 class TotalBalanceCard extends StatelessWidget {
   const TotalBalanceCard({super.key});
@@ -23,8 +24,8 @@ class TotalBalanceCard extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                Text(
-                  '₹78.00',
+                AnimatedCounter(
+                  amount: 78.00,
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,

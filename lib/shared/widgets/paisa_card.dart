@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/theme_provider.dart';
+import '../../core/widgets/bouncy_button.dart';
 
 class PaisaCard extends ConsumerWidget {
   final Widget child;
@@ -34,18 +35,11 @@ class PaisaCard extends ConsumerWidget {
       child: child,
     );
 
-    if (onTap != null) {
-      cardChild = InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(borderRadius),
-        child: cardChild,
-      );
-    }
-
     // The true Paisa aesthetic uses flat surfaces in light mode,
     // but relies on subtle glassmorphism/translucent layers in dark mode.
+    Widget cardContent;
     if ((isDark || isLiquid) && color == null) {
-       return Container(
+       cardContent = Container(
          margin: margin,
          decoration: BoxDecoration(
            color: theme.colorScheme.surface.withOpacity(isLiquid ? 0.3 : 0.8),
@@ -66,19 +60,28 @@ class PaisaCard extends ConsumerWidget {
          clipBehavior: Clip.antiAlias,
          child: cardChild,
        );
+    } else {
+       cardContent = Card(
+        elevation: elevation,
+        margin: margin,
+        color: color ?? theme.colorScheme.surfaceContainerHighest, // Standard M3 tonal color
+        shadowColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(borderRadius),
+          side: isDark ? BorderSide(color: theme.colorScheme.onSurface.withOpacity(0.05), width: 1) : BorderSide.none,
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: cardChild,
+      );
     }
 
-    return Card(
-      elevation: elevation,
-      margin: margin,
-      color: color ?? theme.colorScheme.surfaceContainerHighest, // Standard M3 tonal color
-      shadowColor: Colors.transparent,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(borderRadius),
-        side: isDark ? BorderSide(color: theme.colorScheme.onSurface.withOpacity(0.05), width: 1) : BorderSide.none,
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: cardChild,
-    );
+    if (onTap != null) {
+      return BouncyButton(
+        onTap: onTap!,
+        child: cardContent,
+      );
+    }
+
+    return cardContent;
   }
 }
