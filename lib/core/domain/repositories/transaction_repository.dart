@@ -1,4 +1,4 @@
-import 'transaction.dart';
+import '../models/transaction.dart';
 
 /// Abstract repository defining the contract for transaction operations.
 /// This acts as a scalable interface, allowing the implementation to be easily 

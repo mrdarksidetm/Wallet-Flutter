@@ -7,7 +7,6 @@ import '../../../core/database/providers.dart';
 import '../../../core/database/models/transaction_model.dart';
 import '../../search/presentation/search_screen.dart';
 import '../../../shared/widgets/paisa_list_tile.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/theme_provider.dart';
 import '../../../core/widgets/staggered_animated_list.dart';
 import 'add_edit_transaction_screen.dart';

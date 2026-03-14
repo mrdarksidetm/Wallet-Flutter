@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wallet/core/database/providers.dart';
 import 'package:wallet/core/theme/theme.dart';
-import 'package:wallet/core/theme/theme_provider.dart';
 import 'package:wallet/features/home/presentation/home_screen.dart';
 
 void main() {
@@ -151,8 +150,6 @@ class WalletApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeState = ref.watch(themeControllerProvider);
-
     return DynamicColorBuilder(
       builder: (lightDynamic, darkDynamic) {
         // Use dynamic color if enabled and available, otherwise fall back to seeds/custom

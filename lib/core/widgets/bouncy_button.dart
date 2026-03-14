@@ -10,10 +10,10 @@ class BouncyButton extends StatefulWidget {
   final Widget child;
   final VoidCallback onTap;
 
-  const BouncyButton({Key? key, required this.child, required this.onTap}) : super(key: key);
+  const BouncyButton({super.key, required this.child, required this.onTap});
 
   @override
-  _BouncyButtonState createState() => _BouncyButtonState();
+  State<BouncyButton> createState() => _BouncyButtonState();
 }
 
 class _BouncyButtonState extends State<BouncyButton> with SingleTickerProviderStateMixin {

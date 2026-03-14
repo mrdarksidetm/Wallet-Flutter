@@ -4,7 +4,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import 'widgets/balance_card.dart';
 import 'widgets/overview_cards.dart';
-import 'widgets/analytics_overview_cards.dart';
 import 'widgets/calendar_heatmap_card.dart';
 import 'widgets/trend_chart_card.dart';
 import 'widgets/recent_transaction_list.dart';

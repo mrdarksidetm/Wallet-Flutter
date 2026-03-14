@@ -18,23 +18,22 @@ Build a premium, offline-first personal finance dashboard for Android 14. The ap
 ```kotlin
 @Entity(tableName = "accounts")
 data class AccountEntity(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    @PrimaryKey val id: String = UUID.randomUUID().toString(),
     val name: String, // e.g., "Cash", "Bank"
     val initialBalance: Double,
     val createdAt: Long = System.currentTimeMillis()
-)
-
-@Entity(tableName = "transactions", 
-    foreignKeys = [ForeignKey(entity = AccountEntity::class, parentColumns = ["id"], childColumns = ["accountId"])]
 )
 ```
 
 ### TransactionEntity
 
 ```kotlin
+@Entity(tableName = "transactions", 
+    foreignKeys = [ForeignKey(entity = AccountEntity::class, parentColumns = ["id"], childColumns = ["accountId"])]
+)
 data class TransactionEntity(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val accountId: Long,
+    @PrimaryKey val id: String = UUID.randomUUID().toString(),
+    val accountId: String,
     val amount: Double,
     val type: String, // "Income" or "Expense"
     val note: String,

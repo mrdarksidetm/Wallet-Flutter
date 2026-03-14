@@ -1,7 +1,5 @@
 import 'package:isar/isar.dart';
-import '../domain/models/transaction.dart' as domain;
 import '../database/models/transaction_model.dart';
-import 'package:uuid/uuid.dart';
 
 /// Phase 49: Simulated "Round-Up" Savings Goals
 ///

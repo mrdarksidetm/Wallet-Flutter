@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 import '../../../../core/database/isar_service.dart';
+import '../../../../core/database/models/category.dart';
 import '../../../../core/database/models/auxiliary_models.dart';
 import '../../../../core/database/providers.dart';
 

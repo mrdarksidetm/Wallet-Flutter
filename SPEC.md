@@ -235,7 +235,29 @@ Dynamic M3 color is preferred. Hardcode premium defaults as fallback.
 
 ---
 
-## 8. Backlog & Architectural Plans (To Be Implemented)
+## 10. Debug History & Known Issues
+
+### 2026-03-14: Version Catalog & Toolchain Sync
+- **Issue:** Duplicate `[versions]` and `[libraries]` sections in `libs.versions.toml` causing Gradle build failure.
+- **Status:** Fixed. Verified by running `.\gradlew compileDebugKotlin`.
+- **Issue:** Java toolchain mismatch (expected 17, found 21).
+- **Status:** Updated `app/build.gradle.kts` to use Java 21 toolchain and compatibility options.
+- **Issue:** UUID Migration compilation errors in `AppDatabase.kt` and `RoundUpEngine.kt`.
+- **Status:** Updated pre-population logic to use String IDs and converted `RoundUpEngine` to use `TransactionEntity` with String types.
+- **Issue:** Compose 1.7.0 features (`SharedTransitionApi`, `animateItem`) missing.
+- **Status:** Upgraded `composeBom` to `2024.10.01` in `libs.versions.toml`.
+
+### 2026-03-14: Flutter Parity Sync
+- **Issue:** Missing dependencies (`uuid`, `decimal`) and broken imports.
+- **Status:** Added dependencies to `pubspec.yaml`, fixed relative imports in `transaction_repository.dart`.
+- **Issue:** Isar pluralization mismatch (`categorys` vs `categories`).
+- **Status:** Verified generated schema uses `categorys` and corrected all repository references.
+- **Issue:** Syntax error in `total_balance_card.dart` (missing closing parenthesis for `PaisaCard`).
+- **Status:** Fixed. Verified with `flutter analyze`.
+
+---
+
+## 11. Feature Parity Checklist (Updated)
 
 The following architectural plans have been mocked up and planned, awaiting full execution in future phases:
 

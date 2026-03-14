@@ -9,7 +9,7 @@ class AnimatedCounter extends StatelessWidget {
   final double amount;
   final TextStyle? style;
 
-  const AnimatedCounter({Key? key, required this.amount, this.style}) : super(key: key);
+  const AnimatedCounter({super.key, required this.amount, this.style});
 
   @override
   Widget build(BuildContext context) {

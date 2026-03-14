@@ -13,10 +13,10 @@ class StaggeredAnimatedList extends StatelessWidget {
   final Widget Function(BuildContext context, int index) itemBuilder;
 
   const StaggeredAnimatedList({
-    Key? key,
+    super.key,
     required this.itemCount,
     required this.itemBuilder,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

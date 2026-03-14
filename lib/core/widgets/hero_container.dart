@@ -14,12 +14,12 @@ class HeroContainer extends StatelessWidget {
   final Color closedColor;
 
   const HeroContainer({
-    Key? key,
+    super.key,
     required this.closedWidget,
     required this.openedWidget,
     this.closedElevation = 0,
     this.closedColor = Colors.transparent,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
