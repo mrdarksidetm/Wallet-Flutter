@@ -37,6 +37,10 @@ class TransactionModel {
   bool isRecurringInstance = false;
   int? originalRecurringId;
 
+  // Phase 35: Privacy Geofencing (Foreground only location tagging)
+  double? latitude;
+  double? longitude;
+
   late DateTime createdAt;
 
   late DateTime updatedAt;

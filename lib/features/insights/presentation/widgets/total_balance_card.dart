@@ -7,8 +7,10 @@ class TotalBalanceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PaisaCard(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
+    return Semantics(
+      label: 'Total Balance Card. Balance is 78.00. Income is 78.00. Expense is 0.00.',
+      child: PaisaCard(
+        margin: const EdgeInsets.symmetric(horizontal: 16),
       child: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
