@@ -29,6 +29,8 @@
 
 ## 2. Data Model
 
+> **V2 Data Architecture (In Progress):** Both Android and Flutter platforms are actively migrating towards a UUID-based schema (String) to replace `Long`/`Int` IDs. This highly scalable normalized schema isolates `Transaction`, `Category`, and `Account` entities, using UUIDs for relationships instead of hard foreign keys to support easier syncing and memory efficiency.
+
 ### 2.1 Account
 
 | Field          | Type     | Kotlin (Room)     | Dart (Isar)            | Notes                         |
@@ -171,23 +173,25 @@ Dynamic M3 color is preferred. Hardcode premium defaults as fallback.
 | Room/Isar database            | ✅      | ✅      |                               |
 | Accounts CRUD                 | ✅      | ✅      |                               |
 | Transactions CRUD             | ✅      | ✅      |                               |
-| Categories                    | ⬜      | ✅      | Compose needs category entity |
+| Categories                    | ✅      | ✅      |                               |
 | Dashboard (Total Balance)     | ✅      | ✅      |                               |
 | Overview Grid                 | ✅      | ✅      |                               |
 | Transaction List              | ✅      | ✅      |                               |
 | Swipe-to-delete               | ✅      | ✅      |                               |
 | Add Transaction Form          | ✅      | ✅      |                               |
-| Donut Chart (Canvas)          | ✅      | ⬜      | Flutter needs native chart    |
-| Spending Breakdown            | ✅      | ⬜      |                               |
-| Budgets                       | ⬜      | ✅      |                               |
-| Bill Splitter                 | ⬜      | ✅      |                               |
-| Goals                         | ⬜      | ✅      |                               |
-| Loans                         | ⬜      | ✅      |                               |
-| Recurring Transactions        | ⬜      | ✅      |                               |
-| Search                        | ⬜      | ✅      |                               |
-| Settings                      | ⬜      | ✅      |                               |
-| CSV Export                    | ⬜      | ✅      |                               |
-| People/Contacts               | ⬜      | ✅      |                               |
+| Donut Chart (Canvas)          | ✅      | ✅      |                               |
+| Spending Breakdown            | ✅      | ✅      |                               |
+| Spend Heatmap                 | ⬜      | ✅      | Not yet in Compose            |
+| Insights (AI)                 | ⬜      | ✅      | Not yet in Compose            |
+| Budgets                       | ⬜      | ✅      | Placeholder in Compose Grid   |
+| Bill Splitter                 | ⬜      | ✅      | Placeholder in Compose Grid   |
+| Goals                         | ⬜      | ✅      | Placeholder in Compose Grid   |
+| Loans                         | ⬜      | ✅      | Placeholder in Compose Grid   |
+| Recurring Transactions        | ⬜      | ✅      | Placeholder in Compose Grid   |
+| Search                        | ⬜      | ✅      | Transition added to Compose   |
+| Settings                      | ⬜      | ✅      | Placeholder added             |
+| CSV Export                    | ⬜      | ✅      | Placeholder added             |
+| People/Contacts               | ⬜      | ✅      | Placeholder added             |
 
 > ⬜ = Not yet implemented &nbsp; ✅ = Implemented
 
