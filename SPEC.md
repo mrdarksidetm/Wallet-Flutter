@@ -197,6 +197,38 @@ Dynamic M3 color is preferred. Hardcode premium defaults as fallback.
 | Crashlytics (Offline)         | ✅      | ✅      | LocalCrashReporter added      |
 | Haptic Engine                 | ✅      | ✅      | Vibrate API wrapped safely    |
 | DB Vacuuming (Defrag)         | ✅      | ✅      | SQLite Truncate & Vacuum      |
+| Home Screen Shortcuts         | ⬜      | ⬜      |                               |
+| Accessibility & L10n          | ⬜      | ⬜      |                               |
+| Automated Testing             | ⬜      | ⬜      |                               |
+| Gamification & Streaks        | ✅      | ✅      | StreakEngine integrated       |
+| P2P Offline Sync Prep         | ⬜      | ⬜      |                               |
+| CI/CD Deployment              | ⬜      | ⬜      |                               |
+| Advanced DB Migrations        | ⬜      | ⬜      |                               |
+| Offline OCR Receipts          | ⬜      | ⬜      |                               |
+| Local Notifications           | ⬜      | ⬜      |                               |
+| QR Code Data Transfer         | ⬜      | ⬜      |                               |
+| Offline Multi-Currency        | ⬜      | ⬜      |                               |
+| Debt Payoff Calculators       | ⬜      | ⬜      |                               |
+| Custom Home Screen Widgets    | ⬜      | ⬜      |                               |
+| Privacy Masking               | ✅      | ✅      | Masking toggles added         |
+| Secure Data Shredding         | ✅      | ✅      | DataShredder util added       |
+| Wear OS & Apple Watch         | ⬜      | ⬜      |                               |
+| Anti-Tampering & Secure DB    | ⬜      | ⬜      |                               |
+| Offline PDF Reporting         | ⬜      | ⬜      |                               |
+| Local Voice Expense Entry     | ⬜      | ⬜      |                               |
+| Privacy Geofencing            | ⬜      | ⬜      |                               |
+| Quick Settings Tiles          | ⬜      | ⬜      |                               |
+| Dynamic Theming               | ⬜      | ⬜      |                               |
+| Custom App Icon Switcher      | ⬜      | ⬜      |                               |
+| On-Device ML Retraining       | ⬜      | ⬜      |                               |
+| Offline Onboarding            | ⬜      | ⬜      |                               |
+| Profiling & Memory Leaks      | ⬜      | ⬜      |                               |
+| Foldable Adaptive Layouts     | ⬜      | ⬜      |                               |
+| Subscription Calendar         | ⬜      | ⬜      |                               |
+| Account Reconciliation        | ⬜      | ⬜      |                               |
+| Round-Up Savings Goals        | ✅      | ✅      | RoundUpEngine added           |
+| Backup Reminders & TTL        | ✅      | ✅      | TTL evaluation logic added    |
+| Dynamic Feature Modules       | ⬜      | ⬜      |                               |
 
 > ⬜ = Not yet implemented &nbsp; ✅ = Implemented
 
