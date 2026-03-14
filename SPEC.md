@@ -193,6 +193,11 @@ Dynamic M3 color is preferred. Hardcode premium defaults as fallback.
 | CSV Export                    | ✅      | ✅      | MediaStore utility added      |
 | People/Contacts               | ✅      | ✅      | Models linked                 |
 
+| On-Device NLP / Chat            | ✅      | ✅      | Compose ChatScreen built      |
+| Crashlytics (Offline)         | ✅      | ✅      | LocalCrashReporter added      |
+| Haptic Engine                 | ✅      | ✅      | Vibrate API wrapped safely    |
+| DB Vacuuming (Defrag)         | ✅      | ✅      | SQLite Truncate & Vacuum      |
+
 > ⬜ = Not yet implemented &nbsp; ✅ = Implemented
 
 ---
