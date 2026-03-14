@@ -197,7 +197,7 @@ Dynamic M3 color is preferred. Hardcode premium defaults as fallback.
 | Crashlytics (Offline)         | ✅      | ✅      | LocalCrashReporter added      |
 | Haptic Engine                 | ✅      | ✅      | Vibrate API wrapped safely    |
 | DB Vacuuming (Defrag)         | ✅      | ✅      | SQLite Truncate & Vacuum      |
-| Home Screen Shortcuts         | ⬜      | ⬜      |                               |
+| Home Screen Shortcuts         | ✅      | ✅      | ShortcutsUtil added           |
 | Accessibility & L10n          | ⬜      | ⬜      |                               |
 | Automated Testing             | ⬜      | ⬜      |                               |
 | Gamification & Streaks        | ✅      | ✅      | StreakEngine integrated       |
@@ -207,8 +207,8 @@ Dynamic M3 color is preferred. Hardcode premium defaults as fallback.
 | Offline OCR Receipts          | ⬜      | ⬜      |                               |
 | Local Notifications           | ⬜      | ⬜      |                               |
 | QR Code Data Transfer         | ⬜      | ⬜      |                               |
-| Offline Multi-Currency        | ⬜      | ⬜      |                               |
-| Debt Payoff Calculators       | ⬜      | ⬜      |                               |
+| Offline Multi-Currency        | ✅      | ✅      | CurrencyEngine added          |
+| Debt Payoff Calculators       | ✅      | ✅      | DebtPayoffEngine added        |
 | Custom Home Screen Widgets    | ⬜      | ⬜      |                               |
 | Privacy Masking               | ✅      | ✅      | Masking toggles added         |
 | Secure Data Shredding         | ✅      | ✅      | DataShredder util added       |
@@ -224,11 +224,12 @@ Dynamic M3 color is preferred. Hardcode premium defaults as fallback.
 | Offline Onboarding            | ⬜      | ⬜      |                               |
 | Profiling & Memory Leaks      | ⬜      | ⬜      |                               |
 | Foldable Adaptive Layouts     | ⬜      | ⬜      |                               |
-| Subscription Calendar         | ⬜      | ⬜      |                               |
-| Account Reconciliation        | ⬜      | ⬜      |                               |
+| Subscription Calendar         | ✅      | ✅      | Matrix grid implemented       |
+| Account Reconciliation        | ✅      | ✅      | Flow diff engine built        |
 | Round-Up Savings Goals        | ✅      | ✅      | RoundUpEngine added           |
 | Backup Reminders & TTL        | ✅      | ✅      | TTL evaluation logic added    |
 | Dynamic Feature Modules       | ⬜      | ⬜      |                               |
+| UI Choreography (Phase 52)    | ✅      | ✅      | Bouncy clicks & odometers     |
 
 > ⬜ = Not yet implemented &nbsp; ✅ = Implemented
 
