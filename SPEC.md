@@ -205,7 +205,7 @@ Dynamic M3 color is preferred. Hardcode premium defaults as fallback.
 | CI/CD Deployment              | ⬜      | ⬜      |                               |
 | Advanced DB Migrations        | ⬜      | ⬜      |                               |
 | Offline OCR Receipts          | ⬜      | ⬜      |                               |
-| Local Notifications           | ⬜      | ⬜      |                               |
+| Local Notifications           | ✅      | ✅      |                               |
 | QR Code Data Transfer         | ⬜      | ⬜      |                               |
 | Offline Multi-Currency        | ✅      | ✅      | CurrencyEngine added          |
 | Debt Payoff Calculators       | ✅      | ✅      | DebtPayoffEngine added        |
@@ -254,6 +254,11 @@ Dynamic M3 color is preferred. Hardcode premium defaults as fallback.
 - **Status:** Verified generated schema uses `categorys` and corrected all repository references.
 - **Issue:** Syntax error in `total_balance_card.dart` (missing closing parenthesis for `PaisaCard`).
 - **Status:** Fixed. Verified with `flutter analyze`.
+
+### 2026-03-14: Phase 24 Implementation
+- **Feature:** Local Scheduled Notifications (Scaffolding).
+- **Compose:** Added `NotificationHelper` and `ReminderWorker` using `WorkManager`.
+- **Flutter:** Added `NotificationService` using `flutter_local_notifications` and `timezone`.
 
 ---
 
