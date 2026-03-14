@@ -260,6 +260,11 @@ Dynamic M3 color is preferred. Hardcode premium defaults as fallback.
 - **Compose:** Added `NotificationHelper` and `ReminderWorker` using `WorkManager`.
 - **Flutter:** Added `NotificationService` using `flutter_local_notifications` and `timezone`.
 
+### 2026-03-14: Transaction Save Fix (Foreign Key)
+- **Issue:** `Failed to save transaction: FOREIGN KEY constraint` error when inserting transactions.
+- **Cause:** `WalletViewModel` used a stale `defaultAccountId` ("default_account_id") that didn't exist in the database after the UUID migration.
+- **Status:** Fixed by synchronizing the ID to "default_cash" in `WalletViewModel.kt`.
+
 ---
 
 ## 11. Feature Parity Checklist (Updated)
