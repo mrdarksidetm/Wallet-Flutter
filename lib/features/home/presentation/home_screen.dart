@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../budgets/presentation/add_budget_screen.dart';
+import '../../transactions/presentation/add_edit_transaction_screen.dart';
+import '../../accounts/presentation/add_edit_account_screen.dart';
 import 'widgets/home_widgets.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -161,14 +162,19 @@ class _HomeScreenState extends State<HomeScreen> {
         fabAction = () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const AddBudgetScreen()),
+            MaterialPageRoute(builder: (context) => const AddEditTransactionScreen()),
           );
         };
         break;
       case 1:
         fabIcon = Icons.account_balance;
         fabKey = const ValueKey('accounts_fab');
-        fabAction = () {};
+        fabAction = () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AddEditAccountScreen()),
+          );
+        };
         break;
       case 2:
         fabIcon = Icons.picture_as_pdf;

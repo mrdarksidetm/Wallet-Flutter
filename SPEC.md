@@ -4,7 +4,7 @@
 # It is the single source of truth for feature parity between both versions.
 # When you update a feature, update THIS SPEC first, then implement in both codebases.
 #
-# Last synced: 2026-03-13
+# Last synced: 2026-03-15
 
 ## 1. App Identity
 
@@ -35,7 +35,7 @@
 
 | Field          | Type     | Kotlin (Room)     | Dart (Isar)            | Notes                         |
 |----------------|----------|-------------------|------------------------|-------------------------------|
-| id             | Integer  | `Long` (auto-gen) | `Id` (auto-increment)  | Primary key                   |
+| id             | String   | `String` (UUID)   | `String` (UUID)        | Primary key                   |
 | name           | String   | `String`          | `String`               | e.g. "Cash", "Bank"          |
 | type           | String   | `String`          | `String`               | "Bank", "Cash", "Wallet"     |
 | initialBalance | Decimal  | `Double`          | `double`               | Starting balance              |
@@ -45,8 +45,8 @@
 
 | Field     | Type     | Kotlin (Room)     | Dart (Isar)            | Notes                           |
 |-----------|----------|-------------------|------------------------|---------------------------------|
-| id        | Integer  | `Long` (auto-gen) | `Id` (auto-increment)  | Primary key                     |
-| accountId | Integer  | `Long` (FK)       | `long` (link)          | Foreign key → Account           |
+| id        | String   | `String` (UUID)   | `String` (UUID)        | Primary key                     |
+| accountId | String   | `String` (FK)     | `String` (link)        | Foreign key → Account           |
 | amount    | Decimal  | `Double`          | `double`               | Always positive                 |
 | type      | String   | `String`          | `String`               | `"Income"` / `"Expense"`       |
 | note      | String   | `String`          | `String`               | User description                |
@@ -57,9 +57,29 @@
 
 | Field | Type    | Kotlin (Room)     | Dart (Isar)           | Notes                    |
 |-------|---------|-------------------|-----------------------|--------------------------|
-| id    | Integer | `Long` (auto-gen) | `Id` (auto-increment) | Primary key              |
+| id    | String  | `String` (UUID)   | `String` (UUID)       | Primary key              |
 | name  | String  | `String`          | `String`              | e.g. "Food", "Transport" |
 | icon  | String  | `String`          | `int` (Material icon) | Icon identifier          |
+
+### 2.4 Person (New)
+
+| Field     | Type     | Kotlin (Room)     | Dart (Isar)            | Notes                           |
+|-----------|----------|-------------------|------------------------|---------------------------------|
+| id        | String   | `String` (UUID)   | `String` (UUID)        | Primary key                     |
+| name      | String   | `String`          | `String`               | Person's name                   |
+| photoPath | String   | `String?`         | `String?`              | Local path to profile photo     |
+
+### 2.5 Loan (New)
+
+| Field     | Type     | Kotlin (Room)     | Dart (Isar)            | Notes                           |
+|-----------|----------|-------------------|------------------------|---------------------------------|
+| id        | String   | `String` (UUID)   | `String` (UUID)        | Primary key                     |
+| personId  | String   | `String` (FK)     | `String` (link)        | Foreign key → Person            |
+| amount    | Decimal  | `Double`          | `double`               | Always positive                 |
+| type      | String   | `String`          | `String`               | `"Lent"` / `"Borrowed"`        |
+| note      | String   | `String`          | `String`               | User description                |
+| date      | Datetime | `Long` (millis)   | `DateTime`             | Loan date                       |
+| isSettled | Boolean  | `Boolean`         | `bool`                 | Status of the loan              |
 
 ---
 
@@ -76,9 +96,9 @@
   - Cards: Budgets, Assets, Bill Splitter, Loans
   - Each card shows summary value + icon
 - **Top App Bar:**
-  - Left: Profile avatar placeholder
+  - Left: Profile avatar (clickable to `/profile`)
   - Center: Greeting text ("Good evening, [User]")
-  - Right: Premium badge icon
+  - Right: (Premium badge removed)
 
 ### 3.2 Accounts / Ledger
 
@@ -111,13 +131,29 @@
 - **Spending Breakdown:** Category-based list with amounts and percentages
 - **Summary Card:** ElevatedCard with period totals
 
-### 3.5 Settings (Future)
+### 3.5 Settings
 
 - **Route:** `/settings`
-- Currency selection
-- Theme toggle (light/dark)
-- Export data (CSV)
-- About screen
+- Personalization (Themes, Color)
+- Preferences (Layouts, Formats)
+- Data & Backup (CSV Export, Google Drive)
+- Security & Notifications
+- Community & Support
+- About Paisa
+
+### 3.6 Profile / Manage Accounts
+
+- **Route:** `/profile`
+- Change user name and circular profile photo
+- List of accounts
+- Add another account button
+
+### 3.7 Loans
+
+- **Route:** `/loans`
+- Tabs: Lent, Borrowed, People
+- Manage persons (Add/Delete)
+- Manage loans (Add/Settle/Delete)
 
 ---
 
@@ -186,12 +222,12 @@ Dynamic M3 color is preferred. Hardcode premium defaults as fallback.
 | Budgets                       | ✅      | ✅      | SQLite SUM calculations       |
 | Bill Splitter                 | ✅      | ✅      | TransactionSplit DB added     |
 | Goals                         | ✅      | ✅      | DAO and Models created        |
-| Loans                         | ✅      | ✅      | DAO and Models created        |
+| Loans (Lent/Borrowed/People)  | ✅      | ⬜      | Compose implementation finished|
 | Recurring Transactions        | ✅      | ✅      | WorkManager scaffolding added |
 | Search                        | ✅      | ✅      | M3 SearchBar implemented      |
-| Settings                      | ✅      | ✅      | DataStore integrated          |
+| Settings                      | ✅      | ✅      | Stitch dark theme added       |
 | CSV Export                    | ✅      | ✅      | MediaStore utility added      |
-| People/Contacts               | ✅      | ✅      | Models linked                 |
+| People/Contacts               | ✅      | ⬜      | Compose People tab added      |
 
 | On-Device NLP / Chat            | ✅      | ✅      | Compose ChatScreen built      |
 | Crashlytics (Offline)         | ✅      | ✅      | LocalCrashReporter added      |
@@ -237,105 +273,23 @@ Dynamic M3 color is preferred. Hardcode premium defaults as fallback.
 
 ## 10. Debug History & Known Issues
 
+### 2026-03-18: Stitch UI Integration
+- **Feature:** Replaced Compose and Flutter Home/Settings screens with exact Dark Theme replicas from Stitch exports.
+- **Status:** Phase 3 (Dashboard) and Settings visually complete.
+
+### 2026-03-17: Home UI & Navigation Updates
+- **Feature:** Updated Home screen Overview Grid to a dynamic 15-item menu including Budgets, Assets, Bill Splitter, Loans, Goals, Labels, Analytics, Recurring, Categories, Weekly, Places, Person, Calendar heatmap, Trend, and Recent transactions.
+- **UI:** Reintroduced Premium banner next to the User profile on TopAppBar. App Logo added to the left.
+- **UI:** Transformed Bottom NavigationBar into a floating pill-shaped design.
+
+### 2026-03-15: Loan & Settings Implementation (Compose)
+- **Feature:** Implemented Loan management with Lending, Borrowing, and People sub-menus.
+- **Feature:** Added Profile/Manage Accounts screen and a dedicated Settings page.
+- **UI:** Removed Premium banner from Home screen. Made "U" icon clickable.
+- **Database:** Added `PersonEntity` and `LoanEntity` with Room migration (destructive for simplicity).
+- **Status:** Compose implementation complete. Syncing to Flutter requested.
+
 ### 2026-03-14: Version Catalog & Toolchain Sync
 - **Issue:** Duplicate `[versions]` and `[libraries]` sections in `libs.versions.toml` causing Gradle build failure.
 - **Status:** Fixed. Verified by running `.\gradlew compileDebugKotlin`.
-- **Issue:** Java toolchain mismatch (expected 17, found 21).
-- **Status:** Updated `app/build.gradle.kts` to use Java 21 toolchain and compatibility options.
-- **Issue:** UUID Migration compilation errors in `AppDatabase.kt` and `RoundUpEngine.kt`.
-- **Status:** Updated pre-population logic to use String IDs and converted `RoundUpEngine` to use `TransactionEntity` with String types.
-- **Issue:** Compose 1.7.0 features (`SharedTransitionApi`, `animateItem`) missing.
-- **Status:** Upgraded `composeBom` to `2024.10.01` in `libs.versions.toml`.
-
-### 2026-03-14: Flutter Parity Sync
-- **Issue:** Missing dependencies (`uuid`, `decimal`) and broken imports.
-- **Status:** Added dependencies to `pubspec.yaml`, fixed relative imports in `transaction_repository.dart`.
-- **Issue:** Isar pluralization mismatch (`categorys` vs `categories`).
-- **Status:** Verified generated schema uses `categorys` and corrected all repository references.
-- **Issue:** Syntax error in `total_balance_card.dart` (missing closing parenthesis for `PaisaCard`).
-- **Status:** Fixed. Verified with `flutter analyze`.
-
-### 2026-03-14: Phase 24 Implementation
-- **Feature:** Local Scheduled Notifications (Scaffolding).
-- **Compose:** Added `NotificationHelper` and `ReminderWorker` using `WorkManager`.
-- **Flutter:** Added `NotificationService` using `flutter_local_notifications` and `timezone`.
-
-### 2026-03-14: Transaction Save Fix (Foreign Key)
-- **Issue:** `Failed to save transaction: FOREIGN KEY constraint` error when inserting transactions.
-- **Cause:** `WalletViewModel` used a stale `defaultAccountId` ("default_account_id") that didn't exist in the database after the UUID migration.
-- **Status:** Fixed by synchronizing the ID to "default_cash" in `WalletViewModel.kt`.
-
----
-
-## 11. Feature Parity Checklist (Updated)
-
-The following architectural plans have been mocked up and planned, awaiting full execution in future phases:
-
-### Phase 20: Peer-to-Peer (P2P) Offline Sync Prep
-Prepare the app to sync data with a partner (e.g., a spouse) without the internet.
-- **Implementation:** Create a scaffolding layer using Android's Nearby Connections API or a local Bluetooth/WiFi Direct implementation for Flutter. 
-- **Conflict Resolution:** Write the merge logic that compares the `updatedAt` timestamps of two UUID records to decide which transaction state wins during a local sync.
-
-### Phase 21: CI/CD & Automated Store Deployment
-Automate the build process.
-- **Implementation:** Provide the complete `fastlane` Fastfiles and GitHub Actions `.yml` workflow files to automatically lint, test, and build the Android App Bundle (.aab) and Flutter release APKs.
-
-### Phase 23: Offline OCR & Receipt Scanning
-Allow users to extract totals from physical receipts without sending images to the cloud.
-- **Implementation:** Integrate Google ML Kit Text Recognition (`google_mlkit_text_recognition` in Flutter, and native ML Kit Vision in Android). Build a regex parser to find the "Total" amount in the scanned text bloc.
-
-### Phase 24: Local Scheduled Notifications
-Remind users of upcoming bills without a server.
-- **Implementation:** Use Android `AlarmManager` / `WorkManager` and Flutter `flutter_local_notifications` to schedule a background trigger that checks the `RecurringTransaction` table and fires a local push notification 24 hours before a bill is due.
-
-### Phase 25: Cross-Device Data Transfer (QR Codes)
-Transfer small transaction batches locally between devices securely.
-- **Implementation:** Generate a dense QR code containing a compressed JSON payload of a specific split-bill transaction. Build a scanner to read and import this JSON payload into the recipient's UUID database.
-
-### Phase 28: Custom Home Screen Widgets
-Bring the dashboard to the user's home screen.
-- **Implementation:** Build a Jetpack Glance widget (Android) and use `home_widget` (Flutter) to create a 2x2 widget displaying the total balance and a progress bar for the current month's budget.
-
-### Phase 31: Wear OS & Apple Watch Scaffolding
-Extend the ecosystem to the wrist.
-- **Implementation:** Scaffold a basic Wear OS module (using Compose for Wear OS) and an Apple Watch target (using Swift/WatchKit interfacing with Flutter) that can receive a simple "Add Quick Expense" command and send it to the phone via the local Bluetooth/Data Layer API.
-
-### Phase 32: Advanced Anti-Tampering & Secure Enclave Setup
-Protect the local database from physical extraction on compromised devices.
-- **Implementation:** Implement Root/Jailbreak detection (using `rootbeer` for Android or `flutter_jailbreak_detection` for Flutter). Encrypt the Room/Isar database using SQLCipher and the device's hardware-backed Keystore/Secure Enclave.
-
-### Phase 33: Offline PDF Generation & Reporting
-Allow users to generate beautiful, shareable financial reports locally.
-- **Implementation:** Create a `ReportGenerator` utility. Use native Android `PdfDocument` and the Flutter `pdf` package to draw a multi-page PDF containing the user's monthly transactions and the Canvas/fl_chart charts we built in Phase 4.
-
-### Phase 34: Local Voice Expense Entry (On-Device NLP)
-Allow users to dictate expenses (e.g., "Spent twenty dollars on coffee").
-- **Implementation:** Integrate on-device Speech-to-Text (`SpeechRecognizer` API in Android, `speech_to_text` in Flutter configured for offline models). Create a regex/NLP parser to extract the `amount` and `note` from the raw transcribed text.
-
-### Phase 35: Privacy-Preserving Geofencing & Location Tagging
-Remember where an expense happened without tracking the user.
-- **Implementation:** Add `latitude` and `longitude` to the `Transaction` model. Use local location APIs to tag an expense's location upon creation. Create a `MapScreen` (using a lightweight offline mapping solution or an abstract coordinate grid) to show spending hotspots.
-
-### Phase 36: Quick Settings Tiles & Dynamic Shortcuts
-Push OS integration to the absolute limit.
-- **Implementation:** Build an Android `TileService` (Quick Settings Tile) that opens a transparent "Quick Add" dialog over any app. For Flutter, expand the `quick_actions` to include dynamic shortcuts based on the user's most frequent categories.
-
-### Phase 38: Custom App Icon Switcher
-Give users premium customization options.
-- **Implementation:** Build a feature allowing users to swap the app's home screen icon (e.g., Dark Mode Logo, Gold Premium Logo, Minimalist Logo). Use `<activity-alias>` in Android's `AndroidManifest.xml` and `flutter_dynamic_icon`.
-
-### Phase 39: On-Device Model Retraining (Federated Learning Prep)
-Make the auto-categorization from Phase 16 smarter over time.
-- **Implementation:** Build a background worker that runs once a week to update the local heuristics/weights of the Category Suggester based on the user's manual corrections.
-
-### Phase 41: Final Profiling & Memory Leak Hunting
-Guarantee stability under the 4GB RAM constraint.
-- **Implementation:** Provide the exact setup code to integrate `LeakCanary` (Android) in the `debug` build variant ONLY. For Flutter, provide the specific `DevTools` CLI commands and memory profiling assertions to add to our integration tests.
-
-### Phase 44: Foldable & Tablet Adaptive Layouts
-Scale the UI for large screens without just stretching elements.
-- **Implementation:** Implement Window Size Classes (Compact, Medium, Expanded). On Expanded screens (tablets/foldables), refactor the `/home` route to a Master-Detail layout. The left pane shows the Dashboard overview, and the right pane shows the Transaction List or Chart side-by-side.
-
-### Phase 51: Dynamic Feature Modules (DFM) & Deferred Loading
-Shrink the initial install size for the Google Play Store.
-- **Implementation:** For Android, move the heavy PDF Generation (Phase 33) and ML Kit OCR (Phase 23) into an On-Demand Dynamic Feature Module. For Flutter, implement deferred imports (`import 'package:...' deferred as ...`) for these heavy screens.
+...
