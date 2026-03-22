@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dynamic_color/dynamic_color.dart';
-import 'core/theme/app_theme.dart';
+import 'core/theme/theme.dart';
 import 'app/router.dart';
 import 'core/database/providers.dart';
 import 'core/widgets/global_error_screen.dart';
@@ -40,7 +40,7 @@ class WalletApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isarInit = ref.watch(isarInitProvider);
+    final isarInit = ref.watch(isarProvider);
     final router = ref.watch(routerProvider);
 
     return DynamicColorBuilder(
@@ -48,8 +48,8 @@ class WalletApp extends ConsumerWidget {
         return MaterialApp.router(
           title: 'Wallet',
           routerConfig: router,
-          theme: AppTheme.lightTheme(lightDynamic),
-          darkTheme: AppTheme.darkTheme(darkDynamic),
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
           themeMode: ThemeMode.system,
           debugShowCheckedModeBanner: false,
           builder: (context, child) {

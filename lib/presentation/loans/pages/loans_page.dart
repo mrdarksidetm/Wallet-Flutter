@@ -1,16 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 class LoansPage extends StatelessWidget {
   const LoansPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final currencyFormat = NumberFormat.simpleCurrency(locale: 'en_IN');
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Loans & Debts'),

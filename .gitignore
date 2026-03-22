@@ -52,5 +52,10 @@ app.*.map.json
 # UI References
 /Goal/
 
-#TESTING Related
+# TESTING Related
 /analyze_screenshots.py
+
+# Project Management
+Stat.md
+gemini.md
+SPEC.md

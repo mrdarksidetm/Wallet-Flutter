@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/auxiliary_models.dart';
-import '../../../shared/widgets/paisa_list_tile.dart';
 import '../../../shared/widgets/app_button.dart';
-import 'package:wallet/core/theme/colors.dart';
+import '../../../core/theme/colors.dart';
 
 class LoanScreen extends ConsumerStatefulWidget {
   const LoanScreen({super.key});
@@ -120,7 +119,7 @@ class _LoanList extends StatelessWidget {
         final loan = loans[index];
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
-          shape: RoundedCornerShape(16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           child: ListTile(
             title: Text(loan.person.value?.name ?? 'Unknown', style: const TextStyle(fontWeight: FontWeight.bold)),
             subtitle: Text(loan.note ?? 'No note'),

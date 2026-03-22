@@ -190,7 +190,7 @@ class OverviewCards extends ConsumerWidget {
                 const Spacer(),
                 Center(child: Icon(Icons.calendar_today_outlined, size: 36, color: const Color(0xFF7A706D).withOpacity(0.5))),
                 const SizedBox(height: 12),
-                Center(child: const Text('No transactions this week', textAlign: TextAlign.center, style: TextStyle(fontFamily: 'ProductSans', fontSize: 11, color: Color(0xFF7A706D), fontWeight: FontWeight.w500))),
+                const Center(child: Text('No transactions this week', textAlign: TextAlign.center, style: TextStyle(fontFamily: 'ProductSans', fontSize: 11, color: Color(0xFF7A706D), fontWeight: FontWeight.w500))),
                 const Spacer(),
               ],
             ),

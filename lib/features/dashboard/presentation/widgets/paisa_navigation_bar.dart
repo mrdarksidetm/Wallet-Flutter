@@ -42,7 +42,7 @@ class PaisaNavigationBar extends StatelessWidget {
     
     // M3 Color mappings matching the UI (Brownish active state)
     final activeBgColor = const Color(0xFF8B5145).withOpacity(0.15);
-    final activeIconColor = const Color(0xFF8B5145);
+    const activeIconColor = Color(0xFF8B5145);
     final inactiveIconColor = const Color(0xFF4A4442).withOpacity(0.7);
     
     return GestureDetector(

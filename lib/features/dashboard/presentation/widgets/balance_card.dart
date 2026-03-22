@@ -65,10 +65,10 @@ class BalanceCard extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
+                      const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
+                          Text(
                             'Total balance',
                             style: TextStyle(
                               fontFamily: 'ProductSans',
@@ -77,7 +77,7 @@ class BalanceCard extends ConsumerWidget {
                               fontWeight: FontWeight.w700,
                             ),
                           ),
-                          Icon(Icons.visibility_off, color: const Color(0xFF2B1C1A), size: 22), // Solid dark
+                          Icon(Icons.visibility_off, color: Color(0xFF2B1C1A), size: 22), // Solid dark
                         ],
                       ),
                       const SizedBox(height: 8),

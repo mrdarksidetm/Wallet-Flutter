@@ -18,8 +18,8 @@ class _AddBudgetScreenState extends ConsumerState<AddBudgetScreen> {
   String _currentMode = 'Automatic';
   String _currentType = 'Category Budget';
   String _currentPeriod = 'Monthly';
-  int _selectedCategories = 0;
-  String _additionalSettings = 'Fixed budget';
+  final int _selectedCategories = 0;
+  final String _additionalSettings = 'Fixed budget';
   
   Color _selectedPrimaryColor = const Color(0xFFFF5722); // Default to orange ish red
   Color _selectedAccentColor = const Color(0xFFF44336);
@@ -257,12 +257,12 @@ class _AddBudgetScreenState extends ConsumerState<AddBudgetScreen> {
                  borderRadius: BorderRadius.circular(16),
                  border: Border.all(color: const Color(0xFFEEDDDA)),
                ),
-               child: Row(
+               child: const Row(
                  mainAxisSize: MainAxisSize.min,
                  children: [
-                   const Text('0xFFF44336', style: TextStyle(fontWeight: FontWeight.w500, color: Color(0xFF1B1B1F))),
-                   const SizedBox(width: 16),
-                   const Icon(Icons.copy_all_outlined, size: 18, color: Color(0xFF5A4D48)),
+                   Text('0xFFF44336', style: TextStyle(fontWeight: FontWeight.w500, color: Color(0xFF1B1B1F))),
+                   SizedBox(width: 16),
+                   Icon(Icons.copy_all_outlined, size: 18, color: Color(0xFF5A4D48)),
                  ],
                )
              ),

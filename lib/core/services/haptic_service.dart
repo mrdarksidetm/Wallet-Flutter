@@ -15,13 +15,13 @@ class HapticService {
   }
 
   static Future<void> success() async {
-    if (await Vibration.hasVibrator() ?? false) {
+    if (await Vibration.hasVibrator() == true) {
       Vibration.vibrate(duration: 50, amplitude: 128);
     }
   }
 
   static Future<void> error() async {
-    if (await Vibration.hasVibrator() ?? false) {
+    if (await Vibration.hasVibrator() == true) {
       Vibration.vibrate(pattern: [0, 50, 50, 50], amplitude: 255);
     }
   }

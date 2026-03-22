@@ -130,7 +130,7 @@ class BudgetCard extends StatelessWidget {
     // 1. Calculate values safely
     final budgetLimit = budget.amount;
     final categoryName = budget.category.value?.name ?? 'Unknown';
-    final isAuto = true; // Hardcoded for now until we expand DB schema
+    const isAuto = true; // Hardcoded for now until we expand DB schema
     
     // For demo purposes, we will assume 0 spent right now as we haven't wired transactions
     const double spent = 0; 

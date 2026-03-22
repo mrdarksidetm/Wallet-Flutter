@@ -7,13 +7,11 @@ final notificationServiceProvider = Provider<NotificationService>((ref) {
   return NotificationService();
 });
 
-/**
- * Phase 24: Local Scheduled Notifications
- * 
- * This service handles on-device reminders without a server.
- * It uses the 'flutter_local_notifications' package to schedule 
- * triggers for recurring bills or budget alerts.
- */
+/// Phase 24: Local Scheduled Notifications
+/// 
+/// This service handles on-device reminders without a server.
+/// It uses the 'flutter_local_notifications' package to schedule 
+/// triggers for recurring bills or budget alerts.
 class NotificationService {
   final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
 

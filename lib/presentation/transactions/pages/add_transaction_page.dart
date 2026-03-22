@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../widgets/transaction_list_item.dart'; // Just for consistency in imports if needed later
 
 import '../../../core/services/haptic_service.dart';
 

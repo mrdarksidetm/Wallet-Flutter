@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 /// Date-math algorithms calculate weekday offsets and plot recurring
 /// transaction executions directly into the layout.
 class SubscriptionCalendarScreen extends StatelessWidget {
-  const SubscriptionCalendarScreen({Key? key}) : super(key: key);
+  const SubscriptionCalendarScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
