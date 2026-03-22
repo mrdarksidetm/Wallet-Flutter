@@ -22,16 +22,18 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
     }
 
-    // kotlin {
-    //    jvmToolchain(17)
-    // }
+    kotlin {
+        jvmToolchain(17)
+    }
 
     defaultConfig {
         applicationId = "com.mrdarksidetm.wallet"
         minSdk = 33
         targetSdk = 36
+        multiDexEnabled = true
         ndk {
            abiFilters.add("armeabi-v7a")
            abiFilters.add("arm64-v8a")
@@ -60,4 +62,8 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
