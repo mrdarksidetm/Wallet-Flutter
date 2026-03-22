@@ -29,7 +29,12 @@ class NotificationService {
       iOS: initializationSettingsDarwin,
     );
 
-    await _notificationsPlugin.initialize(initializationSettings);
+    await _notificationsPlugin.initialize(
+      settings: initializationSettings,
+      onDidReceiveNotificationResponse: (details) {
+        // Handle notification tap
+      },
+    );
   }
 
   Future<void> showInstantNotification(String title, String body) async {
@@ -42,21 +47,26 @@ class NotificationService {
     );
 
     const NotificationDetails details = NotificationDetails(android: androidDetails);
-    await _notificationsPlugin.show(0, title, body, details);
+    await _notificationsPlugin.show(
+      id: 0,
+      title: title,
+      body: body,
+      notificationDetails: details,
+    );
   }
 
   Future<void> scheduleNotification(
-    int id, 
-    String title, 
-    String body, 
+    int id,
+    String title,
+    String body,
     DateTime scheduledDate
   ) async {
     await _notificationsPlugin.zonedSchedule(
-      id,
-      title,
-      body,
-      tz.TZDateTime.from(scheduledDate, tz.local),
-      const NotificationDetails(
+      id: id,
+      title: title,
+      body: body,
+      scheduledDate: tz.TZDateTime.from(scheduledDate, tz.local),
+      notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           'wallet_scheduled_channel',
           'Scheduled Reminders',
@@ -64,8 +74,6 @@ class NotificationService {
         ),
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
     );
   }
 

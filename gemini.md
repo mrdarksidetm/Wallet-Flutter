@@ -98,6 +98,13 @@ Phase 5: The Input Pipeline - Build AddTransactionScreen and wire data insertion
 
 Phase 6: Visualizations - Implement native Canvas charts in ReportsScreen.
 
+## 10. Mandatory Environment Rules (CRITICAL)
+- **OS**: Windows 11.
+- **Shell**: PowerShell 7.
+- **NO POSIX COMMANDS**: DO NOT use `grep`, `sed`, `awk`, `cat`, `ls -R` (recursive), or other Linux-specific tools in `run_shell_command`.
+- **PowerShell Equivalents**: Use `Get-Content`, `Select-String`, `dir -Recurse`, etc., or use the built-in MCP search/read tools (`grep_search`, `read_file`).
+- **Pathing**: Always use backslashes `\` for local file paths if needed, though most tools handle forward slashes `/`.
+
 # context-mode — MANDATORY routing rules
 
 You have context-mode MCP tools available. These rules are NOT optional — they protect your context window from flooding. A single unrouted command can dump 56 KB into context and waste the entire session.
