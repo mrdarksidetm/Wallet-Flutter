@@ -46,6 +46,8 @@ class TransactionModel {
   late DateTime updatedAt;
 
   bool isDeleted = false;
+  
+  bool isArchived = false;
 }
 
 enum TransactionType {

@@ -1,149 +1,159 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import 'package:wallet/core/theme/colors.dart';
+import 'package:wallet/features/home/presentation/home_screen.dart';
 
-import 'widgets/balance_card.dart';
-import 'widgets/overview_cards.dart';
-import 'widgets/calendar_heatmap_card.dart';
-import 'widgets/trend_chart_card.dart';
-import 'widgets/recent_transaction_list.dart';
-import '../../../../core/services/greeting_service.dart';
+import 'package:wallet/features/finance/presentation/loan_screen.dart';
+import 'package:wallet/features/finance/presentation/budget_screen.dart';
+import 'package:wallet/features/finance/presentation/bill_splitter_screen.dart';
+import 'package:wallet/features/accounts/presentation/accounts_screen.dart'; // Assuming this exists or using a placeholder
 
-class DashboardScreen extends ConsumerWidget {
-  final VoidCallback onNavigateToTransactions;
-
-  const DashboardScreen({super.key, required this.onNavigateToTransactions});
+class DashboardScreen extends StatefulWidget {
+  const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final greeting = ref.watch(greetingServiceProvider).getGreeting();
-    
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  int _currentIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final List<Widget> screens = [
+      HomeScreen(
+        onNavigateToSettings: () {
+          setState(() => _currentIndex = 3); // Settings is index 3 in our list
+        },
+        onNavigateToSubMenu: (title) {
+          Widget target;
+          switch (title) {
+            case "Loans":
+              target = const LoanScreen();
+              break;
+            case "Budgets":
+              target = const BudgetScreen();
+              break;
+            case "Bill Splitter":
+              target = const BillSplitterScreen();
+              break;
+            case "Assets":
+              // For Assets, we can show a summary or navigate to accounts
+              target = const AccountsScreen(); // Or a specific Assets screen
+              break;
+            default:
+              target = HomeSubMenu(title: title);
+          }
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => target),
+          );
+        },
+      ),
+      const Center(child: Text("Accounts Screen")),
+      const Center(child: Text("Reports Screen")),
+      const Center(child: Text("Search Screen")),
+    ];
+
     return Scaffold(
-      backgroundColor: Colors.transparent, // Let parent handle background
-      body: CustomScrollView(
-        slivers: [
-          SliverSafeArea(
-             bottom: false,
-             sliver: SliverToBoxAdapter(
-               child: Padding(
-                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-                 child: Column(
-                   crossAxisAlignment: CrossAxisAlignment.start,
-                   children: [
-                     Row(
-                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                       children: [
-                         // Paisa Icon - Golden colored and angled per screenshot
-                         Transform.rotate(
-                           angle: -0.2,
-                           child: Container(
-                             width: 44,
-                             height: 44,
-                             decoration: BoxDecoration(
-                               color: const Color(0xFFD6A848).withOpacity(0.15),
-                               borderRadius: BorderRadius.circular(12),
-                             ),
-                             child: const Icon(Icons.wallet, color: Color(0xFFD6A848), size: 28),
-                           ),
-                         ),
-                         Row(
-                           children: [
-                             // "New" badge added as it's visibly next to the Avatar
-                             Container(
-                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                               decoration: BoxDecoration(
-                                 color: const Color(0xFF8B3A2B), // Dark red
-                                 borderRadius: BorderRadius.circular(12),
-                               ),
-                               child: const Text('New', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold, fontFamily: 'ProductSans')),
-                             ),
-                             const SizedBox(width: 8),
-                             Hero(
-                               tag: 'profile_avatar',
-                               child: Material(
-                                 elevation: 2,
-                                 shape: const CircleBorder(),
-                                 clipBehavior: Clip.antiAlias,
-                                 child: Container(
-                                   decoration: BoxDecoration(
-                                     shape: BoxShape.circle,
-                                     border: Border.all(color: Colors.white, width: 2), // Thin border around avatar
-                                   ),
-                                   child: const CircleAvatar(
-                                     radius: 18,
-                                     backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=a042581f4e29026704d'), // Random placeholder
-                                   ),
-                                 ),
-                               ),
-                             ),
-                           ],
-                         ),
-                       ],
-                     ),
-                     const SizedBox(height: 24),
-                     RichText(
-                       text: TextSpan(
-                         style: const TextStyle(
-                           fontFamily: 'ProductSans',
-                           color: Color(0xFF7A706D), // M3 expressive muted text color matches screenshot
-                           fontSize: 16,
-                           fontWeight: FontWeight.w500,
-                           height: 1.5,
-                           letterSpacing: 0.1,
-                         ),
-                         children: [
-                           TextSpan(text: '$greeting '),
-                           const TextSpan(text: 'Abhijeet Yadav. ', style: TextStyle(color: Color(0xFF3E3634), fontWeight: FontWeight.bold, fontSize: 18)),
-                           const TextSpan(text: 'You have '),
-                           const WidgetSpan(
-                             alignment: PlaceholderAlignment.middle,
-                             child: Padding(
-                               padding: EdgeInsets.symmetric(horizontal: 2), 
-                               child: Icon(Icons.cloud_outlined, size: 18, color: Color(0xFF7A706D))
-                             ),
-                           ),
-                           const TextSpan(text: '\nbackup, '),
-                           const WidgetSpan(
-                             alignment: PlaceholderAlignment.middle,
-                             child: Padding(
-                               padding: EdgeInsets.symmetric(horizontal: 2), 
-                               child: Icon(Icons.star_outline, size: 18, color: Color(0xFF7A706D))
-                             ),
-                           ),
-                           const TextSpan(text: ' rating'),
-                         ],
-                       ),
-                     ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.2, end: 0, curve: Curves.easeOutCubic),
-                   ],
-                 ),
-               ),
-             ),
+      body: screens[_currentIndex],
+      floatingActionButton: (_currentIndex == 0 || _currentIndex == 1) 
+        ? FloatingActionButton(
+            onPressed: () {
+              if (_currentIndex == 0) {
+                // Navigate to Add Transaction
+              } else if (_currentIndex == 1) {
+                // Navigate to Add Account
+              }
+            },
+            backgroundColor: AppColors.primary,
+            child: Icon(
+              _currentIndex == 0 ? Icons.add : Icons.account_balance_wallet,
+              color: Colors.white,
+            ),
+          )
+        : null,
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.only(bottom: 24, left: 16, right: 16),
+        child: Container(
+          height: 80,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(40),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
           ),
-          SliverToBoxAdapter(
-            child: const BalanceCard().animate().fade(duration: 600.ms, curve: Curves.easeOutQuad).slideY(begin: 0.1, end: 0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildNavItem(0, Icons.home, "Home"),
+              _buildNavItem(1, Icons.account_balance_wallet, "Accounts"),
+              _buildNavItem(2, Icons.pie_chart, "Reports"),
+              _buildNavItem(3, Icons.search, "Search"),
+            ],
           ),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(vertical: 24),
-            sliver: SliverToBoxAdapter(
-              child: const OverviewCards().animate(delay: 100.ms).fade(duration: 600.ms).slideY(begin: 0.1, end: 0),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem(int index, IconData icon, String label) {
+    final isSelected = _currentIndex == index;
+    final color = isSelected 
+        ? AppColors.primary 
+        : Theme.of(context).colorScheme.onSurface.withOpacity(0.5);
+
+    return GestureDetector(
+      onTap: () => setState(() => _currentIndex = index),
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
             ),
           ),
-          const SliverPadding(
-            padding: EdgeInsets.only(bottom: 24),
-            sliver: SliverToBoxAdapter(child: CalendarHeatmapCard()),
-          ),
-          const SliverPadding(
-            padding: EdgeInsets.only(bottom: 24),
-            sliver: SliverToBoxAdapter(child: TrendChartCard()),
-          ),
-          SliverToBoxAdapter(
-            child: RecentTransactions(onSeeAll: onNavigateToTransactions)
-                .animate(delay: 200.ms)
-                .fade(duration: 600.ms)
-                .slideY(begin: 0.1, end: 0),
-          ),
-          const SliverPadding(padding: EdgeInsets.only(bottom: 140)),
         ],
+      ),
+    );
+  }
+}
+
+class HomeSubMenu extends StatelessWidget {
+  final String title;
+  const HomeSubMenu({super.key, required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(title)),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              title,
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            Text("Sub-menu content for $title"),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Go Back"),
+            ),
+          ],
+        ),
       ),
     );
   }

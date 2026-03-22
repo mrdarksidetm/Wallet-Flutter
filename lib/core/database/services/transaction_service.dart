@@ -149,4 +149,13 @@ class TransactionService {
       await isar.transactionModels.delete(transaction.id);
     });
   }
+
+  /// Archives a transaction by setting its isArchived flag to true.
+  Future<void> archiveTransaction(TransactionModel transaction) async {
+    await isar.writeTxn(() async {
+      transaction.isArchived = true;
+      transaction.updatedAt = DateTime.now();
+      await isar.transactionModels.put(transaction);
+    });
+  }
 }

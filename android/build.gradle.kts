@@ -1,5 +1,4 @@
 import com.android.build.gradle.BaseExtension
-
 allprojects {
     repositories {
         google()
@@ -7,19 +6,17 @@ allprojects {
     }
 }
 
-
 subprojects {
     afterEvaluate {
-        if ((project.plugins.hasPlugin("com.android.application") || project.plugins.hasPlugin("com.android.library"))) {
+        if ((project.plugins.hasPlugin("com.android.application") || project.plugins.hasPlugin("com.android.library"))) {    
             val android = project.extensions.getByName("android") as com.android.build.gradle.BaseExtension
             if (android.namespace == null) {
                 android.namespace = project.group.toString() + "." + project.name.replace("-", "_")
             }
-            android.compileSdkVersion(36)
+            android.compileSdkVersion(35)
         }
     }
 }
-
 val newBuildDir: Directory =
     rootProject.layout.buildDirectory
         .dir("../../build")

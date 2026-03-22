@@ -132,12 +132,22 @@ For everything else, use:
 If you are reading a file to **edit** it → read_file is correct (edit needs content in context).
 If you are reading to **analyze, explore, or summarize** → use `mcp__context-mode__ctx_execute_file(path, language, code)` instead. Only your printed summary enters context.
 
-## 8. The Synchronization Protocol (CRITICAL)
+## 8. The Tracking Protocol (CRITICAL)
+- **Flutter Version**: Tracking is done via `D:\Ideas\Antigravity\Wallet-Flutter\Stat.md`. This is the ONLY file you should update for progress tracking in this project.
+- **M3 Mandate**: The app MUST use Material 3 (`useMaterial3: true`) with tonal elevation and modern geometry. No M2 components allowed.
+- **Typography**: Primary font MUST be `Google Sans Flex` (variable). Use `AppleColorEmoji` for iOS-style emojis.
+- **Logic Origin**: Port core math and logic from `D:\Ideas\Antigravity\paisa_fork`, but rebuild all UI from scratch using 2026 Flutter standards.
+- **Build Protocol**: Flutter uses a high-performance incremental build cache. The agent will NEVER run the build command. The agent will provide the precise build command for the user to run manually.
+- **Resilience**: Implement a Global Error Handler (`ErrorWidget.builder`) to prevent the "White Screen of Death" and provide precise diagnostic info.
+
+<!-- 
+## 8. The Synchronization Protocol (CRITICAL - COMPOSE ONLY)
 Whenever you successfully implement a new feature, UI change, or database alteration in this Jetpack Compose project, you MUST perform the following two steps before finishing your response:
 1. Open `D:\Ideas\Antigravity\Wallet\SPEC.md` and update it to reflect the new reality of the app (e.g., check off boxes in the Feature Parity Checklist, update the Data Model tables, or add new UI specs).
 2. Copy the newly updated `SPEC.md` file and overwrite the exact same file located at `D:\Ideas\Antigravity\Wallet-Flutter\SPEC.md` so the Flutter project stays in perfect sync. You can use a terminal command to copy the file over.
 
 **CRITICAL RULE:** Always check and always update the SPEC.md file in BOTH the repositories (Wallet and Wallet-Flutter) whenever any changes are made.
+-->
 
 ### grep / search (large results)
 Search results can flood context. Use `mcp__context-mode__ctx_execute(language: "shell", code: "grep ...")` to run searches in sandbox. Only your printed summary enters context.
@@ -163,3 +173,10 @@ Search results can flood context. Use `mcp__context-mode__ctx_execute(language: 
 | `ctx stats` | Call the `stats` MCP tool and display the full output verbatim |
 | `ctx doctor` | Call the `doctor` MCP tool, run the returned shell command, display as checklist |
 | `ctx upgrade` | Call the `upgrade` MCP tool, run the returned shell command, display as checklist |
+
+## 9. Current Project Focus (Flutter Pivot)
+* **Paisa App Reference**: We have cloned the original open-source `paisa-app` (https://github.com/h4h13/paisa-app.git) locally. We will analyze its core logic, UI, and UX, and use it as the basis to build our Flutter version (`Wallet-Flutter`).
+* **Scrap Flutter Layout**: The current layout of the `Wallet-Flutter` app will be scrapped and rebuilt referencing the original `paisa-app`, strictly using Google's Material 3 (M3) design language.
+* **Pause Compose Version**: Work on the Android Jetpack Compose version (`Wallet`) is completely paused. Do NOT touch or modify the Compose version. We are fully focusing on the Flutter version.
+* **SPEC.md Freeze**: Do NOT update `SPEC.md` in *any* repository until explicitly instructed by the user.
+* **Modern Tooling**: Always use the internet to check for the latest Flutter/Dart versions and best practices to improve the project.

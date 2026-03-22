@@ -16,7 +16,7 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.mrdarksidetm.wallet"
-    compileSdk = 36
+    compileSdk = 35
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -24,14 +24,14 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlin {
-        jvmToolchain(17)
-    }
+    // kotlin {
+    //    jvmToolchain(17)
+    // }
 
     defaultConfig {
         applicationId = "com.mrdarksidetm.wallet"
         minSdk = 33
-        targetSdk = 36
+        targetSdk = 35
         ndk {
            abiFilters.add("armeabi-v7a")
            abiFilters.add("arm64-v8a")
