@@ -8,24 +8,20 @@ class Category {
 
   late String name;
 
-  late String icon;
+  late String description;
 
-  late String color;
+  late int icon;
 
-  @Enumerated(EnumType.name)
-  late CategoryType type;
-
-  double? budgetLimit; // Nullable if no budget set specifically on category
+  bool isPredefined = false;
 
   late DateTime createdAt;
-
   late DateTime updatedAt;
-
-  bool isDeleted = false;
+  
+  @Enumerated(EnumType.name)
+  late CategoryType type;
 }
 
 enum CategoryType {
   income,
   expense,
-  transfer,
 }
