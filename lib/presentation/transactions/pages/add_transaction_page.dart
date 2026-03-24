@@ -1,19 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/services/haptic_service.dart';
+import '../../../core/database/providers.dart';
+import '../../../core/database/models/transaction_model.dart';
+import '../../../core/database/models/account.dart';
+import '../../../core/database/models/category.dart';
 
-class AddTransactionPage extends StatefulWidget {
+class AddTransactionPage extends ConsumerStatefulWidget {
   const AddTransactionPage({super.key});
 
   @override
-  State<AddTransactionPage> createState() => _AddTransactionPageState();
+  ConsumerState<AddTransactionPage> createState() => _AddTransactionPageState();
 }
 
-class _AddTransactionPageState extends State<AddTransactionPage> {
-  int _transactionType = 0; // 0: Expense, 1: Income, 2: Transfer
+class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
+  TransactionType _transactionType = TransactionType.expense;
   final _amountController = TextEditingController();
   final _noteController = TextEditingController();
+  
+  Account? _selectedAccount;
+  Category? _selectedCategory;
+  Account? _selectedTransferAccount;
 
   @override
   void dispose() {
@@ -22,10 +31,44 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     super.dispose();
   }
 
+  Future<void> _save() async {
+    final amount = double.tryParse(_amountController.text) ?? 0.0;
+    if (amount <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter a valid amount')));
+      return;
+    }
+
+    if (_selectedAccount == null || _selectedCategory == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select account and category')));
+      return;
+    }
+
+    try {
+      final service = ref.read(transactionServiceProvider);
+      await service.addTransaction(
+        amount: amount,
+        date: DateTime.now(),
+        type: _transactionType,
+        account: _selectedAccount!,
+        category: _selectedCategory!,
+        note: _noteController.text.isNotEmpty ? _noteController.text : null,
+        transferAccount: _selectedTransferAccount,
+      );
+
+      await HapticService.success();
+      if (mounted) context.pop();
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    
+    final accountsAsync = ref.watch(accountsStreamProvider);
+    final categoriesAsync = ref.watch(categoriesStreamProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -42,14 +85,15 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
           children: [
             // Segmented Button for Type
             Center(
-              child: SegmentedButton<int>(
+              child: SegmentedButton<TransactionType>(
                 segments: const [
-                  ButtonSegment(value: 0, label: Text('Expense'), icon: Icon(Icons.remove_rounded)),
-                  ButtonSegment(value: 1, label: Text('Income'), icon: Icon(Icons.add_rounded)),
-                  ButtonSegment(value: 2, label: Text('Transfer'), icon: Icon(Icons.swap_horiz_rounded)),
+                  ButtonSegment(value: TransactionType.expense, label: Text('Expense'), icon: Icon(Icons.remove_rounded)),
+                  ButtonSegment(value: TransactionType.income, label: Text('Income'), icon: Icon(Icons.add_rounded)),
+                  ButtonSegment(value: TransactionType.transfer, label: Text('Transfer'), icon: Icon(Icons.swap_horiz_rounded)),
                 ],
                 selected: {_transactionType},
-                onSelectionChanged: (Set<int> newSelection) {
+                onSelectionChanged: (Set<TransactionType> newSelection) {
+                  HapticService.selection();
                   setState(() {
                     _transactionType = newSelection.first;
                   });
@@ -61,6 +105,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
             // Amount Input
             TextField(
               controller: _amountController,
+              onChanged: (_) => HapticService.light(),
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               style: theme.textTheme.displayMedium?.copyWith(
                 fontWeight: FontWeight.bold,
@@ -92,28 +137,41 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
             ),
             const SizedBox(height: 16),
 
-            // Category Selector (Placeholder for now)
+            // Category Selector
             ListTile(
-              onTap: () {},
+              onTap: () => _showCategoryPicker(categoriesAsync.value ?? []),
               leading: const Icon(Icons.category_rounded),
               title: const Text('Category'),
-              subtitle: const Text('Other'),
+              subtitle: Text(_selectedCategory?.name ?? 'Select Category'),
               trailing: const Icon(Icons.chevron_right_rounded),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               tileColor: colorScheme.surfaceContainerLow,
             ),
             const SizedBox(height: 16),
 
-            // Account Selector (Placeholder for now)
+            // Account Selector
             ListTile(
-              onTap: () {},
+              onTap: () => _showAccountPicker(accountsAsync.value ?? []),
               leading: const Icon(Icons.account_balance_wallet_rounded),
               title: const Text('Account'),
-              subtitle: const Text('Cash'),
+              subtitle: Text(_selectedAccount?.name ?? 'Select Account'),
               trailing: const Icon(Icons.chevron_right_rounded),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               tileColor: colorScheme.surfaceContainerLow,
             ),
+
+            if (_transactionType == TransactionType.transfer) ...[
+              const SizedBox(height: 16),
+              ListTile(
+                onTap: () => _showAccountPicker(accountsAsync.value ?? [], isTransfer: true),
+                leading: const Icon(Icons.swap_horiz_rounded),
+                title: const Text('To Account'),
+                subtitle: Text(_selectedTransferAccount?.name ?? 'Select Target Account'),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                tileColor: colorScheme.surfaceContainerLow,
+              ),
+            ],
             
             const SizedBox(height: 48),
             
@@ -122,11 +180,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
               width: double.infinity,
               height: 64,
               child: FilledButton(
-                onPressed: () async {
-                  await HapticService.success();
-                  // Ported logic from original: validate and save
-                  if (mounted) context.pop();
-                },
+                onPressed: _save,
                 style: FilledButton.styleFrom(
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 ),
@@ -139,6 +193,60 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showCategoryPicker(List<Category> categories) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        final filtered = categories.where((c) {
+          if (_transactionType == TransactionType.transfer) return c.type == CategoryType.transfer;
+          return c.type.name == _transactionType.name;
+        }).toList();
+        
+        return ListView.builder(
+          itemCount: filtered.length,
+          itemBuilder: (context, index) {
+            final cat = filtered[index];
+            return ListTile(
+              title: Text(cat.name),
+              onTap: () {
+                setState(() => _selectedCategory = cat);
+                Navigator.pop(context);
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showAccountPicker(List<Account> accounts, {bool isTransfer = false}) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return ListView.builder(
+          itemCount: accounts.length,
+          itemBuilder: (context, index) {
+            final acc = accounts[index];
+            return ListTile(
+              title: Text(acc.name),
+              subtitle: Text('Balance: ₹${acc.balance.toStringAsFixed(2)}'),
+              onTap: () {
+                setState(() {
+                  if (isTransfer) {
+                    _selectedTransferAccount = acc;
+                  } else {
+                    _selectedAccount = acc;
+                  }
+                });
+                Navigator.pop(context);
+              },
+            );
+          },
+        );
+      },
     );
   }
 }

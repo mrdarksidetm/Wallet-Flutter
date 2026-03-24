@@ -6,6 +6,7 @@ part 'account.g.dart';
 class Account {
   Id id = Isar.autoIncrement;
 
+  @Index()
   late String name;
   
   late String bankName;
@@ -15,16 +16,23 @@ class Account {
   @Index()
   late DateTime validThru;
   
-  late int icon; // Original Paisa uses int for icons
+  late String icon; // Changed from int to String
   
+  late String color; // Added missing color
+
   bool isPredefined = false;
 
   double balance = 0.0;
+
+  bool isArchived = false;
+
+  bool isDeleted = false;
 
   late DateTime createdAt;
 
   late DateTime updatedAt;
   
+  @Index()
   @Enumerated(EnumType.name)
   late AccountType type;
 }
@@ -35,5 +43,6 @@ enum AccountType {
   creditCard,
   wallet,
   investment,
+  asset,
   other,
 }

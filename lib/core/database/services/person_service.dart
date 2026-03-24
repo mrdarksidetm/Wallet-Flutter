@@ -25,6 +25,10 @@ class PersonService {
     await personRepository.save(person);
   }
 
+  Future<void> savePerson(Person person) async {
+    await personRepository.save(person);
+  }
+
   Future<void> updatePerson(Person person, Person updatedPerson) async {
     updatedPerson.id = person.id;
     updatedPerson.updatedAt = DateTime.now();

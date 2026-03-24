@@ -50,4 +50,20 @@ class TransactionRepository extends BaseRepository<TransactionModel> {
     
     return results;
   }
+
+  Future<List<TransactionModel>> searchTransactions(String query) async {
+    if (query.isEmpty) return [];
+    
+    // Simple search by note
+    final byNote = await isar.transactionModels
+        .filter()
+        .noteContains(query, caseSensitive: false)
+        .sortByDateDesc()
+        .findAll();
+        
+    // Also try to search related names or amounts
+    // Note: Isar doesn't support direct filtering on links in one query easily
+    // So we combine or stick to note for now for performance
+    return byNote;
+  }
 }

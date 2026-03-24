@@ -19,6 +19,10 @@ class AccountService {
     await accountRepository.save(acc);
   }
 
+  Future<void> saveAccount(Account account) async {
+    await accountRepository.save(account);
+  }
+
   Future<void> updateAccount(Account account, Account updatedAccount) async {
     updatedAccount.id = account.id;
     await accountRepository.save(updatedAccount);

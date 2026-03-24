@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 import 'isar_service.dart';
@@ -16,6 +17,7 @@ import 'services/person_service.dart';
 import 'services/account_service.dart';
 import 'services/category_service.dart';
 import 'services/recurring_service.dart';
+import 'services/backup_service.dart';
 import '../services/exchange_rate_service.dart';
 import 'models/account.dart';
 import 'models/category.dart';
@@ -84,7 +86,12 @@ final goalRepositoryProvider = Provider<GoalRepository>((ref) {
   return GoalRepository(isar);
 });
 
-// --- Statistics Service ---
+final recurringRepositoryProvider = Provider<RecurringRepository>((ref) {
+  final isar = ref.watch(isarProvider).value!;
+  return RecurringRepository(isar);
+});
+
+// --- Service Providers ---
 final statisticsServiceProvider = Provider<StatisticsService>((ref) {
   final isar = ref.watch(isarProvider).value!;
   final accRepo = ref.watch(accountRepositoryProvider);
@@ -142,6 +149,11 @@ final csvServiceProvider = Provider<CsvService>((ref) {
   return CsvService(isar);
 });
 
+final backupServiceProvider = Provider<BackupService>((ref) {
+  final isar = ref.watch(isarProvider).value!;
+  return BackupService(isar);
+});
+
 // Re-export the exchange rate service provider for convenience
 final appExchangeRateProvider = Provider<ExchangeRateService>((ref) {
   return ref.watch(exchangeRateServiceProvider);
@@ -158,9 +170,47 @@ final totalBalanceProvider = StreamProvider<double>((ref) {
   return service.watchTotalBalance();
 });
 
+final totalAssetBalanceProvider = StreamProvider<double>((ref) {
+  final service = ref.watch(statisticsServiceProvider);
+  return service.watchAssetBalance();
+});
+
+// --- Search Providers ---
+final searchQueryProvider = StateProvider<String>((ref) => '');
+
+final searchTransactionsProvider = FutureProvider<List<TransactionModel>>((ref) async {
+  final query = ref.watch(searchQueryProvider);
+  if (query.isEmpty) return [];
+  
+  final repo = ref.watch(transactionRepositoryProvider);
+  return await repo.searchTransactions(query);
+});
+
+final budgetStatsProvider = StreamProvider<List<Map<String, dynamic>>>((ref) {
+  final service = ref.watch(statisticsServiceProvider);
+  return service.watchBudgets();
+});
+
 final monthlyStatsProvider = StreamProvider<Map<String, double>>((ref) {
   final service = ref.watch(statisticsServiceProvider);
   return service.watchMonthlyStats();
+});
+
+final recentStatsProvider = StreamProvider<Map<String, double>>((ref) {
+  final service = ref.watch(statisticsServiceProvider);
+  return service.watchRecentStats();
+});
+
+final categoryBreakdownProvider = FutureProvider.family<Map<Category, double>, DateTimeRange?>((ref, range) async {
+  if (range == null) return {};
+  final service = ref.watch(statisticsServiceProvider);
+  return await service.getCategoryBreakdown(range.start, range.end);
+});
+
+final dailyStatsProvider = FutureProvider.family<List<MapEntry<DateTime, double>>, DateTimeRange?>((ref, range) async {
+  if (range == null) return [];
+  final service = ref.watch(statisticsServiceProvider);
+  return await service.getDailyStats(range.start, range.end);
 });
 
 final categoriesStreamProvider = StreamProvider<List<Category>>((ref) {
@@ -190,5 +240,10 @@ final goalsStreamProvider = StreamProvider<List<Goal>>((ref) {
 
 final personsStreamProvider = StreamProvider<List<Person>>((ref) {
   final repo = ref.watch(personRepositoryProvider);
+  return repo.watchAll();
+});
+
+final recurringsStreamProvider = StreamProvider<List<Recurring>>((ref) {
+  final repo = ref.watch(recurringRepositoryProvider);
   return repo.watchAll();
 });

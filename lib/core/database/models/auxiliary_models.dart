@@ -1,5 +1,6 @@
 import 'package:isar/isar.dart';
 import 'category.dart';
+import 'account.dart';
 import 'transaction_model.dart';
 
 part 'auxiliary_models.g.dart';
@@ -8,6 +9,7 @@ part 'auxiliary_models.g.dart';
 @collection
 class Person {
   Id id = Isar.autoIncrement;
+  @Index()
   late String name;
   String? contact;
   String? avatar;
@@ -105,8 +107,15 @@ class Goal {
 class Recurring {
   Id id = Isar.autoIncrement;
   
-  // Template transaction details (or link to a template)
-  final transaction = IsarLink<TransactionModel>(); // Or duplicate fields if we want template independent
+  late String name;
+  late double amount;
+  
+  @Enumerated(EnumType.name)
+  late TransactionType type;
+  
+  final account = IsarLink<Account>();
+  final category = IsarLink<Category>();
+  final transferAccount = IsarLink<Account>();
   
   @Enumerated(EnumType.name)
   late RecurrenceFrequency frequency;

@@ -30,6 +30,17 @@ class GoalService {
     });
   }
 
+  Future<void> saveGoal(Goal goal) async {
+    await isar.writeTxn(() async {
+      if (goal.currentAmount >= goal.targetAmount) {
+        goal.isCompleted = true;
+      } else {
+        goal.isCompleted = false;
+      }
+      await isar.goals.put(goal);
+    });
+  }
+
   Future<void> updateAmount(Goal goal, double newAmount) async {
     await isar.writeTxn(() async {
       goal.currentAmount = newAmount;

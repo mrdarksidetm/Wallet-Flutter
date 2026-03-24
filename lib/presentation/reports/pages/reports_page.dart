@@ -1,13 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
+import '../../../core/database/providers.dart';
 
-class ReportsPage extends StatelessWidget {
+class ReportsPage extends ConsumerWidget {
   const ReportsPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final currencyFormat = NumberFormat.simpleCurrency(locale: 'en_IN');
+
+    final now = DateTime.now();
+    final startOfMonth = DateTime(now.year, now.month, 1);
+    final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
+    final monthRange = DateTimeRange(start: startOfMonth, end: endOfMonth);
+
+    final breakdownAsync = ref.watch(categoryBreakdownProvider(monthRange));
+    final dailyStatsAsync = ref.watch(dailyStatsProvider(monthRange));
 
     return Scaffold(
       appBar: AppBar(
@@ -27,91 +39,104 @@ class ReportsPage extends StatelessWidget {
             // Donut Chart
             SizedBox(
               height: 200,
-              child: PieChart(
-                PieChartData(
-                  sectionsSpace: 4,
-                  centerSpaceRadius: 60,
-                  sections: [
-                    PieChartSectionData(
-                      color: colorScheme.primary,
-                      value: 40,
-                      title: '40%',
-                      radius: 20,
-                      showTitle: false,
+              child: breakdownAsync.when(
+                data: (breakdown) {
+                  if (breakdown.isEmpty) {
+                    return const Center(child: Text('No expense data for this month'));
+                  }
+                  
+                  final total = breakdown.values.fold<double>(0, (sum, val) => sum + val);
+                  
+                  return PieChart(
+                    PieChartData(
+                      sectionsSpace: 4,
+                      centerSpaceRadius: 60,
+                      sections: breakdown.entries.map((entry) {
+                        final category = entry.key;
+                        final value = entry.value;
+                        final percentage = (value / total * 100).toStringAsFixed(1);
+                        
+                        return PieChartSectionData(
+                          color: Color(int.parse(category.color.replaceAll('0x', ''), radix: 16)),
+                          value: value,
+                          title: '$percentage%',
+                          radius: 20,
+                          showTitle: false,
+                        );
+                      }).toList(),
                     ),
-                    PieChartSectionData(
-                      color: colorScheme.secondary,
-                      value: 30,
-                      title: '30%',
-                      radius: 20,
-                      showTitle: false,
-                    ),
-                    PieChartSectionData(
-                      color: colorScheme.tertiary,
-                      value: 15,
-                      title: '15%',
-                      radius: 20,
-                      showTitle: false,
-                    ),
-                    PieChartSectionData(
-                      color: colorScheme.error,
-                      value: 15,
-                      title: '15%',
-                      radius: 20,
-                      showTitle: false,
-                    ),
-                  ],
-                ),
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (err, stack) => Center(child: Text('Error: $err')),
               ),
             ),
             const SizedBox(height: 48),
 
             Text(
-              'Cash Flow',
+              'Daily Expenses (This Month)',
               style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 24),
 
-            // Cash Flow Line Chart
+            // Daily Stats Line Chart
             AspectRatio(
               aspectRatio: 1.7,
-              child: LineChart(
-                LineChartData(
-                  gridData: const FlGridData(show: false),
-                  titlesData: const FlTitlesData(show: false),
-                  borderData: FlBorderData(show: false),
-                  lineBarsData: [
-                    LineChartBarData(
-                      spots: const [
-                        FlSpot(0, 3),
-                        FlSpot(2.6, 2),
-                        FlSpot(4.9, 5),
-                        FlSpot(6.8, 3.1),
-                        FlSpot(8, 4),
-                        FlSpot(9.5, 3),
-                        FlSpot(11, 4),
+              child: dailyStatsAsync.when(
+                data: (stats) {
+                  if (stats.isEmpty) {
+                    return const Center(child: Text('Not enough data for chart'));
+                  }
+                  
+                  return LineChart(
+                    LineChartData(
+                      gridData: const FlGridData(show: false),
+                      titlesData: const FlTitlesData(show: false),
+                      borderData: FlBorderData(show: false),
+                      lineBarsData: [
+                        LineChartBarData(
+                          spots: stats.map((e) => FlSpot(e.key.day.toDouble(), e.value)).toList(),
+                          isCurved: true,
+                          color: colorScheme.primary,
+                          barWidth: 4,
+                          dotData: const FlDotData(show: false),
+                          belowBarData: BarAreaData(
+                            show: true,
+                            color: colorScheme.primary.withOpacity(0.1),
+                          ),
+                        ),
                       ],
-                      isCurved: true,
-                      color: colorScheme.primary,
-                      barWidth: 4,
-                      dotData: const FlDotData(show: false),
-                      belowBarData: BarAreaData(
-                        show: true,
-                        color: colorScheme.primary.withOpacity(0.1),
-                      ),
                     ),
-                  ],
-                ),
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (err, stack) => Center(child: Text('Error: $err')),
               ),
             ),
             
             const SizedBox(height: 32),
             
             // Summary List
-            _buildReportItem(context, 'Food', '₹12,400', colorScheme.primary),
-            _buildReportItem(context, 'Shopping', '₹8,200', colorScheme.secondary),
-            _buildReportItem(context, 'Transport', '₹4,100', colorScheme.tertiary),
-            _buildReportItem(context, 'Bills', '₹3,000', colorScheme.error),
+            Text(
+              'Categories',
+              style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            breakdownAsync.when(
+              data: (breakdown) {
+                final sortedEntries = breakdown.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+                return Column(
+                  children: sortedEntries.map((entry) {
+                    final category = entry.key;
+                    final value = entry.value;
+                    final color = Color(int.parse(category.color.replaceAll('0x', ''), radix: 16));
+                    return _buildReportItem(context, category.name, currencyFormat.format(value), color);
+                  }).toList(),
+                );
+              },
+              loading: () => const SizedBox.shrink(),
+              error: (err, stack) => const SizedBox.shrink(),
+            ),
           ],
         ),
       ),

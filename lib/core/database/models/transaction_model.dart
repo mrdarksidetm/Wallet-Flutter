@@ -1,6 +1,7 @@
 import 'package:isar/isar.dart';
 import 'account.dart';
 import 'category.dart';
+import 'auxiliary_models.dart';
 
 part 'transaction_model.g.dart';
 
@@ -8,25 +9,33 @@ part 'transaction_model.g.dart';
 class TransactionModel {
   Id id = Isar.autoIncrement;
 
-  late String name;
+  late double amount;
 
-  late double amount; // Paisa calls this 'currency' but it's the amount
-
-  bool isIncome = false; // Original Paisa calls this 'addOrSub'
+  String? note; // Changed from 'name' to 'note' to match UI
 
   @Index()
-  late DateTime time;
+  late DateTime date; // Changed from 'time' to 'date' to match UI
 
+  @Index()
   @Enumerated(EnumType.name)
   late TransactionType type;
 
+  @Index()
   late int accountId;
 
+  @Index()
   late int categoryId;
 
-  // Links for Isar performance
+  String? icon;
+  List<String>? tags;
+  bool isArchived = false;
+  bool isDeleted = false;
+  bool isTemplate = false; // Added to mark template transactions for recurring use
+
   final account = IsarLink<Account>();
   final category = IsarLink<Category>();
+  final transferAccount = IsarLink<Account>();
+  final person = IsarLink<Person>();
 
   late DateTime createdAt;
   late DateTime updatedAt;

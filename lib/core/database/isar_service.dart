@@ -4,6 +4,7 @@ import 'models/account.dart';
 import 'models/category.dart';
 import 'models/transaction_model.dart';
 import 'models/auxiliary_models.dart';
+import 'services/seed_service.dart';
 
 class IsarService {
   late Future<Isar> db;
@@ -15,7 +16,7 @@ class IsarService {
   Future<Isar> openDB() async {
     if (Isar.instanceNames.isEmpty) {
       final dir = await getApplicationDocumentsDirectory();
-      return await Isar.open(
+      final isar = await Isar.open(
         [
           AccountSchema,
           CategorySchema,
@@ -31,7 +32,14 @@ class IsarService {
         directory: dir.path,
         inspector: true,
       );
+      
+      // Seed default data if database is empty
+      final seedService = SeedService(isar);
+      await seedService.seedDefaults();
+
+      return isar;
     }
     return Future.value(Isar.getInstance());
   }
 }
+

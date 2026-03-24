@@ -44,7 +44,7 @@ class CsvService {
         tx.account.value?.name ?? 'Unknown',
         tx.transferAccount.value?.name ?? '',
         tx.note ?? '',
-        tx.tags.join(';'),
+        tx.tags?.join(';') ?? '',
       ]);
     }
 

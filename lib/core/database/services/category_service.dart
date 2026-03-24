@@ -17,6 +17,10 @@ class CategoryService {
     await categoryRepository.save(cat);
   }
 
+  Future<void> saveCategory(Category category) async {
+    await categoryRepository.save(category);
+  }
+
   Future<void> updateCategory(Category category, Category updatedCategory) async {
     updatedCategory.id = category.id;
     await categoryRepository.save(updatedCategory);

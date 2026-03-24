@@ -33,3 +33,11 @@ class GoalRepository extends BaseRepository<Goal> {
     return isar.goals.where().sortByDeadline().watch(fireImmediately: true);
   }
 }
+
+class RecurringRepository extends BaseRepository<Recurring> {
+  RecurringRepository(super.isar);
+
+  Stream<List<Recurring>> watchAll() {
+    return isar.recurrings.where().sortByNextDate().watch(fireImmediately: true);
+  }
+}

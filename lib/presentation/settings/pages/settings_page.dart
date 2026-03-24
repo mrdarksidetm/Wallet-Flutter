@@ -1,13 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../../core/services/haptic_service.dart';
+import '../../../core/database/providers.dart';
+import '../../auth/providers/auth_provider.dart';
 
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
+
+  @override
+  ConsumerState<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends ConsumerState<SettingsPage> {
+  bool _biometricEnabled = true;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final authState = ref.watch(authProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -23,7 +36,7 @@ class SettingsPage extends StatelessWidget {
             title: 'Theme Mode',
             subtitle: 'System',
             onTap: () async {
-              await HapticService.light();
+              await HapticService.selection();
             },
           ),
           _buildSettingsTile(
@@ -46,14 +59,18 @@ class SettingsPage extends StatelessWidget {
             icon: Icons.currency_exchange_rounded,
             title: 'Currency',
             subtitle: 'Indian Rupee (₹)',
-            onTap: () {},
+            onTap: () async {
+              await HapticService.selection();
+            },
           ),
           _buildSettingsTile(
             context,
             icon: Icons.language_rounded,
             title: 'Language',
             subtitle: 'English',
-            onTap: () {},
+            onTap: () async {
+              await HapticService.selection();
+            },
           ),
 
           const Divider(indent: 24, endIndent: 24, height: 32),
@@ -62,13 +79,57 @@ class SettingsPage extends StatelessWidget {
             context,
             icon: Icons.fingerprint_rounded,
             title: 'Biometric Lock',
-            subtitle: 'Protect your data',
+            subtitle: authState.canCheckBiometrics ? 'Protect your data' : 'Not supported on device',
             trailing: Switch(
-              value: true,
-              onChanged: (val) async {
+              value: _biometricEnabled && authState.canCheckBiometrics,
+              onChanged: authState.canCheckBiometrics ? (val) async {
                 await HapticService.medium();
-              },
+                setState(() => _biometricEnabled = val);
+              } : null,
             ),
+          ),
+
+          const Divider(indent: 24, endIndent: 24, height: 32),
+          _buildSectionHeader(context, 'Finances'),
+          _buildSettingsTile(
+            context,
+            icon: Icons.repeat_rounded,
+            title: 'Recurring Transactions',
+            subtitle: 'Manage subscriptions & bills',
+            onTap: () async {
+              await HapticService.selection();
+              if (context.mounted) context.push('/recurring');
+            },
+          ),
+          _buildSettingsTile(
+            context,
+            icon: Icons.category_rounded,
+            title: 'Categories',
+            subtitle: 'Manage income & expense types',
+            onTap: () async {
+              await HapticService.selection();
+              if (context.mounted) context.push('/categories');
+            },
+          ),
+          _buildSettingsTile(
+            context,
+            icon: Icons.people_rounded,
+            title: 'People',
+            subtitle: 'Manage contacts for loans',
+            onTap: () async {
+              await HapticService.selection();
+              if (context.mounted) context.push('/people');
+            },
+          ),
+          _buildSettingsTile(
+            context,
+            icon: Icons.flag_rounded,
+            title: 'Financial Goals',
+            subtitle: 'Track savings targets',
+            onTap: () async {
+              await HapticService.selection();
+              if (context.mounted) context.push('/goals');
+            },
           ),
 
           const Divider(indent: 24, endIndent: 24, height: 32),
@@ -77,17 +138,105 @@ class SettingsPage extends StatelessWidget {
             context,
             icon: Icons.file_upload_outlined,
             title: 'Export Data',
-            subtitle: 'CSV, Excel, or JSON',
+            subtitle: 'Export transactions to CSV',
             onTap: () async {
-              await HapticService.success();
+              await HapticService.medium();
+              try {
+                await ref.read(csvServiceProvider).exportTransactions();
+                await HapticService.success();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Exported successfully! Check downloads.')),
+                  );
+                }
+              } catch (e) {
+                await HapticService.error();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Export failed: $e')),
+                  );
+                }
+              }
             },
           ),
           _buildSettingsTile(
             context,
             icon: Icons.backup_outlined,
-            title: 'Backup & Restore',
-            subtitle: 'Local backup file',
-            onTap: () {},
+            title: 'Backup Database',
+            subtitle: 'Create a local .isar backup',
+            onTap: () async {
+              await HapticService.medium();
+              try {
+                final path = await ref.read(backupServiceProvider).createBackup();
+                await HapticService.success();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Backup created at: $path')),
+                  );
+                }
+              } catch (e) {
+                await HapticService.error();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Backup failed: $e')),
+                  );
+                }
+              }
+            },
+          ),
+          _buildSettingsTile(
+            context,
+            icon: Icons.restore_outlined,
+            title: 'Restore Database',
+            subtitle: 'Restore from a .isar file',
+            onTap: () async {
+              await HapticService.medium();
+              try {
+                final result = await FilePicker.platform.pickFiles(
+                  type: FileType.any,
+                );
+                
+                if (result != null && result.files.single.path != null) {
+                  final path = result.files.single.path!;
+                  if (context.mounted) {
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Restore Backup?'),
+                        content: const Text('This will close the app and replace current data. Are you sure?'),
+                        actions: [
+                          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+                          TextButton(
+                            onPressed: () async {
+                              await HapticService.medium();
+                              if (context.mounted) Navigator.pop(context, true);
+                            },
+                            child: const Text('Restore'),
+                          ),
+                        ],
+                      ),
+                    );
+
+                    if (confirm == true) {
+                      await ref.read(backupServiceProvider).restoreBackup(path);
+                      await HapticService.success();
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Database replaced. Please restart the app.')),
+                        );
+                      }
+                    }
+                  }
+                }
+              } catch (e) {
+                await HapticService.error();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Restore failed: $e')),
+                  );
+                }
+              }
+            },
           ),
 
           const SizedBox(height: 48),

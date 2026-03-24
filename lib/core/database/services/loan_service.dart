@@ -8,6 +8,21 @@ class LoanService {
 
   LoanService({required this.isar, required this.loanRepository});
 
+  Future<void> saveLoan(Loan loan, {String? personName}) async {
+    await isar.writeTxn(() async {
+      if (personName != null) {
+        var person = await isar.persons.filter().nameEqualTo(personName).findFirst();
+        if (person == null) {
+          person = Person()..name = personName..createdAt = DateTime.now()..updatedAt = DateTime.now();
+          await isar.persons.put(person);
+        }
+        loan.person.value = person;
+      }
+      await isar.loans.put(loan);
+      await loan.person.save();
+    });
+  }
+
   Future<void> addLoan({
     required Person person,
     required double amount,

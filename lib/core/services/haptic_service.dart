@@ -14,15 +14,21 @@ class HapticService {
     HapticFeedback.heavyImpact();
   }
 
+  static Future<void> selection() async {
+    HapticFeedback.selectionClick();
+  }
+
   static Future<void> success() async {
+    await HapticFeedback.mediumImpact();
     if (await Vibration.hasVibrator() == true) {
-      Vibration.vibrate(duration: 50, amplitude: 128);
+      Vibration.vibrate(duration: 100, amplitude: 128);
     }
   }
 
   static Future<void> error() async {
+    await HapticFeedback.heavyImpact();
     if (await Vibration.hasVibrator() == true) {
-      Vibration.vibrate(pattern: [0, 50, 50, 50], amplitude: 255);
+      Vibration.vibrate(pattern: [0, 50, 100, 50, 100, 50], amplitude: 255);
     }
   }
 }
