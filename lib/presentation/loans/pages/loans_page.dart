@@ -10,7 +10,8 @@ class LoansPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currencyFormat = NumberFormat.simpleCurrency(locale: 'en_IN');
+    final selectedCurrency = ref.watch(currencyProvider);
+    final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
     final loansAsync = ref.watch(loansStreamProvider);
 
     return Scaffold(

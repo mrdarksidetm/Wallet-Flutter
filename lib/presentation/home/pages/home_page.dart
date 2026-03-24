@@ -21,7 +21,8 @@ class HomePage extends ConsumerWidget {
     final transactionsAsync = ref.watch(transactionsStreamProvider);
     final budgetsAsync = ref.watch(budgetStatsProvider);
     final goalsAsync = ref.watch(goalsStreamProvider);
-    final currencyFormat = NumberFormat.simpleCurrency(locale: 'en_IN');
+    final selectedCurrency = ref.watch(currencyProvider);
+    final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
 
     double totalBudgetLeft = 0;
     if (budgetsAsync.hasValue) {

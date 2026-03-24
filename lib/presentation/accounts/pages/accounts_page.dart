@@ -10,7 +10,8 @@ class AccountsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final accountsAsync = ref.watch(accountsStreamProvider);
-    final currencyFormat = NumberFormat.simpleCurrency(locale: 'en_IN');
+    final selectedCurrency = ref.watch(currencyProvider);
+    final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
 
     return Scaffold(
       appBar: AppBar(

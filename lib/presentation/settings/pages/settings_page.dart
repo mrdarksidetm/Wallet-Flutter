@@ -58,9 +58,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             context,
             icon: Icons.currency_exchange_rounded,
             title: 'Currency',
-            subtitle: 'Indian Rupee (₹)',
+            subtitle: ref.watch(currencyProvider),
             onTap: () async {
               await HapticService.selection();
+              if (context.mounted) context.push('/currency_selection');
             },
           ),
           _buildSettingsTile(
@@ -154,6 +155,31 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Export failed: $e')),
+                  );
+                }
+              }
+            },
+          ),
+          _buildSettingsTile(
+            context,
+            icon: Icons.file_download_outlined,
+            title: 'Import Data',
+            subtitle: 'Import transactions from CSV',
+            onTap: () async {
+              await HapticService.medium();
+              try {
+                await ref.read(csvServiceProvider).importTransactions();
+                await HapticService.success();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Imported successfully!')),
+                  );
+                }
+              } catch (e) {
+                await HapticService.error();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Import failed: $e')),
                   );
                 }
               }

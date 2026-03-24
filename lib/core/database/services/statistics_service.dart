@@ -170,6 +170,28 @@ class StatisticsService {
     });
   }
 
+  Future<List<MapEntry<DateTime, double>>> getCategoryMonthlyStats(Id categoryId) async {
+    final now = DateTime.now();
+    final List<MapEntry<DateTime, double>> stats = [];
+    
+    for (var i = 5; i >= 0; i--) {
+      final date = DateTime(now.year, now.month - i, 1);
+      final start = DateTime(date.year, date.month, 1);
+      final end = DateTime(date.year, date.month + 1, 0, 23, 59, 59);
+      
+      final spent = await isar.transactionModels
+          .filter()
+          .categoryIdEqualTo(categoryId)
+          .dateBetween(start, end)
+          .typeEqualTo(TransactionType.expense)
+          .amountProperty()
+          .sum();
+          
+      stats.add(MapEntry(date, spent));
+    }
+    return stats;
+  }
+
   Stream<Map<String, double>> watchMonthlyStats() {
     final now = DateTime.now();
     final start = DateTime(now.year, now.month, 1);

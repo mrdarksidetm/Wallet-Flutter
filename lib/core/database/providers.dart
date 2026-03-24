@@ -175,6 +175,9 @@ final totalAssetBalanceProvider = StreamProvider<double>((ref) {
   return service.watchAssetBalance();
 });
 
+// --- Settings Providers ---
+final currencyProvider = StateProvider<String>((ref) => 'INR');
+
 // --- Search Providers ---
 final searchQueryProvider = StateProvider<String>((ref) => '');
 
@@ -211,6 +214,11 @@ final dailyStatsProvider = FutureProvider.family<List<MapEntry<DateTime, double>
   if (range == null) return [];
   final service = ref.watch(statisticsServiceProvider);
   return await service.getDailyStats(range.start, range.end);
+});
+
+final categoryMonthlyStatsProvider = FutureProvider.family<List<MapEntry<DateTime, double>>, Id>((ref, categoryId) async {
+  final service = ref.watch(statisticsServiceProvider);
+  return await service.getCategoryMonthlyStats(categoryId);
 });
 
 final categoriesStreamProvider = StreamProvider<List<Category>>((ref) {

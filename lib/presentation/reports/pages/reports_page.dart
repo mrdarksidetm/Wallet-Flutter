@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/database/providers.dart';
+import '../../../core/database/models/category.dart';
+import '../../../core/services/haptic_service.dart';
 
 class ReportsPage extends ConsumerWidget {
   const ReportsPage({super.key});
@@ -11,7 +14,8 @@ class ReportsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final currencyFormat = NumberFormat.simpleCurrency(locale: 'en_IN');
+    final selectedCurrency = ref.watch(currencyProvider);
+    final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
 
     final now = DateTime.now();
     final startOfMonth = DateTime(now.year, now.month, 1);
@@ -130,7 +134,7 @@ class ReportsPage extends ConsumerWidget {
                     final category = entry.key;
                     final value = entry.value;
                     final color = Color(int.parse(category.color.replaceAll('0x', ''), radix: 16));
-                    return _buildReportItem(context, category.name, currencyFormat.format(value), color);
+                    return _buildReportItem(context, category, currencyFormat.format(value), color);
                   }).toList(),
                 );
               },
@@ -143,22 +147,20 @@ class ReportsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildReportItem(BuildContext context, String label, String amount, Color color) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        children: [
-          Container(
-            width: 12,
-            height: 12,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 16),
-          Text(label, style: Theme.of(context).textTheme.bodyLarge),
-          const Spacer(),
-          Text(amount, style: const TextStyle(fontWeight: FontWeight.bold)),
-        ],
+  Widget _buildReportItem(BuildContext context, Category category, String amount, Color color) {
+    return ListTile(
+      onTap: () {
+        HapticService.selection();
+        context.push('/category_details', extra: category);
+      },
+      contentPadding: EdgeInsets.zero,
+      leading: Container(
+        width: 12,
+        height: 12,
+        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
       ),
+      title: Text(category.name, style: Theme.of(context).textTheme.bodyLarge),
+      trailing: Text(amount, style: const TextStyle(fontWeight: FontWeight.bold)),
     );
   }
 }

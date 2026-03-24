@@ -19,6 +19,8 @@ import '../presentation/home/pages/add_edit_recurring_page.dart';
 import '../presentation/settings/pages/categories_page.dart';
 import '../presentation/settings/pages/add_edit_category_page.dart';
 import '../presentation/people/pages/people_page.dart';
+import '../presentation/settings/pages/currency_selection_page.dart';
+import '../presentation/reports/pages/category_details_page.dart';
 import '../presentation/home/pages/goals_page.dart';
 import '../presentation/home/pages/add_edit_goal_page.dart';
 import '../presentation/home/pages/search_page.dart';
@@ -104,6 +106,18 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/goals',
             pageBuilder: (context, state) => _buildSharedAxisTransition(
               context, state, const GoalsPage(), SharedAxisTransitionType.scaled,
+            ),
+          ),
+          GoRoute(
+            path: '/currency_selection',
+            pageBuilder: (context, state) => _buildSharedAxisTransition(
+              context, state, const CurrencySelectionPage(), SharedAxisTransitionType.scaled,
+            ),
+          ),
+          GoRoute(
+            path: '/category_details',
+            pageBuilder: (context, state) => _buildSharedAxisTransition(
+              context, state, CategoryDetailsPage(category: state.extra as Category), SharedAxisTransitionType.scaled,
             ),
           ),
           GoRoute(
