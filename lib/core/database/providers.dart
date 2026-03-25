@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'isar_service.dart';
 import 'repositories/account_repository.dart';
 import 'repositories/category_repository.dart';
@@ -24,6 +25,11 @@ import 'models/account.dart';
 import 'models/category.dart';
 import 'models/transaction_model.dart';
 import 'models/auxiliary_models.dart';
+
+// --- Storage Providers ---
+final sharedPreferencesProvider = FutureProvider<SharedPreferences>((ref) async {
+  return await SharedPreferences.getInstance();
+});
 
 // --- Database Provider ---
 final isarServiceProvider = Provider<IsarService>((ref) => IsarService());

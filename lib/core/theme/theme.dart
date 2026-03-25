@@ -12,8 +12,6 @@ class AppTheme {
       FontVariation('wght', state.weight),
       FontVariation('slnt', state.slant),
       FontVariation('wdth', state.width),
-      // Roundness is not a standard variable axis for Google Sans Flex, 
-      // but let's assume it might be a custom axis or we use it for border radius
     ];
 
     final baseTextStyle = TextStyle(
@@ -29,6 +27,9 @@ class AppTheme {
       onSurface: isDark ? AppColors.backgroundLight : AppColors.backgroundDark,
       brightness: brightness,
     );
+
+    final borderRadius = BorderRadius.circular(state.roundness);
+    final shape = RoundedRectangleBorder(borderRadius: borderRadius);
 
     return ThemeData(
       useMaterial3: true,
@@ -60,7 +61,7 @@ class AppTheme {
       ),
       scaffoldBackgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
       cardTheme: CardThemeData(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(state.roundness)),
+        shape: shape,
         elevation: 0,
         color: isDark ? AppColors.cardDark : Colors.white,
       ),
@@ -74,6 +75,27 @@ class AppTheme {
           fontSize: 20,
           fontWeight: FontWeight.bold,
         ),
+      ),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        shape: shape,
+        elevation: 4,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        border: OutlineInputBorder(borderRadius: borderRadius),
+        filled: true,
+        fillColor: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(shape: shape),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(shape: shape),
+      ),
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: SegmentedButton.styleFrom(shape: shape),
+      ),
+      dialogTheme: DialogThemeData(
+        shape: shape,
       ),
     );
   }

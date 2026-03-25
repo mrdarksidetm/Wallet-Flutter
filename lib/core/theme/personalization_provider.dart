@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import '../database/providers.dart';
 
 class PersonalizationState {
   final double grade;
@@ -15,7 +16,7 @@ class PersonalizationState {
     this.weight = 400,
     this.slant = 0,
     this.width = 100,
-    this.roundness = 40,
+    this.roundness = 28,
     this.fillIcons = false,
   });
 
@@ -54,7 +55,7 @@ class PersonalizationState {
       weight: (map['weight'] as num?)?.toDouble() ?? 400,
       slant: (map['slant'] as num?)?.toDouble() ?? 0,
       width: (map['width'] as num?)?.toDouble() ?? 100,
-      roundness: (map['roundness'] as num?)?.toDouble() ?? 40,
+      roundness: (map['roundness'] as num?)?.toDouble() ?? 28,
       fillIcons: map['fillIcons'] as bool? ?? false,
     );
   }
@@ -65,21 +66,29 @@ class PersonalizationNotifier extends Notifier<PersonalizationState> {
 
   @override
   PersonalizationState build() {
-    _load();
-    return PersonalizationState();
-  }
-
-  Future<void> _load() async {
-    final prefs = await SharedPreferences.getInstance();
-    final data = prefs.getString(_key);
-    if (data != null) {
-      state = PersonalizationState.fromMap(jsonDecode(data));
-    }
+    final prefsAsync = ref.watch(sharedPreferencesProvider);
+    return prefsAsync.when(
+      data: (prefs) {
+        final data = prefs.getString(_key);
+        if (data != null) {
+          try {
+            return PersonalizationState.fromMap(jsonDecode(data));
+          } catch (_) {
+            return PersonalizationState();
+          }
+        }
+        return PersonalizationState();
+      },
+      loading: () => PersonalizationState(),
+      error: (_, __) => PersonalizationState(),
+    );
   }
 
   Future<void> _save() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_key, jsonEncode(state.toMap()));
+    final prefs = ref.read(sharedPreferencesProvider).value;
+    if (prefs != null) {
+      await prefs.setString(_key, jsonEncode(state.toMap()));
+    }
   }
 
   void updateGrade(double value) {
