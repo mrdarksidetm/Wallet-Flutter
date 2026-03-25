@@ -8,6 +8,7 @@ import '../../../core/database/providers.dart';
 import '../../../core/database/models/transaction_model.dart';
 import '../../../core/services/haptic_service.dart';
 import '../../../core/services/greeting_service.dart';
+import '../../../core/widgets/icon_picker.dart';
 import '../widgets/total_balance_card.dart';
 import '../widgets/overview_card.dart';
 
@@ -175,6 +176,11 @@ class HomePage extends ConsumerWidget {
                         final tx = transactions[index];
                         final isExpense = tx.type == TransactionType.expense;
                         final color = isExpense ? Colors.red : Colors.green;
+                        final iconData = tx.icon != null 
+                            ? AppIcons.getIcon(tx.icon) 
+                            : (tx.category.value?.icon != null 
+                                ? AppIcons.getIcon(tx.category.value?.icon)
+                                : (isExpense ? Icons.shopping_bag_outlined : Icons.payments_outlined));
                         
                         return AnimationConfiguration.staggeredList(
                           position: index,
@@ -191,7 +197,7 @@ class HomePage extends ConsumerWidget {
                                 leading: CircleAvatar(
                                   backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                                   child: Icon(
-                                    isExpense ? Icons.shopping_bag_outlined : Icons.payments_outlined,
+                                    iconData,
                                     size: 20,
                                   ),
                                 ),

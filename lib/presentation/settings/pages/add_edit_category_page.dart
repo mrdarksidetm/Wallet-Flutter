@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/database/models/category.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/services/haptic_service.dart';
+import '../../../core/widgets/icon_picker.dart';
 
 class AddEditCategoryPage extends ConsumerStatefulWidget {
   final Category? category;
@@ -19,6 +20,7 @@ class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
   late TextEditingController _budgetController;
   late CategoryType _type;
   String _selectedColor = '0xFF2196F3';
+  String _selectedIcon = 'category';
   bool _isBudget = false;
 
   @override
@@ -28,6 +30,7 @@ class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
     _budgetController = TextEditingController(text: widget.category?.budgetLimit?.toString() ?? '');
     _type = widget.category?.type ?? CategoryType.expense;
     _selectedColor = widget.category?.color ?? '0xFF2196F3';
+    _selectedIcon = widget.category?.icon ?? 'category';
     _isBudget = widget.category?.isBudget ?? false;
   }
 
@@ -44,7 +47,7 @@ class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
     final category = Category()
       ..name = _nameController.text
       ..description = ''
-      ..icon = 'category'
+      ..icon = _selectedIcon
       ..color = _selectedColor
       ..type = _type
       ..budgetLimit = _isBudget ? (double.tryParse(_budgetController.text) ?? 0.0) : null
@@ -79,6 +82,38 @@ class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
         child: ListView(
           padding: const EdgeInsets.all(24),
           children: [
+            Center(
+              child: InkWell(
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (context) => IconPickerWidget(
+                      selectedIcon: _selectedIcon,
+                      selectedColor: Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16)),
+                      onIconSelected: (icon) {
+                        setState(() => _selectedIcon = icon);
+                        Navigator.pop(context);
+                      },
+                    ),
+                  );
+                },
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16)).withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    AppIcons.getIcon(_selectedIcon),
+                    size: 40,
+                    color: Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16)),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 32),
             Center(
               child: SegmentedButton<CategoryType>(
                 segments: const [

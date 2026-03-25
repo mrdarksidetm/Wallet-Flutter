@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/database/providers.dart';
+import '../../../core/widgets/icon_picker.dart';
 
 class CategoriesPage extends ConsumerWidget {
   const CategoriesPage({super.key});
@@ -38,7 +39,7 @@ class CategoriesPage extends ConsumerWidget {
                   onTap: () => context.push('/add_category', extra: category),
                   leading: CircleAvatar(
                     backgroundColor: color.withOpacity(0.1),
-                    child: Icon(Icons.category_rounded, color: color),
+                    child: Icon(AppIcons.getIcon(category.icon), color: color),
                   ),
                   title: Text(category.name, style: const TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: Text('${category.type.name.toUpperCase()} ${category.budgetLimit != null ? "• Budget: ₹${category.budgetLimit}" : ""}'),

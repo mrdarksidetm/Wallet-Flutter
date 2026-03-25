@@ -24,6 +24,7 @@ import '../presentation/reports/pages/category_details_page.dart';
 import '../presentation/home/pages/goals_page.dart';
 import '../presentation/home/pages/add_edit_goal_page.dart';
 import '../presentation/home/pages/search_page.dart';
+import '../presentation/settings/pages/personalization_page.dart';
 import '../core/database/models/account.dart';
 import '../core/database/models/category.dart';
 import '../core/database/models/auxiliary_models.dart';
@@ -88,6 +89,12 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/settings',
             pageBuilder: (context, state) => _buildSharedAxisTransition(
               context, state, const SettingsPage(), SharedAxisTransitionType.scaled,
+            ),
+          ),
+          GoRoute(
+            path: '/personalization',
+            pageBuilder: (context, state) => _buildSharedAxisTransition(
+              context, state, const PersonalizationPage(), SharedAxisTransitionType.scaled,
             ),
           ),
           GoRoute(
@@ -219,8 +226,8 @@ class AppShell extends ConsumerWidget {
             label: 'Home',
           ),
           NavigationDestination(
-            icon: Icon(Icons.account_balance_wallet_outlined),
-            selectedIcon: Icon(Icons.account_balance_wallet),
+            icon: Icon(Icons.credit_card_outlined),
+            selectedIcon: Icon(Icons.credit_card),
             label: 'Accounts',
           ),
           NavigationDestination(
@@ -230,10 +237,31 @@ class AppShell extends ConsumerWidget {
           ),
         ],
       ),
-      floatingActionButton: getIndex() == 0 ? FloatingActionButton(
+      floatingActionButton: _buildFAB(context, location),
+    );
+  }
+
+  Widget? _buildFAB(BuildContext context, String location) {
+    if (location.startsWith('/settings') ||
+        location.startsWith('/personalization') ||
+        location.startsWith('/search')) {
+      return null;
+    }
+
+    if (location == '/') {
+      return FloatingActionButton(
         onPressed: () => context.push('/add_transaction'),
         child: const Icon(Icons.add_rounded),
-      ) : null,
-    );
+      );
+    }
+
+    if (location == '/accounts') {
+      return FloatingActionButton(
+        onPressed: () => context.push('/add_account'),
+        child: const Icon(Icons.add_card_rounded),
+      );
+    }
+
+    return null;
   }
 }

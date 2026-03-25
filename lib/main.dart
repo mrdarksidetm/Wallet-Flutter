@@ -42,14 +42,16 @@ class WalletApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isarInit = ref.watch(isarProvider);
     final router = ref.watch(routerProvider);
+    final lightTheme = ref.watch(themeProvider(Brightness.light));
+    final darkTheme = ref.watch(themeProvider(Brightness.dark));
 
     return DynamicColorBuilder(
       builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
         return MaterialApp.router(
           title: 'Wallet',
           routerConfig: router,
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
+          theme: lightTheme,
+          darkTheme: darkTheme,
           themeMode: ThemeMode.system,
           debugShowCheckedModeBanner: false,
           builder: (context, child) {

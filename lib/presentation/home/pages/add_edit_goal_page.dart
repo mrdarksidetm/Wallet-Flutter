@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../core/database/models/auxiliary_models.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/services/haptic_service.dart';
+import '../../../core/widgets/icon_picker.dart';
 
 class AddEditGoalPage extends ConsumerStatefulWidget {
   final Goal? goal;
@@ -21,6 +22,7 @@ class _AddEditGoalPageState extends ConsumerState<AddEditGoalPage> {
   late TextEditingController _currentController;
   DateTime _deadline = DateTime.now().add(const Duration(days: 30));
   String _selectedColor = '0xFF4CAF50';
+  String _selectedIcon = 'savings';
 
   @override
   void initState() {
@@ -30,6 +32,7 @@ class _AddEditGoalPageState extends ConsumerState<AddEditGoalPage> {
     _currentController = TextEditingController(text: widget.goal?.currentAmount.toString() ?? '0');
     _deadline = widget.goal?.deadline ?? DateTime.now().add(const Duration(days: 30));
     _selectedColor = widget.goal?.color ?? '0xFF4CAF50';
+    _selectedIcon = widget.goal?.icon ?? 'savings';
   }
 
   @override
@@ -49,6 +52,7 @@ class _AddEditGoalPageState extends ConsumerState<AddEditGoalPage> {
       ..currentAmount = double.tryParse(_currentController.text) ?? 0.0
       ..deadline = _deadline
       ..color = _selectedColor
+      ..icon = _selectedIcon
       ..createdAt = widget.goal?.createdAt ?? DateTime.now()
       ..updatedAt = DateTime.now();
 
@@ -79,6 +83,38 @@ class _AddEditGoalPageState extends ConsumerState<AddEditGoalPage> {
         child: ListView(
           padding: const EdgeInsets.all(24),
           children: [
+            Center(
+              child: InkWell(
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (context) => IconPickerWidget(
+                      selectedIcon: _selectedIcon,
+                      selectedColor: Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16)),
+                      onIconSelected: (icon) {
+                        setState(() => _selectedIcon = icon);
+                        Navigator.pop(context);
+                      },
+                    ),
+                  );
+                },
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16)).withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    AppIcons.getIcon(_selectedIcon),
+                    size: 40,
+                    color: Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16)),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 32),
             TextFormField(
               controller: _nameController,
               decoration: const InputDecoration(

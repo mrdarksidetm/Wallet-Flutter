@@ -7,6 +7,7 @@ import '../../../core/database/providers.dart';
 import '../../../core/database/models/transaction_model.dart';
 import '../../../core/database/models/account.dart';
 import '../../../core/database/models/category.dart';
+import '../../../core/widgets/icon_picker.dart';
 
 class AddTransactionPage extends ConsumerStatefulWidget {
   const AddTransactionPage({super.key});
@@ -23,6 +24,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
   Account? _selectedAccount;
   Category? _selectedCategory;
   Account? _selectedTransferAccount;
+  String? _selectedIcon;
 
   @override
   void dispose() {
@@ -53,6 +55,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
         category: _selectedCategory!,
         note: _noteController.text.isNotEmpty ? _noteController.text : null,
         transferAccount: _selectedTransferAccount,
+        icon: _selectedIcon,
       );
 
       await HapticService.success();
@@ -137,6 +140,30 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
             ),
             const SizedBox(height: 16),
 
+            // Icon Selector
+            ListTile(
+              onTap: () {
+                showModalBottomSheet(
+                  context: context,
+                  builder: (context) => IconPickerWidget(
+                    selectedIcon: _selectedIcon ?? 'category',
+                    selectedColor: colorScheme.primary,
+                    onIconSelected: (icon) {
+                      setState(() => _selectedIcon = icon);
+                      Navigator.pop(context);
+                    },
+                  ),
+                );
+              },
+              leading: Icon(AppIcons.getIcon(_selectedIcon ?? _selectedCategory?.icon)),
+              title: const Text('Custom Icon'),
+              subtitle: Text(_selectedIcon == null ? 'Using category icon' : 'Custom icon selected'),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              tileColor: colorScheme.surfaceContainerLow,
+            ),
+            const SizedBox(height: 16),
+
             // Category Selector
             ListTile(
               onTap: () => _showCategoryPicker(categoriesAsync.value ?? []),
@@ -210,6 +237,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
           itemBuilder: (context, index) {
             final cat = filtered[index];
             return ListTile(
+              leading: Icon(AppIcons.getIcon(cat.icon)),
               title: Text(cat.name),
               onTap: () {
                 setState(() => _selectedCategory = cat);

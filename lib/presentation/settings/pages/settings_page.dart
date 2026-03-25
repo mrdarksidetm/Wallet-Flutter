@@ -33,6 +33,16 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           _buildSettingsTile(
             context,
             icon: Icons.palette_outlined,
+            title: 'Personalization',
+            subtitle: 'Font properties, icon styles, and more',
+            onTap: () async {
+              await HapticService.selection();
+              if (context.mounted) context.push('/personalization');
+            },
+          ),
+          _buildSettingsTile(
+            context,
+            icon: Icons.style_outlined,
             title: 'Theme Mode',
             subtitle: 'System',
             onTap: () async {

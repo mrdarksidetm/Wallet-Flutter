@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/database/providers.dart';
+import '../../../core/widgets/icon_picker.dart';
 
 class GoalsPage extends ConsumerWidget {
   const GoalsPage({super.key});
@@ -11,7 +12,8 @@ class GoalsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final goalsAsync = ref.watch(goalsStreamProvider);
-    final currencyFormat = NumberFormat.simpleCurrency(locale: 'en_IN');
+    final selectedCurrency = ref.watch(currencyProvider);
+    final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
 
     return Scaffold(
       appBar: AppBar(
@@ -41,7 +43,7 @@ class GoalsPage extends ConsumerWidget {
                         children: [
                           CircleAvatar(
                             backgroundColor: color.withOpacity(0.1),
-                            child: Icon(Icons.flag_rounded, color: color),
+                            child: Icon(AppIcons.getIcon(goal.icon), color: color),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
