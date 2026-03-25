@@ -9,22 +9,22 @@ part 'transaction_model.g.dart';
 class TransactionModel {
   Id id = Isar.autoIncrement;
 
-  late double amount;
+  double amount = 0.0;
 
   String? note; // Changed from 'name' to 'note' to match UI
 
   @Index()
-  late DateTime date; // Changed from 'time' to 'date' to match UI
+  DateTime date = DateTime.now(); // Changed from 'time' to 'date' to match UI
 
   @Index()
   @Enumerated(EnumType.name)
-  late TransactionType type;
+  TransactionType type = TransactionType.expense;
 
   @Index()
-  late int accountId;
+  int accountId = 0;
 
   @Index()
-  late int categoryId;
+  int categoryId = 0;
 
   String? icon;
   List<String>? tags;
@@ -37,8 +37,8 @@ class TransactionModel {
   final transferAccount = IsarLink<Account>();
   final person = IsarLink<Person>();
 
-  late DateTime createdAt;
-  late DateTime updatedAt;
+  DateTime createdAt = DateTime.now();
+  DateTime updatedAt = DateTime.now();
 }
 
 enum TransactionType {

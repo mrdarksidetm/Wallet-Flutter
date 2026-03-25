@@ -7,18 +7,18 @@ class Account {
   Id id = Isar.autoIncrement;
 
   @Index()
-  late String name;
+  String name = '';
   
-  late String bankName;
+  String bankName = '';
   
-  late String number;
+  String number = '';
   
   @Index()
-  late DateTime validThru;
+  DateTime validThru = DateTime.now();
   
-  late String icon; // Changed from int to String
+  String icon = 'account_balance_wallet';
   
-  late String color; // Added missing color
+  String color = '0xFF2196F3';
 
   bool isPredefined = false;
 
@@ -28,13 +28,13 @@ class Account {
 
   bool isDeleted = false;
 
-  late DateTime createdAt;
+  DateTime createdAt = DateTime.now();
 
-  late DateTime updatedAt;
+  DateTime updatedAt = DateTime.now();
   
   @Index()
   @Enumerated(EnumType.name)
-  late AccountType type;
+  AccountType type = AccountType.cash;
 }
 
 enum AccountType {

@@ -18,6 +18,7 @@ import 'services/account_service.dart';
 import 'services/category_service.dart';
 import 'services/recurring_service.dart';
 import 'services/backup_service.dart';
+import 'services/performance_audit_service.dart';
 import '../services/exchange_rate_service.dart';
 import 'models/account.dart';
 import 'models/category.dart';
@@ -152,6 +153,11 @@ final csvServiceProvider = Provider<CsvService>((ref) {
 final backupServiceProvider = Provider<BackupService>((ref) {
   final isar = ref.watch(isarProvider).value!;
   return BackupService(isar);
+});
+
+final performanceAuditServiceProvider = Provider<PerformanceAuditService>((ref) {
+  final isar = ref.watch(isarProvider).value!;
+  return PerformanceAuditService(isar);
 });
 
 // Re-export the exchange rate service provider for convenience

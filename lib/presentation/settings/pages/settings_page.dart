@@ -264,6 +264,57 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               }
             },
           ),
+          _buildSettingsTile(
+            context,
+            icon: Icons.speed_rounded,
+            title: 'Performance Audit',
+            subtitle: 'Benchmark 10,000 transactions',
+            onTap: () async {
+              await HapticService.medium();
+              if (context.mounted) {
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) => const Center(child: CircularProgressIndicator()),
+                );
+                
+                try {
+                  final results = await ref.read(performanceAuditServiceProvider).runAudit();
+                  if (context.mounted) Navigator.pop(context); // Close loading
+                  
+                  if (context.mounted) {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Audit Results'),
+                        content: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: results.entries.map((e) => Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Text('${e.key}: ${e.value}'),
+                            )).toList(),
+                          ),
+                        ),
+                        actions: [
+                          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
+                        ],
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) Navigator.pop(context); // Close loading
+                  await HapticService.error();
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Audit failed: $e')),
+                    );
+                  }
+                }
+              }
+            },
+          ),
 
           const SizedBox(height: 48),
           Center(

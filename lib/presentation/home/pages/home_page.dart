@@ -7,6 +7,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/transaction_model.dart';
 import '../../../core/services/haptic_service.dart';
+import '../../../core/services/greeting_service.dart';
 import '../widgets/total_balance_card.dart';
 import '../widgets/overview_card.dart';
 
@@ -22,6 +23,7 @@ class HomePage extends ConsumerWidget {
     final budgetsAsync = ref.watch(budgetStatsProvider);
     final goalsAsync = ref.watch(goalsStreamProvider);
     final selectedCurrency = ref.watch(currencyProvider);
+    final greeting = ref.watch(greetingServiceProvider).getGreeting();
     final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
 
     double totalBudgetLeft = 0;
@@ -37,7 +39,7 @@ class HomePage extends ConsumerWidget {
         child: CustomScrollView(
           slivers: [
             SliverAppBar.large(
-              title: const Text('Good late night, Abhi'),
+              title: Text('$greeting, Abhi'),
               actions: [
                 IconButton(
                   onPressed: () async {

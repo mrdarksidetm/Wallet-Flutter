@@ -10,12 +10,12 @@ part 'auxiliary_models.g.dart';
 class Person {
   Id id = Isar.autoIncrement;
   @Index()
-  late String name;
+  String name = '';
   String? contact;
   String? avatar;
-  late String color;
-  late DateTime createdAt;
-  late DateTime updatedAt;
+  String color = '0xFF2196F3';
+  DateTime createdAt = DateTime.now();
+  DateTime updatedAt = DateTime.now();
   bool isDeleted = false;
 }
 
@@ -23,12 +23,12 @@ class Person {
 @collection
 class Place {
   Id id = Isar.autoIncrement;
-  late String name;
+  String name = '';
   String? address;
   double? latitude;
   double? longitude;
-  late DateTime createdAt;
-  late DateTime updatedAt;
+  DateTime createdAt = DateTime.now();
+  DateTime updatedAt = DateTime.now();
   bool isDeleted = false;
 }
 
@@ -40,14 +40,14 @@ class Budget {
   final category = IsarLink<Category>();
   
   @Enumerated(EnumType.name)
-  late BudgetPeriod period;
+  BudgetPeriod period = BudgetPeriod.monthly;
   
-  late DateTime startDate;
-  late DateTime endDate;
+  DateTime startDate = DateTime.now();
+  DateTime endDate = DateTime.now();
   
   bool isActive = true;
-  late DateTime createdAt;
-  late DateTime updatedAt;
+  DateTime createdAt = DateTime.now();
+  DateTime updatedAt = DateTime.now();
   bool isDeleted = false;
 }
 
@@ -68,15 +68,15 @@ class Loan {
   double amount = 0.0;
   
   @Enumerated(EnumType.name)
-  late LoanType type;
+  LoanType type = LoanType.borrowed;
   
   DateTime? dueDate;
   bool isPaid = false;
   bool isActive = true;
   String? note;
   
-  late DateTime createdAt;
-  late DateTime updatedAt;
+  DateTime createdAt = DateTime.now();
+  DateTime updatedAt = DateTime.now();
   bool isDeleted = false;
 }
 
@@ -89,16 +89,16 @@ enum LoanType {
 @collection
 class Goal {
   Id id = Isar.autoIncrement;
-  late String name;
+  String name = '';
   double targetAmount = 0.0;
   double currentAmount = 0.0;
-  late DateTime deadline;
-  late String color;
+  DateTime deadline = DateTime.now();
+  String color = '0xFF2196F3';
   String? icon;
   
   bool isCompleted = false;
-  late DateTime createdAt;
-  late DateTime updatedAt;
+  DateTime createdAt = DateTime.now();
+  DateTime updatedAt = DateTime.now();
   bool isDeleted = false;
 }
 
@@ -107,25 +107,25 @@ class Goal {
 class Recurring {
   Id id = Isar.autoIncrement;
   
-  late String name;
-  late double amount;
+  String name = '';
+  double amount = 0.0;
   
   @Enumerated(EnumType.name)
-  late TransactionType type;
+  TransactionType type = TransactionType.expense;
   
   final account = IsarLink<Account>();
   final category = IsarLink<Category>();
   final transferAccount = IsarLink<Account>();
   
   @Enumerated(EnumType.name)
-  late RecurrenceFrequency frequency;
+  RecurrenceFrequency frequency = RecurrenceFrequency.monthly;
   
-  late DateTime nextDate;
+  DateTime nextDate = DateTime.now();
   DateTime? endDate;
   
   bool isActive = true;
-  late DateTime createdAt;
-  late DateTime updatedAt;
+  DateTime createdAt = DateTime.now();
+  DateTime updatedAt = DateTime.now();
   bool isDeleted = false;
 }
 
@@ -141,9 +141,9 @@ enum RecurrenceFrequency {
 class Label {
   Id id = Isar.autoIncrement;
   @Index(unique: true)
-  late String name;
-  late String color;
-  late DateTime createdAt;
-  late DateTime updatedAt;
+  String name = '';
+  String color = '0xFF2196F3';
+  DateTime createdAt = DateTime.now();
+  DateTime updatedAt = DateTime.now();
   bool isDeleted = false;
 }

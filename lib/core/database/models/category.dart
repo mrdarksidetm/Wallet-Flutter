@@ -7,28 +7,28 @@ class Category {
   Id id = Isar.autoIncrement;
 
   @Index()
-  late String name;
+  String name = '';
 
-  late String description;
+  String description = '';
 
-  late String icon; // Changed from int to String
+  String icon = 'category';
 
-  late String color; // Added missing color
+  String color = '0xFF2196F3';
 
-  double? budgetLimit; // Added missing budgetLimit
+  double? budgetLimit;
 
-  bool isBudget = false; // Added to enable/disable budget for category
+  bool isBudget = false;
 
   bool isPredefined = false;
 
   bool isDeleted = false;
 
-  late DateTime createdAt;
-  late DateTime updatedAt;
+  DateTime createdAt = DateTime.now();
+  DateTime updatedAt = DateTime.now();
   
   @Index()
   @Enumerated(EnumType.name)
-  late CategoryType type;
+  CategoryType type = CategoryType.expense;
 }
 
 enum CategoryType {
