@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/database/models/account.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/services/haptic_service.dart';
+import '../../../core/widgets/icon_picker.dart';
 
 class AddEditAccountPage extends ConsumerStatefulWidget {
   final Account? account;
@@ -19,6 +20,7 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
   late TextEditingController _balanceController;
   late AccountType _selectedType;
   String _selectedColor = '0xFF2196F3';
+  String _selectedIcon = 'credit_card';
 
   @override
   void initState() {
@@ -27,6 +29,7 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
     _balanceController = TextEditingController(text: widget.account?.balance.toString() ?? '0');
     _selectedType = widget.account?.type ?? AccountType.cash;
     _selectedColor = widget.account?.color ?? '0xFF2196F3';
+    _selectedIcon = widget.account?.icon ?? 'credit_card';
   }
 
   @override
@@ -44,7 +47,7 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
       ..balance = double.tryParse(_balanceController.text) ?? 0.0
       ..type = _selectedType
       ..color = _selectedColor
-      ..icon = 'account_balance_wallet'
+      ..icon = _selectedIcon
       ..bankName = ''
       ..number = ''
       ..validThru = DateTime.now()
@@ -78,6 +81,38 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
         child: ListView(
           padding: const EdgeInsets.all(24),
           children: [
+            Center(
+              child: InkWell(
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (context) => IconPickerWidget(
+                      selectedIcon: _selectedIcon,
+                      selectedColor: Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16)),
+                      onIconSelected: (icon) {
+                        setState(() => _selectedIcon = icon);
+                        Navigator.pop(context);
+                      },
+                    ),
+                  );
+                },
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16)).withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    AppIcons.getIcon(_selectedIcon),
+                    size: 40,
+                    color: Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16)),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 32),
             TextFormField(
               controller: _nameController,
               decoration: const InputDecoration(

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/database/providers.dart';
+import '../../../core/widgets/icon_picker.dart';
 
 class AccountsPage extends ConsumerWidget {
   const AccountsPage({super.key});
@@ -19,7 +20,7 @@ class AccountsPage extends ConsumerWidget {
         actions: [
           IconButton(
             onPressed: () => context.push('/add_account'),
-            icon: const Icon(Icons.add_rounded),
+            icon: const Icon(Icons.add_card_rounded),
           ),
         ],
       ),
@@ -38,8 +39,11 @@ class AccountsPage extends ConsumerWidget {
                 child: ListTile(
                   onTap: () => context.push('/add_account', extra: account),
                   leading: CircleAvatar(
-                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                    child: const Icon(Icons.account_balance_wallet_rounded),
+                    backgroundColor: Color(int.parse(account.color.replaceAll('0x', ''), radix: 16)).withOpacity(0.1),
+                    child: Icon(
+                      AppIcons.getIcon(account.icon),
+                      color: Color(int.parse(account.color.replaceAll('0x', ''), radix: 16)),
+                    ),
                   ),
                   title: Text(
                     account.name,
