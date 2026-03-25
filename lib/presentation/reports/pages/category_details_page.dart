@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/category.dart';
 import '../../../core/services/haptic_service.dart';
+import '../../../core/widgets/icon_picker.dart';
 
 class CategoryDetailsPage extends ConsumerWidget {
   final Category category;
@@ -131,7 +132,11 @@ class CategoryDetailsPage extends ConsumerWidget {
                         onTap: () => HapticService.selection(),
                         leading: CircleAvatar(
                           backgroundColor: categoryColor.withOpacity(0.1),
-                          child: Icon(Icons.receipt_long_rounded, color: categoryColor, size: 20),
+                          child: Icon(
+                            AppIcons.getIcon(tx.icon ?? category.icon), 
+                            color: categoryColor, 
+                            size: 20
+                          ),
                         ),
                         title: Text(tx.note ?? 'Transaction', style: const TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Text(DateFormat('MMM d, yyyy').format(tx.date)),

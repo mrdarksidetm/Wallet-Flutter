@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/category.dart';
 import '../../../core/services/haptic_service.dart';
+import '../../../core/widgets/icon_picker.dart';
 
 class ReportsPage extends ConsumerWidget {
   const ReportsPage({super.key});
@@ -154,10 +155,10 @@ class ReportsPage extends ConsumerWidget {
         context.push('/category_details', extra: category);
       },
       contentPadding: EdgeInsets.zero,
-      leading: Container(
-        width: 12,
-        height: 12,
-        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+      leading: CircleAvatar(
+        radius: 16,
+        backgroundColor: color.withOpacity(0.1),
+        child: Icon(AppIcons.getIcon(category.icon), size: 16, color: color),
       ),
       title: Text(category.name, style: Theme.of(context).textTheme.bodyLarge),
       trailing: Text(amount, style: const TextStyle(fontWeight: FontWeight.bold)),

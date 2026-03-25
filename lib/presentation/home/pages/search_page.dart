@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/transaction_model.dart';
+import '../../../core/widgets/icon_picker.dart';
 
 class SearchPage extends ConsumerWidget {
   const SearchPage({super.key});
@@ -23,15 +24,9 @@ class SearchPage extends ConsumerWidget {
           child: TextField(
             autofocus: true,
             onChanged: (value) => ref.read(searchQueryProvider.notifier).state = value,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               hintText: 'Search transactions...',
-              prefixIcon: const Icon(Icons.search_rounded),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(32),
-                borderSide: BorderSide.none,
-              ),
-              filled: true,
-              fillColor: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+              prefixIcon: Icon(Icons.search_rounded),
               contentPadding: EdgeInsets.zero,
             ),
           ),
@@ -68,6 +63,11 @@ class SearchPage extends ConsumerWidget {
             itemBuilder: (context, index) {
               final tx = transactions[index];
               final isExpense = tx.type == TransactionType.expense;
+              final iconData = tx.icon != null 
+                  ? AppIcons.getIcon(tx.icon) 
+                  : (tx.category.value?.icon != null 
+                      ? AppIcons.getIcon(tx.category.value?.icon)
+                      : (isExpense ? Icons.shopping_bag_outlined : Icons.payments_outlined));
               
               return Card(
                 margin: const EdgeInsets.only(bottom: 8),
@@ -75,7 +75,7 @@ class SearchPage extends ConsumerWidget {
                   leading: CircleAvatar(
                     backgroundColor: colorScheme.surfaceContainerHighest,
                     child: Icon(
-                      isExpense ? Icons.shopping_bag_outlined : Icons.payments_outlined,
+                      iconData,
                       size: 20,
                     ),
                   ),

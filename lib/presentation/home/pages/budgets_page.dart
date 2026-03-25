@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/category.dart';
+import '../../../core/widgets/icon_picker.dart';
 
 class BudgetsPage extends ConsumerWidget {
   const BudgetsPage({super.key});
@@ -47,7 +48,7 @@ class BudgetsPage extends ConsumerWidget {
                         children: [
                           CircleAvatar(
                             backgroundColor: color.withOpacity(0.1),
-                            child: Icon(Icons.category_rounded, color: color),
+                            child: Icon(AppIcons.getIcon(category.icon), color: color),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
