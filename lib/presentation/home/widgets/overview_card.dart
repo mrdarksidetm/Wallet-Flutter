@@ -18,11 +18,13 @@ class OverviewCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final cardShape = theme.cardTheme.shape as RoundedRectangleBorder?;
+    final borderRadius = (cardShape?.borderRadius as BorderRadius?) ?? BorderRadius.circular(28);
 
     return Card(
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: borderRadius,
         child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: Column(

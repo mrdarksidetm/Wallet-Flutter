@@ -21,7 +21,8 @@ class TotalBalanceCard extends StatelessWidget {
 
     return Card(
       color: colorScheme.primaryContainer.withOpacity(0.4),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+      // Use the theme's card shape but could override if a specific massive look is needed
+      // To keep it massive but still respond to global settings, we add a fixed offset
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
