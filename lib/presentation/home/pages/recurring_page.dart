@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/database/providers.dart';
+import '../../../core/widgets/icon_picker.dart';
 
 class RecurringPage extends ConsumerWidget {
   const RecurringPage({super.key});
@@ -34,9 +35,13 @@ class RecurringPage extends ConsumerWidget {
               return Card(
                 margin: const EdgeInsets.only(bottom: 12),
                 child: ListTile(
+                  onTap: () => context.push('/add_recurring', extra: item),
                   leading: CircleAvatar(
                     backgroundColor: categoryColor.withOpacity(0.1),
-                    child: Icon(Icons.repeat_rounded, color: categoryColor),
+                    child: Icon(
+                      AppIcons.getIcon(item.category.value?.icon ?? 'repeat'), 
+                      color: categoryColor
+                    ),
                   ),
                   title: Text(item.name, style: const TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: Text(

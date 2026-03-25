@@ -8,6 +8,7 @@ import '../../../core/database/models/auxiliary_models.dart';
 import '../../../core/database/models/transaction_model.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/services/haptic_service.dart';
+import '../../../core/widgets/icon_picker.dart';
 
 class AddEditRecurringPage extends ConsumerStatefulWidget {
   final Recurring? recurring;
@@ -146,7 +147,7 @@ class _AddEditRecurringPageState extends ConsumerState<AddEditRecurringPage> {
             const SizedBox(height: 16),
             ListTile(
               onTap: () => _showCategoryPicker(categoriesAsync.value ?? []),
-              leading: const Icon(Icons.category_rounded),
+              leading: Icon(AppIcons.getIcon(_selectedCategory?.icon ?? 'category')),
               title: const Text('Category'),
               subtitle: Text(_selectedCategory?.name ?? 'Select Category'),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -206,6 +207,7 @@ class _AddEditRecurringPageState extends ConsumerState<AddEditRecurringPage> {
         return ListView.builder(
           itemCount: filtered.length,
           itemBuilder: (context, index) => ListTile(
+            leading: Icon(AppIcons.getIcon(filtered[index].icon)),
             title: Text(filtered[index].name),
             onTap: () {
               setState(() => _selectedCategory = filtered[index]);
