@@ -52,7 +52,7 @@ class CategoryDetailsPage extends ConsumerWidget {
                           BarChartData(
                             alignment: BarChartAlignment.spaceAround,
                             maxY: maxY == 0 ? 100 : maxY * 1.2,
-                            barTouchData: BarTouchData(enabled: true),
+                            barTouchData: const BarTouchData(enabled: true),
                             titlesData: FlTitlesData(
                               show: true,
                               bottomTitles: AxisTitles(
@@ -146,7 +146,7 @@ class CategoryDetailsPage extends ConsumerWidget {
                 ),
               );
             },
-            loading: () => const SliverToBoxAdapter(child: Center(child: const CircularProgressIndicator())),
+            loading: () => const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator())),
             error: (err, stack) => SliverToBoxAdapter(child: Center(child: Text('Error: $err'))),
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
