@@ -26,6 +26,15 @@ class CategoryService {
     await categoryRepository.save(updatedCategory);
   }
 
+  Future<void> setBudget(Id id, double limit) async {
+    final cat = await categoryRepository.getById(id);
+    if (cat != null) {
+      cat.budgetLimit = limit > 0 ? limit : null;
+      cat.isBudget = limit > 0;
+      await categoryRepository.save(cat);
+    }
+  }
+
   Future<void> deleteCategory(Id id) async {
     await categoryRepository.delete(id);
   }

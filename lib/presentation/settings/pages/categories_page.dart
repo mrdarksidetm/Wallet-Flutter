@@ -14,12 +14,6 @@ class CategoriesPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Categories'),
-        actions: [
-          IconButton(
-            onPressed: () => context.push('/add_category'),
-            icon: const Icon(Icons.add_rounded),
-          ),
-        ],
       ),
       body: categoriesAsync.when(
         data: (categories) {

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/services/haptic_service.dart';
 import '../../../core/database/providers.dart';
+import '../../../core/theme/theme_provider.dart';
 import '../../auth/providers/auth_provider.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
@@ -14,13 +16,14 @@ class SettingsPage extends ConsumerStatefulWidget {
 }
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
-  bool _biometricEnabled = true;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final authState = ref.watch(authProvider);
+    final themeState = ref.watch(themeControllerProvider);
+    final themeNotifier = ref.read(themeControllerProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(
@@ -32,7 +35,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           _buildSectionHeader(context, 'Appearance'),
           _buildSettingsTile(
             context,
-            icon: Icons.palette_outlined,
+            icon: Symbols.palette,
             title: 'Personalization',
             subtitle: 'Font properties, icon styles, and more',
             onTap: () async {
@@ -42,22 +45,24 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           ),
           _buildSettingsTile(
             context,
-            icon: Icons.style_outlined,
+            icon: Symbols.contrast,
             title: 'Theme Mode',
-            subtitle: 'System',
+            subtitle: themeState.themeMode.name.toUpperCase(),
             onTap: () async {
               await HapticService.selection();
+              if (context.mounted) context.push('/theme_selection');
             },
           ),
           _buildSettingsTile(
             context,
-            icon: Icons.color_lens_outlined,
+            icon: Symbols.draw,
             title: 'Dynamic Color',
-            subtitle: 'Material You enabled',
+            subtitle: 'Material You dynamic palettes',
             trailing: Switch(
-              value: true,
+              value: themeState.useMaterialYou,
               onChanged: (val) async {
                 await HapticService.medium();
+                await themeNotifier.setUseMaterialYou(val);
               },
             ),
           ),
@@ -66,7 +71,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           _buildSectionHeader(context, 'Localization'),
           _buildSettingsTile(
             context,
-            icon: Icons.currency_exchange_rounded,
+            icon: Symbols.currency_exchange,
             title: 'Currency',
             subtitle: ref.watch(currencyProvider),
             onTap: () async {
@@ -76,7 +81,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           ),
           _buildSettingsTile(
             context,
-            icon: Icons.language_rounded,
+            icon: Symbols.language,
             title: 'Language',
             subtitle: 'English',
             onTap: () async {
@@ -88,14 +93,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           _buildSectionHeader(context, 'Security'),
           _buildSettingsTile(
             context,
-            icon: Icons.fingerprint_rounded,
+            icon: Symbols.fingerprint,
             title: 'Biometric Lock',
             subtitle: authState.canCheckBiometrics ? 'Protect your data' : 'Not supported on device',
             trailing: Switch(
-              value: _biometricEnabled && authState.canCheckBiometrics,
+              value: authState.isLocked,
               onChanged: authState.canCheckBiometrics ? (val) async {
                 await HapticService.medium();
-                setState(() => _biometricEnabled = val);
+                ref.read(authProvider.notifier).setLocked(val);
               } : null,
             ),
           ),

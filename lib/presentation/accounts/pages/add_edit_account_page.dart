@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/database/models/account.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/services/haptic_service.dart';
 import '../../../core/widgets/icon_picker.dart';
+import '../../../core/widgets/primary_atelier_button.dart';
 
 class AddEditAccountPage extends ConsumerStatefulWidget {
   final Account? account;
@@ -145,12 +147,12 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
               }).toList(),
             ),
             const SizedBox(height: 48),
-            FilledButton.icon(
+            PrimaryAtelierButton(
               onPressed: _save,
-              icon: const Icon(Icons.save_rounded),
-              label: const Text('Save Account'),
-              style: FilledButton.styleFrom(
-                minimumSize: const Size(double.infinity, 56),
+              icon: const Icon(Symbols.save, color: Colors.white),
+              label: const Text(
+                'Save Account',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
           ],

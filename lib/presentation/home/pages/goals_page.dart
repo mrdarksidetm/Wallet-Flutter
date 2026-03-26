@@ -101,11 +101,6 @@ class GoalsPage extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('Error: $err')),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/add_goal'),
-        label: const Text('New Goal'),
-        icon: const Icon(Icons.add_rounded),
-      ),
     );
   }
 }

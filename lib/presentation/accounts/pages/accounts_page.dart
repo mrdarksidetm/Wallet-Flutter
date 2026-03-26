@@ -17,12 +17,6 @@ class AccountsPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Accounts'),
-        actions: [
-          IconButton(
-            onPressed: () => context.push('/add_account'),
-            icon: const Icon(Icons.add_card_rounded),
-          ),
-        ],
       ),
       body: accountsAsync.when(
         data: (accounts) {

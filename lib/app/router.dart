@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:animations/animations.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import '../presentation/home/pages/home_page.dart';
 import '../presentation/accounts/pages/accounts_page.dart';
 import '../presentation/transactions/pages/add_transaction_page.dart';
@@ -25,9 +26,11 @@ import '../presentation/home/pages/goals_page.dart';
 import '../presentation/home/pages/add_edit_goal_page.dart';
 import '../presentation/home/pages/search_page.dart';
 import '../presentation/settings/pages/personalization_page.dart';
+import '../presentation/settings/pages/theme_selection_page.dart';
 import '../core/database/models/account.dart';
 import '../core/database/models/category.dart';
 import '../core/database/models/auxiliary_models.dart';
+import '../core/providers/fab_action_provider.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -39,152 +42,62 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       ShellRoute(
         navigatorKey: _shellNavigatorKey,
-        builder: (context, state, child) {
-          return AppShell(child: child);
-        },
+        builder: (context, state, child) => AppShell(child: child),
         routes: [
-          GoRoute(
-            path: '/',
-            pageBuilder: (context, state) => _buildSharedAxisTransition(
-              context, state, const HomePage(), SharedAxisTransitionType.horizontal,
-            ),
-          ),
-          GoRoute(
-            path: '/accounts',
-            pageBuilder: (context, state) => _buildSharedAxisTransition(
-              context, state, const AccountsPage(), SharedAxisTransitionType.horizontal,
-            ),
-          ),
-          GoRoute(
-            path: '/reports',
-            pageBuilder: (context, state) => _buildSharedAxisTransition(
-              context, state, const ReportsPage(), SharedAxisTransitionType.horizontal,
-            ),
-          ),
-          GoRoute(
-            path: '/loans',
-            pageBuilder: (context, state) => _buildSharedAxisTransition(
-              context, state, const LoansPage(), SharedAxisTransitionType.scaled,
-            ),
-          ),
-          GoRoute(
-            path: '/budgets',
-            pageBuilder: (context, state) => _buildSharedAxisTransition(
-              context, state, const BudgetsPage(), SharedAxisTransitionType.scaled,
-            ),
-          ),
-          GoRoute(
-            path: '/bill_splitter',
-            pageBuilder: (context, state) => _buildSharedAxisTransition(
-              context, state, const BillSplitterPage(), SharedAxisTransitionType.scaled,
-            ),
-          ),
-          GoRoute(
-            path: '/recurring',
-            pageBuilder: (context, state) => _buildSharedAxisTransition(
-              context, state, const RecurringPage(), SharedAxisTransitionType.scaled,
-            ),
-          ),
-          GoRoute(
-            path: '/settings',
-            pageBuilder: (context, state) => _buildSharedAxisTransition(
-              context, state, const SettingsPage(), SharedAxisTransitionType.scaled,
-            ),
-          ),
-          GoRoute(
-            path: '/personalization',
-            pageBuilder: (context, state) => _buildSharedAxisTransition(
-              context, state, const PersonalizationPage(), SharedAxisTransitionType.scaled,
-            ),
-          ),
-          GoRoute(
-            path: '/categories',
-            pageBuilder: (context, state) => _buildSharedAxisTransition(
-              context, state, const CategoriesPage(), SharedAxisTransitionType.scaled,
-            ),
-          ),
-          GoRoute(
-            path: '/people',
-            pageBuilder: (context, state) => _buildSharedAxisTransition(
-              context, state, const PeoplePage(), SharedAxisTransitionType.scaled,
-            ),
-          ),
-          GoRoute(
-            path: '/goals',
-            pageBuilder: (context, state) => _buildSharedAxisTransition(
-              context, state, const GoalsPage(), SharedAxisTransitionType.scaled,
-            ),
-          ),
-          GoRoute(
-            path: '/currency_selection',
-            pageBuilder: (context, state) => _buildSharedAxisTransition(
-              context, state, const CurrencySelectionPage(), SharedAxisTransitionType.scaled,
-            ),
-          ),
+          _shellRoute('/', const HomePage()),
+          _shellRoute('/accounts', const AccountsPage()),
+          _shellRoute('/reports', const ReportsPage()),
+          _shellRoute('/search', const SearchPage(), type: SharedAxisTransitionType.scaled),
+          _shellRoute('/loans', const LoansPage(), type: SharedAxisTransitionType.scaled),
+          _shellRoute('/budgets', const BudgetsPage(), type: SharedAxisTransitionType.scaled),
+          _shellRoute('/bill_splitter', const BillSplitterPage(), type: SharedAxisTransitionType.scaled),
+          _shellRoute('/recurring', const RecurringPage(), type: SharedAxisTransitionType.scaled),
+          _shellRoute('/settings', const SettingsPage(), type: SharedAxisTransitionType.scaled),
+          _shellRoute('/theme_selection', const ThemeSelectionPage(), type: SharedAxisTransitionType.scaled),
+          _shellRoute('/personalization', const PersonalizationPage(), type: SharedAxisTransitionType.scaled),
+          _shellRoute('/categories', const CategoriesPage(), type: SharedAxisTransitionType.scaled),
+          _shellRoute('/people', const PeoplePage(), type: SharedAxisTransitionType.scaled),
+          _shellRoute('/goals', const GoalsPage(), type: SharedAxisTransitionType.scaled),
+          _shellRoute('/currency_selection', const CurrencySelectionPage(), type: SharedAxisTransitionType.scaled),
           GoRoute(
             path: '/category_details',
             pageBuilder: (context, state) => _buildSharedAxisTransition(
               context, state, CategoryDetailsPage(category: state.extra as Category), SharedAxisTransitionType.scaled,
             ),
           ),
-          GoRoute(
-            path: '/search',
-            pageBuilder: (context, state) => _buildSharedAxisTransition(
-              context, state, const SearchPage(), SharedAxisTransitionType.scaled,
-            ),
-          ),
         ],
       ),
-      GoRoute(
-        path: '/add_transaction',
-        parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const AddTransactionPage(),
-      ),
-      GoRoute(
-        path: '/add_account',
-        parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => AddEditAccountPage(account: state.extra as Account?),
-      ),
-      GoRoute(
-        path: '/add_loan',
-        parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const AddEditLoanPage(),
-      ),
-      GoRoute(
-        path: '/add_recurring',
-        parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => AddEditRecurringPage(recurring: state.extra as Recurring?),
-      ),
-      GoRoute(
-        path: '/add_category',
-        parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => AddEditCategoryPage(category: state.extra as Category?),
-      ),
-      GoRoute(
-        path: '/add_goal',
-        parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => AddEditGoalPage(goal: state.extra as Goal?),
-      ),
+      _rootRoute('/add_transaction', const AddTransactionPage()),
+      _rootRoute('/add_account', (state) => AddEditAccountPage(account: state.extra as Account?)),
+      _rootRoute('/add_loan', (_) => const AddEditLoanPage()),
+      _rootRoute('/add_recurring', (state) => AddEditRecurringPage(recurring: state.extra as Recurring?)),
+      _rootRoute('/add_category', (state) => AddEditCategoryPage(category: state.extra as Category?)),
+      _rootRoute('/add_goal', (state) => AddEditGoalPage(goal: state.extra as Goal?)),
     ],
   );
 });
 
-Page _buildSharedAxisTransition(
-  BuildContext context,
-  GoRouterState state,
-  Widget child,
-  SharedAxisTransitionType type,
-) {
+GoRoute _shellRoute(String path, Widget child, {SharedAxisTransitionType type = SharedAxisTransitionType.horizontal}) {
+  return GoRoute(
+    path: path,
+    pageBuilder: (context, state) => _buildSharedAxisTransition(context, state, child, type),
+  );
+}
+
+GoRoute _rootRoute(String path, dynamic builder) {
+  return GoRoute(
+    path: path,
+    parentNavigatorKey: _rootNavigatorKey,
+    builder: (context, state) => builder is Widget ? builder : builder(state),
+  );
+}
+
+Page _buildSharedAxisTransition(BuildContext context, GoRouterState state, Widget child, SharedAxisTransitionType type) {
   return CustomTransitionPage(
     key: state.pageKey,
     child: child,
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      return SharedAxisTransition(
-        animation: animation,
-        secondaryAnimation: secondaryAnimation,
-        transitionType: type,
-        child: child,
-      );
+      return SharedAxisTransition(animation: animation, secondaryAnimation: secondaryAnimation, transitionType: type, child: child);
     },
   );
 }
@@ -196,72 +109,109 @@ class AppShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authProvider);
-    
-    if (authState.isLocked) {
-      return const UnlockPage();
-    }
+    if (authState.isLocked) return const UnlockPage();
 
     final location = GoRouterState.of(context).uri.path;
-    
-    int getIndex() {
-      if (location == '/') return 0;
-      if (location == '/accounts') return 1;
-      if (location == '/reports') return 2;
-      return 0;
-    }
 
     return Scaffold(
       body: child,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: getIndex(),
-        onDestinationSelected: (index) {
-          if (index == 0) context.go('/');
-          if (index == 1) context.go('/accounts');
-          if (index == 2) context.go('/reports');
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.credit_card_outlined),
-            selectedIcon: Icon(Icons.credit_card),
-            label: 'Accounts',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.pie_chart_outline_rounded),
-            selectedIcon: Icon(Icons.pie_chart_rounded),
-            label: 'Reports',
-          ),
-        ],
-      ),
-      floatingActionButton: _buildFAB(context, location),
+      bottomNavigationBar: _BottomNavBar(location: location),
+      floatingActionButton: _FAB(location: location),
+    );
+  }
+}
+
+class _BottomNavBar extends StatelessWidget {
+  final String location;
+  const _BottomNavBar({required this.location});
+
+  @override
+  Widget build(BuildContext context) {
+    return NavigationBar(
+      selectedIndex: _getIndex(location),
+      onDestinationSelected: (index) => _navigate(context, index),
+      destinations: const [
+        _NavDest(icon: Symbols.home, label: 'Home'),
+        _NavDest(icon: Symbols.credit_card, label: 'Accounts'),
+        _NavDest(icon: Symbols.pie_chart, label: 'Reports'),
+        _NavDest(icon: Symbols.search, label: 'Search'),
+      ],
     );
   }
 
-  Widget? _buildFAB(BuildContext context, String location) {
-    if (location.startsWith('/settings') ||
-        location.startsWith('/personalization') ||
-        location.startsWith('/search')) {
-      return null;
-    }
+  int _getIndex(String loc) {
+    if (loc == '/') return 0;
+    if (loc == '/accounts') return 1;
+    if (loc == '/reports') return 2;
+    if (loc == '/search') return 3;
+    return 0;
+  }
 
-    if (location == '/') {
-      return FloatingActionButton(
-        onPressed: () => context.push('/add_transaction'),
-        child: const Icon(Icons.add_rounded),
-      );
-    }
+  void _navigate(BuildContext context, int index) {
+    final routes = ['/', '/accounts', '/reports', '/search'];
+    context.go(routes[index]);
+  }
+}
 
-    if (location == '/accounts') {
-      return FloatingActionButton(
-        onPressed: () => context.push('/add_account'),
-        child: const Icon(Icons.add_card_rounded),
-      );
-    }
+class _NavDest extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  const _NavDest({required this.icon, required this.label});
 
-    return null;
+  @override
+  Widget build(BuildContext context) {
+    return NavigationDestination(
+      icon: Icon(icon, fill: 0),
+      selectedIcon: Icon(icon, fill: 1),
+      label: label,
+    );
+  }
+}
+
+class _FAB extends ConsumerWidget {
+  final String location;
+  const _FAB({required this.location});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (_shouldHideFAB(location)) return const SizedBox.shrink();
+
+    return FloatingActionButton(
+      onPressed: () => _handleFABPressed(context, ref, location),
+      child: Icon(_getFABIcon(ref, location)),
+    );
+  }
+
+  bool _shouldHideFAB(String loc) {
+    final hiddenRoutes = ['/settings', '/personalization', '/theme_selection'];
+    return hiddenRoutes.any((route) => loc.startsWith(route));
+  }
+
+  IconData _getFABIcon(WidgetRef ref, String loc) {
+    switch (loc) {
+      case '/': return Symbols.add;
+      case '/accounts': return Symbols.add_card;
+      case '/categories': return Symbols.category;
+      case '/people': return Symbols.person_add;
+      case '/goals': return Symbols.flag;
+      case '/loans': return Symbols.front_loader;
+      case '/recurring': return Symbols.event_repeat;
+      default: return Symbols.add;
+    }
+  }
+
+  void _handleFABPressed(BuildContext context, WidgetRef ref, String loc) {
+    switch (loc) {
+      case '/': context.push('/add_transaction'); break;
+      case '/accounts': context.push('/add_account'); break;
+      case '/categories': context.push('/add_category'); break;
+      case '/people': 
+        final action = ref.read(fabActionProvider);
+        if (action != null) action();
+        break;
+      case '/goals': context.push('/add_goal'); break;
+      case '/loans': context.push('/add_loan'); break;
+      case '/recurring': context.push('/add_recurring'); break;
+    }
   }
 }

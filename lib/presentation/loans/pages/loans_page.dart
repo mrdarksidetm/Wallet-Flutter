@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/auxiliary_models.dart';
@@ -54,11 +53,6 @@ class LoansPage extends ConsumerWidget {
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('Error: $err')),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/add_loan'),
-        label: const Text('Add Loan'),
-        icon: const Icon(Icons.add_rounded),
       ),
     );
   }

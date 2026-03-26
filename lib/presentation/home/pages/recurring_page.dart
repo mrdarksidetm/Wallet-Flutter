@@ -72,11 +72,6 @@ class RecurringPage extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('Error: $err')),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/add_recurring'),
-        label: const Text('Add Recurring'),
-        icon: const Icon(Icons.add_rounded),
-      ),
     );
   }
 }

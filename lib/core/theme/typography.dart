@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AppTypography {
-  static const String fontFamily = 'ProductSans'; // Or 'GoogleSans' depending on asset name
+  static const String fontFamily = 'GoogleSansFlex';
 
   static const TextTheme textTheme = TextTheme(
     displayLarge: TextStyle(fontFamily: fontFamily, fontSize: 57, height: 64 / 57, letterSpacing: -0.25),

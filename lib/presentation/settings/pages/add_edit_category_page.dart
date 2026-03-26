@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/database/models/category.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/services/haptic_service.dart';
 import '../../../core/widgets/icon_picker.dart';
+import '../../../core/widgets/primary_atelier_button.dart';
 
 class AddEditCategoryPage extends ConsumerStatefulWidget {
   final Category? category;
@@ -153,11 +155,13 @@ class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
                 ),
               ),
             const SizedBox(height: 48),
-            FilledButton.icon(
+            PrimaryAtelierButton(
               onPressed: _save,
-              icon: const Icon(Icons.save_rounded),
-              label: const Text('Save Category'),
-              style: FilledButton.styleFrom(minimumSize: const Size(double.infinity, 56)),
+              icon: const Icon(Symbols.save, color: Colors.white),
+              label: const Text(
+                'Save Category',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
             ),
           ],
         ),

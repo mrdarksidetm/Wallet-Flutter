@@ -18,13 +18,19 @@ class AppTheme {
       fontFamily: 'GoogleSansFlex',
       fontVariations: variations,
       fontFamilyFallback: const ['AppleColorEmoji'],
+      color: isDark ? Colors.white : AppColors.onSurface,
     );
 
     final colorScheme = ColorScheme.fromSeed(
       seedColor: AppColors.primary,
       primary: AppColors.primary,
-      surface: isDark ? AppColors.cardDark : AppColors.backgroundLight,
-      onSurface: isDark ? AppColors.backgroundLight : AppColors.backgroundDark,
+      secondary: AppColors.tertiary,
+      tertiary: AppColors.tertiary,
+      surface: isDark ? AppColors.cardDark : AppColors.surface,
+      onSurface: isDark ? Colors.white : AppColors.onSurface,
+      surfaceContainerLow: isDark ? const Color(0xFF1E1E1E) : AppColors.surfaceContainerLow,
+      surfaceContainer: isDark ? const Color(0xFF252525) : AppColors.surfaceContainer,
+      surfaceContainerHigh: isDark ? const Color(0xFF2C2C2C) : AppColors.surfaceContainerHigh,
       brightness: brightness,
     );
 
@@ -38,21 +44,21 @@ class AppTheme {
       fontFamily: 'GoogleSansFlex',
       fontFamilyFallback: const ['AppleColorEmoji'],
       textTheme: TextTheme(
-        displayLarge: baseTextStyle.copyWith(fontSize: 57),
-        displayMedium: baseTextStyle.copyWith(fontSize: 45),
-        displaySmall: baseTextStyle.copyWith(fontSize: 36),
-        headlineLarge: baseTextStyle.copyWith(fontSize: 32),
-        headlineMedium: baseTextStyle.copyWith(fontSize: 28),
-        headlineSmall: baseTextStyle.copyWith(fontSize: 24),
-        titleLarge: baseTextStyle.copyWith(fontSize: 22),
-        titleMedium: baseTextStyle.copyWith(fontSize: 16),
-        titleSmall: baseTextStyle.copyWith(fontSize: 14),
-        bodyLarge: baseTextStyle.copyWith(fontSize: 16),
-        bodyMedium: baseTextStyle.copyWith(fontSize: 14),
-        bodySmall: baseTextStyle.copyWith(fontSize: 12),
-        labelLarge: baseTextStyle.copyWith(fontSize: 14),
-        labelMedium: baseTextStyle.copyWith(fontSize: 12),
-        labelSmall: baseTextStyle.copyWith(fontSize: 11),
+        displayLarge: baseTextStyle.copyWith(fontSize: 57, fontWeight: FontWeight.normal),
+        displayMedium: baseTextStyle.copyWith(fontSize: 45, fontWeight: FontWeight.normal),
+        displaySmall: baseTextStyle.copyWith(fontSize: 36, fontWeight: FontWeight.normal),
+        headlineLarge: baseTextStyle.copyWith(fontSize: 32, fontWeight: FontWeight.normal),
+        headlineMedium: baseTextStyle.copyWith(fontSize: 28, fontWeight: FontWeight.normal),
+        headlineSmall: baseTextStyle.copyWith(fontSize: 24, fontWeight: FontWeight.normal),
+        titleLarge: baseTextStyle.copyWith(fontSize: 22, fontWeight: FontWeight.normal),
+        titleMedium: baseTextStyle.copyWith(fontSize: 16, fontWeight: FontWeight.normal),
+        titleSmall: baseTextStyle.copyWith(fontSize: 14, fontWeight: FontWeight.normal),
+        bodyLarge: baseTextStyle.copyWith(fontSize: 16, fontWeight: FontWeight.normal),
+        bodyMedium: baseTextStyle.copyWith(fontSize: 14, fontWeight: FontWeight.normal),
+        bodySmall: baseTextStyle.copyWith(fontSize: 12, fontWeight: FontWeight.normal),
+        labelLarge: baseTextStyle.copyWith(fontSize: 14, fontWeight: FontWeight.normal),
+        labelMedium: baseTextStyle.copyWith(fontSize: 12, fontWeight: FontWeight.normal),
+        labelSmall: baseTextStyle.copyWith(fontSize: 11, fontWeight: FontWeight.normal),
       ),
       iconTheme: IconThemeData(
         fill: state.fillIcons ? 1.0 : 0.0,
@@ -63,39 +69,55 @@ class AppTheme {
       cardTheme: CardThemeData(
         shape: shape,
         elevation: 0,
-        color: isDark ? AppColors.cardDark : Colors.white,
+        color: isDark ? AppColors.cardDark : AppColors.surfaceContainerLowest,
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: false,
-        iconTheme: IconThemeData(color: isDark ? AppColors.backgroundLight : AppColors.backgroundDark),
+        iconTheme: IconThemeData(color: isDark ? Colors.white : AppColors.onSurface),
         titleTextStyle: baseTextStyle.copyWith(
-          color: isDark ? AppColors.backgroundLight : AppColors.backgroundDark,
+          color: isDark ? Colors.white : AppColors.onSurface,
           fontSize: 20,
           fontWeight: FontWeight.bold,
         ),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         shape: shape,
-        elevation: 4,
+        elevation: 0, // Following the "No-Line" / Flat feel where possible, or low elevation
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
       ),
       inputDecorationTheme: InputDecorationTheme(
-        border: OutlineInputBorder(borderRadius: borderRadius),
         filled: true,
-        fillColor: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05),
+        fillColor: isDark ? AppColors.surfaceContainerHigh.withOpacity(0.2) : AppColors.surfaceContainer,
+        border: OutlineInputBorder(
+          borderRadius: borderRadius,
+          borderSide: BorderSide.none, // Prohibited borders for sectioning
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: borderRadius,
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: borderRadius,
+          borderSide: BorderSide.none,
+        ),
       ),
       filledButtonTheme: FilledButtonThemeData(
-        style: FilledButton.styleFrom(shape: shape),
+        style: FilledButton.styleFrom(
+          shape: shape,
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+        ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(shape: shape),
-      ),
-      segmentedButtonTheme: SegmentedButtonThemeData(
-        style: SegmentedButton.styleFrom(shape: shape),
-      ),
-      dialogTheme: DialogThemeData(
-        shape: shape,
+        style: OutlinedButton.styleFrom(
+          shape: shape,
+          side: BorderSide.none,
+          backgroundColor: isDark ? AppColors.surfaceContainerHigh : AppColors.surfaceContainerHigh,
+          foregroundColor: isDark ? Colors.white : AppColors.onSurface,
+        ),
       ),
     );
   }

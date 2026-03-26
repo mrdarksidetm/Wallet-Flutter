@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../core/services/haptic_service.dart';
 import '../../../core/database/providers.dart';
@@ -8,6 +9,7 @@ import '../../../core/database/models/transaction_model.dart';
 import '../../../core/database/models/account.dart';
 import '../../../core/database/models/category.dart';
 import '../../../core/widgets/icon_picker.dart';
+import '../../../core/widgets/primary_atelier_button.dart';
 
 class AddTransactionPage extends ConsumerStatefulWidget {
   const AddTransactionPage({super.key});
@@ -203,18 +205,12 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
             const SizedBox(height: 48),
             
             // Save Button
-            SizedBox(
-              width: double.infinity,
-              height: 64,
-              child: FilledButton(
-                onPressed: _save,
-                style: FilledButton.styleFrom(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                ),
-                child: const Text(
-                  'Save Transaction',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
+            PrimaryAtelierButton(
+              onPressed: _save,
+              icon: const Icon(Symbols.save, color: Colors.white),
+              label: const Text(
+                'Save Transaction',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
           ],

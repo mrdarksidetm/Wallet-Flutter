@@ -1,5 +1,23 @@
 # System Instructions: Project Wallet (Paisa Clone)
 
+## 0. The Three Laws of Coding (MANDATORY)
+
+### Law 1: Avoid Deep Nesting
+Deep nesting makes code difficult to read and maintain. Readers must hold multiple conditions in their mind simultaneously.
+- **Action:** Use **early returns** to reduce nesting.
+- **Action:** Extract complex conditions into well-named helper functions or widgets.
+- **Action:** Separate concerns into smaller, focused functions.
+
+### Law 2: Avoid Code Duplication (DRY)
+Duplicated code is a maintenance nightmare and increases the risk of inconsistent implementations.
+- **Action:** Extract repeated logic or UI patterns into reusable functions, mixins, or shared widgets.
+- **Action:** Centralize common functionality (e.g., caching, response handling, formatting).
+
+### Law 3: Use Clear and Meaningful Names
+Cryptic names make code impossible to understand. Code should be self-documenting.
+- **Action:** Use descriptive function and variable names that clearly convey purpose and intent.
+- **Action:** Favor clarity over brevity.
+
 ## 1. Project Overview
 Build a premium, offline-first personal finance dashboard for Android 14. The app allows users to monitor their financial health, view transaction history, manage accounts (wallets), and track spending visually. The app must feel fluid, tactile, and native.
 

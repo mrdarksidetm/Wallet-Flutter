@@ -3,23 +3,38 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/auxiliary_models.dart';
 import '../../../core/services/haptic_service.dart';
+import '../../../core/providers/fab_action_provider.dart';
 
-class PeoplePage extends ConsumerWidget {
+class PeoplePage extends ConsumerStatefulWidget {
   const PeoplePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PeoplePage> createState() => _PeoplePageState();
+}
+
+class _PeoplePageState extends ConsumerState<PeoplePage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(fabActionProvider.notifier).setAction(() => _showAddPersonDialog(context, ref));
+    });
+  }
+
+  @override
+  void dispose() {
+    // Note: We don't want to clear if navigating to another page that might set it,
+    // but usually, it's good practice. However, GoRouter Shell FAB rebuilds based on location.
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final peopleAsync = ref.watch(personsStreamProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('People'),
-        actions: [
-          IconButton(
-            onPressed: () => _showAddPersonDialog(context, ref),
-            icon: const Icon(Icons.person_add_rounded),
-          ),
-        ],
       ),
       body: peopleAsync.when(
         data: (people) {

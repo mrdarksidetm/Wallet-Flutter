@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/transaction_model.dart';
 import '../../../core/services/haptic_service.dart';
 import '../../../core/services/greeting_service.dart';
-import '../../../core/widgets/icon_picker.dart';
 import '../widgets/total_balance_card.dart';
 import '../widgets/overview_card.dart';
 
@@ -17,222 +16,235 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final totalBalanceAsync = ref.watch(totalBalanceProvider);
-    final totalAssetBalanceAsync = ref.watch(totalAssetBalanceProvider);
-    final monthlyStatsAsync = ref.watch(monthlyStatsProvider);
-    final transactionsAsync = ref.watch(transactionsStreamProvider);
-    final budgetsAsync = ref.watch(budgetStatsProvider);
-    final goalsAsync = ref.watch(goalsStreamProvider);
-    final selectedCurrency = ref.watch(currencyProvider);
     final greeting = ref.watch(greetingServiceProvider).getGreeting();
+    final selectedCurrency = ref.watch(currencyProvider);
     final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
 
-    double totalBudgetLeft = 0;
-    if (budgetsAsync.hasValue) {
-      for (var b in budgetsAsync.value!) {
-        final left = (b['limit'] as double) - (b['spent'] as double);
-        if (left > 0) totalBudgetLeft += left;
-      }
-    }
+    return AnimationLimiter(
+      child: CustomScrollView(
+        slivers: [
+          _HomeAppBar(greeting: greeting),
+          const SliverToBoxAdapter(child: _HomeBalanceSection()),
+          _buildSectionHeader('Finances'),
+          _HomeFinanceGrid(currencyFormat: currencyFormat),
+          const SliverToBoxAdapter(child: SizedBox(height: 32)),
+          _buildSectionHeader(
+            'Recent Transactions',
+            trailing: TextButton(
+              onPressed: () => context.go('/accounts'),
+              child: const Text('View all'),
+            ),
+          ),
+          _HomeRecentTransactions(currencyFormat: currencyFormat),
+          const SliverToBoxAdapter(child: SizedBox(height: 100)),
+        ],
+      ),
+    );
+  }
 
-    return Scaffold(
-      body: AnimationLimiter(
-        child: CustomScrollView(
-          slivers: [
-            SliverAppBar.large(
-              title: Text('$greeting, Abhi'),
-              actions: [
-                IconButton(
-                  onPressed: () async {
-                    await HapticService.light();
-                    if (context.mounted) context.push('/search');
-                  },
-                  icon: const Hero(tag: 'search_icon', child: Icon(Icons.search_rounded)),
-                ),
-                IconButton(
-                  onPressed: () async {
-                    await HapticService.light();
-                    if (context.mounted) context.push('/settings');
-                  },
-                  icon: const Icon(Icons.person_outline_rounded),
-                ),
-                const SizedBox(width: 8),
-              ],
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Column(
-                  children: AnimationConfiguration.toStaggeredList(
-                    duration: const Duration(milliseconds: 375),
-                    childAnimationBuilder: (widget) => SlideAnimation(
-                      verticalOffset: 50.0,
-                      child: FadeInAnimation(child: widget),
-                    ),
-                    children: [
-                      TotalBalanceCard(
-                        totalBalance: totalBalanceAsync.value ?? 0.0,
-                        monthlyIncome: monthlyStatsAsync.value?['income'] ?? 0.0,
-                        monthlyExpense: monthlyStatsAsync.value?['expense'] ?? 0.0,
-                      ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.2),
-                      const SizedBox(height: 24),
-                      GridView.count(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        crossAxisCount: 2,
-                        mainAxisSpacing: 16,
-                        crossAxisSpacing: 16,
-                        childAspectRatio: 1.1,
-                        children: [
-                          OverviewCard(
-                            icon: Icons.pie_chart_rounded,
-                            title: 'Budgets',
-                            subtitle: budgetsAsync.when(
-                              data: (b) => b.isEmpty ? 'Set budget' : '${currencyFormat.format(totalBudgetLeft)} left',
-                              loading: () => '...',
-                              error: (_, __) => 'Error',
-                            ),
-                            onTap: () async {
-                              await HapticService.selection();
-                              if (context.mounted) context.push('/budgets');
-                            },
-                          ),
-                          OverviewCard(
-                            icon: Icons.account_balance_rounded,
-                            title: 'Assets',
-                            subtitle: totalAssetBalanceAsync.when(
-                              data: (v) => '${currencyFormat.format(v)} total',
-                              loading: () => '...',
-                              error: (_, __) => 'Error',
-                            ),
-                            onTap: () async {
-                              await HapticService.selection();
-                              if (context.mounted) context.go('/accounts');
-                            },
-                          ),
-                          OverviewCard(
-                            icon: Icons.flag_rounded,
-                            title: 'Goals',
-                            subtitle: goalsAsync.when(
-                              data: (g) => '${g.length} active',
-                              loading: () => '...',
-                              error: (_, __) => 'Error',
-                            ),
-                            onTap: () async {
-                              await HapticService.selection();
-                              if (context.mounted) context.push('/goals');
-                            },
-                          ),
-                          OverviewCard(
-                            icon: Icons.currency_exchange_rounded,
-                            title: 'Loans',
-                            subtitle: 'Manage debts',
-                            onTap: () async {
-                              await HapticService.selection();
-                              if (context.mounted) context.push('/loans');
-                            },
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Recent Transactions',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () async {
-                              await HapticService.light();
-                              if (context.mounted) context.go('/accounts');
-                            },
-                            child: const Text('View all'),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
+  Widget _buildSectionHeader(String title, {Widget? trailing}) {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 8, 16, 12),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                fontVariations: [FontVariation('wdth', 120)],
               ),
             ),
-            transactionsAsync.when(
-              data: (transactions) {
-                if (transactions.isEmpty) {
-                  return const SliverToBoxAdapter(
-                    child: Padding(
-                      padding: EdgeInsets.all(32.0),
-                      child: Center(child: Text('No transactions yet')),
-                    ),
-                  );
-                }
-                return SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final tx = transactions[index];
-                        final isExpense = tx.type == TransactionType.expense;
-                        final color = isExpense ? Colors.red : Colors.green;
-                        final iconData = tx.icon != null 
-                            ? AppIcons.getIcon(tx.icon) 
-                            : (tx.category.value?.icon != null 
-                                ? AppIcons.getIcon(tx.category.value?.icon)
-                                : (isExpense ? Icons.shopping_bag_outlined : Icons.payments_outlined));
-                        
-                        return AnimationConfiguration.staggeredList(
-                          position: index,
-                          duration: const Duration(milliseconds: 375),
-                          child: SlideAnimation(
-                            verticalOffset: 50.0,
-                            child: FadeInAnimation(
-                              child: ListTile(
-                                onTap: () async {
-                                  await HapticService.selection();
-                                  // Navigate to transaction detail if needed
-                                },
-                                contentPadding: EdgeInsets.zero,
-                                leading: CircleAvatar(
-                                  backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-                                  child: Icon(
-                                    iconData,
-                                    size: 20,
-                                  ),
-                                ),
-                                title: Text(
-                                  tx.note ?? 'Transaction',
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                subtitle: Text(DateFormat('MMM d, h:mm a').format(tx.date)),
-                                trailing: Text(
-                                  '${isExpense ? '-' : '+'}${currencyFormat.format(tx.amount)}',
-                                  style: TextStyle(
-                                    color: color,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                      childCount: transactions.length > 5 ? 5 : transactions.length,
-                    ),
-                  ),
-                );
-              },
-              loading: () => const SliverToBoxAdapter(
-                child: Center(child: CircularProgressIndicator()),
-              ),
-              error: (err, stack) => SliverToBoxAdapter(
-                child: Center(child: Text('Error: $err')),
-              ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 100)),
+            if (trailing != null) trailing,
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _HomeAppBar extends StatelessWidget {
+  final String greeting;
+  const _HomeAppBar({required this.greeting});
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverAppBar.large(
+      title: Text('$greeting, Abhi'),
+      actions: [
+        IconButton(
+          onPressed: () => context.push('/settings'),
+          icon: const Icon(Symbols.person),
+        ),
+        const SizedBox(width: 8),
+      ],
+    );
+  }
+}
+
+class _HomeBalanceSection extends ConsumerWidget {
+  const _HomeBalanceSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final totalBalanceAsync = ref.watch(totalBalanceProvider);
+    final monthlyStatsAsync = ref.watch(monthlyStatsProvider);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: totalBalanceAsync.when(
+        data: (total) => monthlyStatsAsync.when(
+          data: (stats) => TotalBalanceCard(
+            totalBalance: total,
+            monthlyIncome: stats['income'] ?? 0.0,
+            monthlyExpense: stats['expense'] ?? 0.0,
+          ),
+          loading: () => const _LoadingBalance(),
+          error: (_, __) => const _LoadingBalance(),
+        ),
+        loading: () => const _LoadingBalance(),
+        error: (_, __) => const _LoadingBalance(),
+      ),
+    );
+  }
+}
+
+class _LoadingBalance extends StatelessWidget {
+  const _LoadingBalance();
+  @override
+  Widget build(BuildContext context) => const TotalBalanceCard(totalBalance: 0, monthlyIncome: 0, monthlyExpense: 0);
+}
+
+class _HomeFinanceGrid extends ConsumerWidget {
+  final NumberFormat currencyFormat;
+  const _HomeFinanceGrid({required this.currencyFormat});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final totalAssetBalanceAsync = ref.watch(totalAssetBalanceProvider);
+
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      sliver: SliverGrid(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          childAspectRatio: 1.4,
+        ),
+        delegate: SliverChildListDelegate([
+          OverviewCard(
+            icon: Symbols.account_balance,
+            title: 'Accounts',
+            subtitle: totalAssetBalanceAsync.when(
+              data: (v) => '${currencyFormat.format(v)} total',
+              loading: () => '...',
+              error: (_, __) => 'Error',
+            ),
+            onTap: () => context.go('/accounts'),
+          ),
+          OverviewCard(
+            icon: Symbols.pie_chart,
+            title: 'Budgets',
+            subtitle: 'Track spending',
+            onTap: () => context.push('/budgets'),
+          ),
+          OverviewCard(
+            icon: Symbols.flag,
+            title: 'Goals',
+            subtitle: 'Savings targets',
+            onTap: () => context.push('/goals'),
+          ),
+          OverviewCard(
+            icon: Symbols.front_loader,
+            title: 'Loans',
+            subtitle: 'Debts & lending',
+            onTap: () => context.push('/loans'),
+          ),
+          OverviewCard(
+            icon: Symbols.group,
+            title: 'People',
+            subtitle: 'Contacts',
+            onTap: () => context.push('/people'),
+          ),
+          OverviewCard(
+            icon: Symbols.event_repeat,
+            title: 'Recurring',
+            subtitle: 'Bills & subs',
+            onTap: () => context.push('/recurring'),
+          ),
+        ]),
+      ),
+    );
+  }
+}
+
+class _HomeRecentTransactions extends ConsumerWidget {
+  final NumberFormat currencyFormat;
+  const _HomeRecentTransactions({required this.currencyFormat});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final transactionsAsync = ref.watch(transactionsStreamProvider);
+
+    return transactionsAsync.when(
+      data: (transactions) {
+        if (transactions.isEmpty) return const SliverToBoxAdapter(child: Center(child: Text('No transactions yet')));
+        
+        final recentTxs = transactions.take(5).toList();
+        return SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) => AnimationConfiguration.staggeredList(
+                position: index,
+                duration: const Duration(milliseconds: 375),
+                child: SlideAnimation(
+                  verticalOffset: 50.0,
+                  child: FadeInAnimation(
+                    child: _TransactionTile(tx: recentTxs[index], format: currencyFormat),
+                  ),
+                ),
+              ),
+              childCount: recentTxs.length,
+            ),
+          ),
+        );
+      },
+      loading: () => const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator())),
+      error: (err, _) => SliverToBoxAdapter(child: Center(child: Text('Error: $err'))),
+    );
+  }
+}
+
+class _TransactionTile extends StatelessWidget {
+  final TransactionModel tx;
+  final NumberFormat format;
+  const _TransactionTile({required this.tx, required this.format});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isIncome = tx.type == TransactionType.income;
+
+    return ListTile(
+      onTap: () => HapticService.selection(),
+      contentPadding: EdgeInsets.zero,
+      leading: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(Symbols.receipt_long, size: 20, color: colorScheme.onSurfaceVariant),
+      ),
+      title: Text(tx.note ?? 'Transaction', style: const TextStyle(fontWeight: FontWeight.w600)),
+      subtitle: Text(DateFormat.yMMMd().format(tx.date), style: TextStyle(color: colorScheme.onSurfaceVariant.withOpacity(0.7))),
+      trailing: Text(
+        '${isIncome ? '+' : '-'}${format.format(tx.amount)}',
+        style: TextStyle(fontWeight: FontWeight.bold, color: isIncome ? Colors.green : colorScheme.error),
       ),
     );
   }
