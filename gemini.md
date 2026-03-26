@@ -18,6 +18,13 @@ Cryptic names make code impossible to understand. Code should be self-documentin
 - **Action:** Use descriptive function and variable names that clearly convey purpose and intent.
 - **Action:** Favor clarity over brevity.
 
+## 0.1 Documentation Maintenance (MANDATORY)
+You MUST always check, verify, and update the following four files whenever a change is made to the codebase:
+1. **gemini.md**: Internal rules and system instructions.
+2. **DEVELOPMENT_NOTES.md**: Technical debt, logs, and future plans.
+3. **Stat.md**: Progress tracking and feature parity.
+4. **structure.md**: Codebase map, file descriptions, and interaction tree.
+
 ## 1. Project Overview
 Build a premium, offline-first personal finance dashboard for Android 14. The app allows users to monitor their financial health, view transaction history, manage accounts (wallets), and track spending visually. The app must feel fluid, tactile, and native.
 
