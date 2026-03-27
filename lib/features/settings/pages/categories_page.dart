@@ -32,7 +32,7 @@ class CategoriesPage extends ConsumerWidget {
                 child: ListTile(
                   onTap: () => context.push('/add_category', extra: category),
                   leading: CircleAvatar(
-                    backgroundColor: color.withOpacity(0.1),
+                    backgroundColor: color.withValues(alpha: 0.1),
                     child: Icon(AppIcons.getIcon(category.icon), color: color),
                   ),
                   title: Text(category.name, style: const TextStyle(fontWeight: FontWeight.bold)),

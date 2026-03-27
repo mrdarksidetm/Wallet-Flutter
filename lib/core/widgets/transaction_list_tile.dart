@@ -35,7 +35,7 @@ class TransactionListTile extends StatelessWidget {
         width: 48,
         height: 48,
         decoration: BoxDecoration(
-          color: categoryColor.withOpacity(0.2),
+          color: categoryColor.withValues(alpha: 0.2),
           shape: BoxShape.circle,
         ),
         child: Icon(
@@ -64,7 +64,7 @@ class TransactionListTile extends StatelessWidget {
               width: 4,
               height: 4,
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+                color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                 shape: BoxShape.circle,
               ),
             ),

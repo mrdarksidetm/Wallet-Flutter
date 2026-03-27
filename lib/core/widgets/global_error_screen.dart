@@ -39,7 +39,7 @@ class GlobalErrorScreen extends StatelessWidget {
               Text(
                 'The app encountered an unexpected error. Don\'t worry, your data is safe.',
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onErrorContainer.withOpacity(0.8),
+                  color: colorScheme.onErrorContainer.withValues(alpha: 0.8),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -49,9 +49,9 @@ class GlobalErrorScreen extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: colorScheme.surface.withOpacity(0.5),
+                    color: colorScheme.surface.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: colorScheme.error.withOpacity(0.2)),
+                    border: Border.all(color: colorScheme.error.withValues(alpha: 0.2)),
                   ),
                   child: SingleChildScrollView(
                     child: SelectableText(

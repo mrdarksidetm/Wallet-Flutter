@@ -42,7 +42,7 @@ class GoalsPage extends ConsumerWidget {
                       Row(
                         children: [
                           CircleAvatar(
-                            backgroundColor: color.withOpacity(0.1),
+                            backgroundColor: color.withValues(alpha: 0.1),
                             child: Icon(AppIcons.getIcon(goal.icon), color: color),
                           ),
                           const SizedBox(width: 16),
@@ -81,7 +81,7 @@ class GoalsPage extends ConsumerWidget {
                       const SizedBox(height: 8),
                       LinearProgressIndicator(
                         value: percent,
-                        backgroundColor: color.withOpacity(0.1),
+                        backgroundColor: color.withValues(alpha: 0.1),
                         color: color,
                         minHeight: 10,
                         borderRadius: BorderRadius.circular(5),

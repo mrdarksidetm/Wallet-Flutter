@@ -112,7 +112,7 @@ class _BudgetCard extends ConsumerWidget {
             Row(
               children: [
                 CircleAvatar(
-                  backgroundColor: color.withOpacity(0.1),
+                  backgroundColor: color.withValues(alpha: 0.1),
                   child: Icon(AppIcons.getIcon(category.icon), color: color),
                 ),
                 const SizedBox(width: 16),
@@ -222,7 +222,7 @@ class _BudgetProgress extends StatelessWidget {
         const SizedBox(height: 8),
         LinearProgressIndicator(
           value: percent.clamp(0.0, 1.0),
-          backgroundColor: color.withOpacity(0.1),
+          backgroundColor: color.withValues(alpha: 0.1),
           color: percent > 1.0 ? Colors.red : color,
           minHeight: 8,
           borderRadius: BorderRadius.circular(4),

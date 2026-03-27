@@ -39,7 +39,9 @@ class IsarService {
 
       return isar;
     }
-    return Future.value(Isar.getInstance());
+    final existing = Isar.getInstance();
+    if (existing == null) throw StateError('Isar instance not found. Ensure openDB() completed successfully before accessing the database.');
+    return Future.value(existing);
   }
 }
 

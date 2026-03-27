@@ -33,7 +33,7 @@ class AccountsPage extends ConsumerWidget {
                 child: ListTile(
                   onTap: () => context.push('/add_account', extra: account),
                   leading: CircleAvatar(
-                    backgroundColor: Color(int.parse(account.color.replaceAll('0x', ''), radix: 16)).withOpacity(0.1),
+                    backgroundColor: Color(int.parse(account.color.replaceAll('0x', ''), radix: 16)).withValues(alpha: 0.1),
                     child: Icon(
                       AppIcons.getIcon(account.icon),
                       color: Color(int.parse(account.color.replaceAll('0x', ''), radix: 16)),

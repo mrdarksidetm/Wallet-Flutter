@@ -24,7 +24,7 @@ class CategoryDetailsPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(category.name),
-        backgroundColor: categoryColor.withOpacity(0.1),
+        backgroundColor: categoryColor.withValues(alpha: 0.1),
       ),
       body: CustomScrollView(
         slivers: [
@@ -131,7 +131,7 @@ class CategoryDetailsPage extends ConsumerWidget {
                       return ListTile(
                         onTap: () => HapticService.selectionStatic(),
                         leading: CircleAvatar(
-                          backgroundColor: categoryColor.withOpacity(0.1),
+                          backgroundColor: categoryColor.withValues(alpha: 0.1),
                           child: Icon(
                             AppIcons.getIcon(tx.icon ?? category.icon), 
                             color: categoryColor, 

@@ -100,7 +100,7 @@ class ThemeController extends Notifier<ThemeState> {
     state = state.copyWith(customColor: color);
     final prefs = ref.read(sharedPreferencesProvider);
     if (color != null) {
-      await prefs.setInt(_keyCustomColor, color.value);
+      await prefs.setInt(_keyCustomColor, color.toARGB32());
     } else {
       await prefs.remove(_keyCustomColor);
     }

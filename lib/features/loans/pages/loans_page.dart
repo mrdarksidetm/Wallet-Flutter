@@ -80,7 +80,7 @@ class LoansPage extends ConsumerWidget {
             margin: const EdgeInsets.only(bottom: 12),
             child: ListTile(
               leading: CircleAvatar(
-                backgroundColor: color.withOpacity(0.1),
+                backgroundColor: color.withValues(alpha: 0.1),
                 child: Icon(item.type == LoanType.lent ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded, color: color),
               ),
               title: Text(personName, style: const TextStyle(fontWeight: FontWeight.bold)),

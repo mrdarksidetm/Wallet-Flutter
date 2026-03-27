@@ -20,7 +20,7 @@ class TotalBalanceCard extends StatelessWidget {
     final currencyFormat = NumberFormat.simpleCurrency(locale: 'en_IN');
 
     return Card(
-      color: colorScheme.primaryContainer.withOpacity(0.4),
+      color: colorScheme.primaryContainer.withValues(alpha: 0.4),
       // Use the theme's card shape but could override if a specific massive look is needed
       // To keep it massive but still respond to global settings, we add a fixed offset
       child: Padding(
@@ -31,7 +31,7 @@ class TotalBalanceCard extends StatelessWidget {
             Text(
               'Total Balance',
               style: theme.textTheme.labelLarge?.copyWith(
-                color: colorScheme.onPrimaryContainer.withOpacity(0.7),
+                color: colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
               ),
             ),
             const SizedBox(height: 8),
@@ -74,7 +74,7 @@ class TotalBalanceCard extends StatelessWidget {
         Text(
           label,
           style: theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.onPrimaryContainer.withOpacity(0.7),
+            color: theme.colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
           ),
         ),
         Text(

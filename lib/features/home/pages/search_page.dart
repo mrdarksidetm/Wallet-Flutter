@@ -198,7 +198,7 @@ class _ResultTile extends StatelessWidget {
       leading: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
           shape: BoxShape.circle,
         ),
         child: Icon(icon, size: 20, color: colorScheme.onSurfaceVariant),
@@ -220,7 +220,7 @@ class _SearchEmptyState extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Symbols.manage_search, size: 64, color: colorScheme.outline.withOpacity(0.5)),
+          Icon(Symbols.manage_search, size: 64, color: colorScheme.outline.withValues(alpha: 0.5)),
           const SizedBox(height: 16),
           Text(
             'The Search Hub',
@@ -235,7 +235,7 @@ class _SearchEmptyState extends StatelessWidget {
             child: Text(
               'Search transactions, people, goals, loans, and more in one place.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: colorScheme.onSurfaceVariant.withOpacity(0.7)),
+              style: TextStyle(color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
             ),
           ),
         ],
