@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../database/providers.dart';
 
 class PersonalizationState {
   final double grade;
@@ -95,20 +95,20 @@ class PersonalizationNotifier extends Notifier<PersonalizationState> {
 
   @override
   PersonalizationState build() {
-    _load();
+    final prefs = ref.watch(sharedPreferencesProvider);
+    final data = prefs.getString(_key);
+    if (data != null) {
+      try {
+        return PersonalizationState.fromMap(json.decode(data));
+      } catch (_) {
+        return PersonalizationState();
+      }
+    }
     return PersonalizationState();
   }
 
-  Future<void> _load() async {
-    final prefs = await SharedPreferences.getInstance();
-    final data = prefs.getString(_key);
-    if (data != null) {
-      state = PersonalizationState.fromMap(json.decode(data));
-    }
-  }
-
   Future<void> _save() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = ref.read(sharedPreferencesProvider);
     await prefs.setString(_key, json.encode(state.toMap()));
   }
 

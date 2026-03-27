@@ -27,8 +27,8 @@ import 'models/transaction_model.dart';
 import 'models/auxiliary_models.dart';
 
 // --- Storage Providers ---
-final sharedPreferencesProvider = FutureProvider<SharedPreferences>((ref) async {
-  return await SharedPreferences.getInstance();
+final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
+  throw UnimplementedError('sharedPreferencesProvider must be overridden in main.dart');
 });
 
 // --- Database Provider ---

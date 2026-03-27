@@ -47,17 +47,26 @@ class BackupService {
     }
   }
 
-  Future<void> restoreBackup(String path) async {
-    final backupFile = File(path);
+  Future<bool> restoreBackup() async {
+    // 1. Pick the file
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.any, // .isar files might not have a registered mime type
+    );
+
+    if (result == null || result.files.isEmpty) return false;
+
+    final backupFile = File(result.files.single.path!);
     if (!await backupFile.exists()) throw Exception('Backup file not found');
 
     final dbDir = await getApplicationDocumentsDirectory();
     final dbPath = p.join(dbDir.path, '${isar.name}.isar');
 
-    // Close instance
+    // Close instance - CRITICAL: All providers will be broken after this!
     await isar.close();
 
     // Replace file
     await backupFile.copy(dbPath);
+    
+    return true;
   }
 }

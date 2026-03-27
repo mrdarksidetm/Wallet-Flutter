@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../database/providers.dart';
 
 class ThemeState {
   final ThemeMode themeMode;
@@ -53,21 +53,7 @@ class ThemeController extends Notifier<ThemeState> {
 
   @override
   ThemeState build() {
-    // Return initial state immediately, load prefs async
-    _loadSettings();
-    return const ThemeState(
-      themeMode: ThemeMode.system,
-      useMaterialYou: true,
-      customColor: null,
-      isLiquid: false,
-      fontFamily: 'ProductSans',
-      currencySymbol: '\$',
-      currencyCode: 'USD',
-    );
-  }
-
-  Future<void> _loadSettings() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = ref.watch(sharedPreferencesProvider);
     
     final modeIndex = prefs.getInt(_keyThemeMode) ?? 0;
     final useMaterialYou = prefs.getBool(_keyUseMaterialYou) ?? true;
@@ -84,7 +70,7 @@ class ThemeController extends Notifier<ThemeState> {
       default: mode = ThemeMode.system;
     }
 
-    state = state.copyWith(
+    return ThemeState(
       themeMode: mode,
       useMaterialYou: useMaterialYou,
       customColor: customColorVal != null ? Color(customColorVal) : null,
@@ -97,7 +83,7 @@ class ThemeController extends Notifier<ThemeState> {
 
   Future<void> setThemeMode(ThemeMode mode) async {
     state = state.copyWith(themeMode: mode);
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = ref.read(sharedPreferencesProvider);
     int index = 0; 
     if (mode == ThemeMode.light) index = 1;
     if (mode == ThemeMode.dark) index = 2;
@@ -106,13 +92,13 @@ class ThemeController extends Notifier<ThemeState> {
 
   Future<void> setUseMaterialYou(bool use) async {
     state = state.copyWith(useMaterialYou: use);
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = ref.read(sharedPreferencesProvider);
     await prefs.setBool(_keyUseMaterialYou, use);
   }
   
   Future<void> setCustomColor(Color? color) async {
     state = state.copyWith(customColor: color);
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = ref.read(sharedPreferencesProvider);
     if (color != null) {
       await prefs.setInt(_keyCustomColor, color.value);
     } else {
@@ -122,19 +108,19 @@ class ThemeController extends Notifier<ThemeState> {
 
   Future<void> toggleLiquid(bool enabled) async {
     state = state.copyWith(isLiquid: enabled);
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = ref.read(sharedPreferencesProvider);
     await prefs.setBool(_keyIsLiquid, enabled);
   }
 
   Future<void> setFontFamily(String family) async {
     state = state.copyWith(fontFamily: family);
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = ref.read(sharedPreferencesProvider);
     await prefs.setString(_keyFontFamily, family);
   }
 
   Future<void> setCurrency(String symbol, String code) async {
     state = state.copyWith(currencySymbol: symbol, currencyCode: code);
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = ref.read(sharedPreferencesProvider);
     await prefs.setString(_keyCurrencySymbol, symbol);
     await prefs.setString(_keyCurrencyCode, code);
   }

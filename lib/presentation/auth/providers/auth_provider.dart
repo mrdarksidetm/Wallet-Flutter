@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../../core/database/providers.dart';
 
 class AuthState {
   final bool isLocked;
@@ -32,37 +32,35 @@ class AuthNotifier extends Notifier<AuthState> {
 
   @override
   AuthState build() {
-    _init();
+    final prefs = ref.watch(sharedPreferencesProvider);
+    final isEnabled = prefs.getBool(_keyBiometric) ?? false;
+    
+    // Check capabilities in background
+    Future.microtask(() => _checkCapabilities());
+    
     return AuthState(
-      isLocked: false, 
+      isLocked: isEnabled, 
       canCheckBiometrics: false,
-      isBiometricEnabled: false,
+      isBiometricEnabled: isEnabled,
     );
   }
 
-  Future<void> _init() async {
-    final prefs = await SharedPreferences.getInstance();
-    final isEnabled = prefs.getBool(_keyBiometric) ?? false;
-    
+  Future<void> _checkCapabilities() async {
     bool canCheck = false;
     try {
       canCheck = await _auth.canCheckBiometrics || await _auth.isDeviceSupported();
     } catch (_) {}
     
-    state = state.copyWith(
-      canCheckBiometrics: canCheck,
-      isBiometricEnabled: isEnabled,
-      isLocked: isEnabled,
-    );
-
-    // If locked, try to authenticate automatically
+    state = state.copyWith(canCheckBiometrics: canCheck);
+    
+    // Auto-authenticate if locked
     if (state.isLocked) {
       await authenticate();
     }
   }
 
   Future<void> toggleBiometric(bool value) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = ref.read(sharedPreferencesProvider);
     await prefs.setBool(_keyBiometric, value);
     state = state.copyWith(isBiometricEnabled: value);
   }

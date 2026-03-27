@@ -64,7 +64,7 @@ class AppUpdate {
 }
 
 class UpdateService {
-  final String repoUrl = 'https://api.github.com/repos/mrdarksidetm/Wallet/releases/latest';
+  final String repoUrl = 'https://api.github.com/repos/mrdarksidetm/Wallet-Flutter/releases/latest';
 
   Future<String> getDeviceArchitecture() async {
     if (!Platform.isAndroid) return 'universal';

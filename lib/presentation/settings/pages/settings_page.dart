@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -169,6 +170,43 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Backup failed: $e')),
+                  );
+                }
+              }
+            },
+          ),
+          _buildSettingsTile(
+            context,
+            icon: Symbols.restore,
+            title: 'Restore Backup',
+            subtitle: 'Restore from an .isar file',
+            onTap: () async {
+              await HapticService.mediumStatic();
+              try {
+                final success = await ref.read(backupServiceProvider).restoreBackup();
+                if (success && context.mounted) {
+                  await HapticService.successStatic();
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Restore Successful'),
+                      content: const Text('Database has been restored. Please restart the app to apply changes.'),
+                      actions: [
+                        FilledButton(
+                          onPressed: () => exit(0),
+                          child: const Text('Close App'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (e.toString().contains('cancelled')) return;
+                await HapticService.errorStatic();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Restore failed: $e')),
                   );
                 }
               }
