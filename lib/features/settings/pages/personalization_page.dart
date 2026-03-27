@@ -150,11 +150,14 @@ class PersonalizationPage extends ConsumerWidget {
           onChanged: (v) => notifier.updateWidth(v),
         ),
         _AtelierSlider(
-          label: 'Font Roundness (SOFT)',
+          label: 'Roundness (ROND)',
           value: state.fontRoundness,
           min: 0,
           max: 100,
-          onChanged: (v) => notifier.updateFontRoundness(v),
+          onChanged: (v) {
+            notifier.updateFontRoundness(v);
+            notifier.updateRoundness(v * 0.32); // Scale 0-100% to 0-32dp
+          },
         ),
         _AtelierSlider(
           label: 'Optical Size (opsz)',
@@ -162,13 +165,6 @@ class PersonalizationPage extends ConsumerWidget {
           min: 8,
           max: 144,
           onChanged: (v) => notifier.updateOpticalSize(v),
-        ),
-        _AtelierSlider(
-          label: 'Corner Roundness',
-          value: state.roundness,
-          min: 0,
-          max: 32,
-          onChanged: (v) => notifier.updateRoundness(v),
         ),
       ],
     );
@@ -374,7 +370,7 @@ class _TypeTester extends StatelessWidget {
                 FontVariation('wght', state.weight),
                 FontVariation('slnt', state.slant),
                 FontVariation('wdth', state.width),
-                FontVariation('SOFT', state.fontRoundness),
+                FontVariation('ROND', state.fontRoundness),
                 FontVariation('opsz', state.opticalSize),
               ],
             ),

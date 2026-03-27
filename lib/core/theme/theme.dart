@@ -37,7 +37,7 @@ class AppTheme {
       FontVariation('wght', state.weight),
       FontVariation('slnt', state.slant),
       FontVariation('wdth', state.width),
-      FontVariation('SOFT', state.fontRoundness),
+      FontVariation('ROND', state.fontRoundness),
       FontVariation('opsz', state.opticalSize),
     ];
 
