@@ -134,6 +134,8 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
+        // Dark mode uses semi-transparent fill to blend with layered surfaces.
+        // Light mode uses a fully opaque tonal surface for higher contrast on white backgrounds.
         fillColor: isDark ? AppColors.surfaceContainerDark.withValues(alpha: 0.5) : AppColors.surfaceContainer,
         border: OutlineInputBorder(
           borderRadius: borderRadius,
