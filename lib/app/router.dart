@@ -93,11 +93,11 @@ GoRoute _shellRoute(String path, Widget child, {SharedAxisTransitionType type = 
   );
 }
 
-GoRoute _rootRoute(String path, dynamic builder) {
+GoRoute _rootRoute(String path, Widget Function(GoRouterState) builder) {
   return GoRoute(
     path: path,
     parentNavigatorKey: _rootNavigatorKey,
-    builder: (context, state) => builder is Widget ? builder : builder(state),
+    builder: (context, state) => builder(state),
   );
 }
 

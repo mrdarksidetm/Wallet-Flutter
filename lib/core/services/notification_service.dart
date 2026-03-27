@@ -48,10 +48,10 @@ class NotificationService {
 
     const NotificationDetails details = NotificationDetails(android: androidDetails);
     await _notificationsPlugin.show(
-      id: 0,
-      title: title,
-      body: body,
-      notificationDetails: details,
+      0,
+      title,
+      body,
+      details,
     );
   }
 
@@ -62,11 +62,11 @@ class NotificationService {
     DateTime scheduledDate
   ) async {
     await _notificationsPlugin.zonedSchedule(
-      id: id,
-      title: title,
-      body: body,
-      scheduledDate: tz.TZDateTime.from(scheduledDate, tz.local),
-      notificationDetails: const NotificationDetails(
+      id,
+      title,
+      body,
+      tz.TZDateTime.from(scheduledDate, tz.local),
+      const NotificationDetails(
         android: AndroidNotificationDetails(
           'wallet_scheduled_channel',
           'Scheduled Reminders',
