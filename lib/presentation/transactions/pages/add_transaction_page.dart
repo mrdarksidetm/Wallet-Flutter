@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../core/services/haptic_service.dart';
+import '../../../core/theme/personalization_provider.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/transaction_model.dart';
 import '../../../core/database/models/account.dart';
@@ -49,6 +50,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
 
     try {
       final service = ref.read(transactionServiceProvider);
+      final personalization = ref.read(personalizationProvider);
       await service.addTransaction(
         amount: amount,
         date: DateTime.now(),
@@ -60,7 +62,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
         icon: _selectedIcon,
       );
 
-      await HapticService.success();
+      await ref.read(hapticServiceProvider).transaction(personalization.vibrateOnTransaction);
       if (mounted) context.pop();
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
@@ -98,7 +100,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
                 ],
                 selected: {_transactionType},
                 onSelectionChanged: (Set<TransactionType> newSelection) {
-                  HapticService.selection();
+                  HapticService.selectionStatic();
                   setState(() {
                     _transactionType = newSelection.first;
                   });
@@ -110,7 +112,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
             // Amount Input
             TextField(
               controller: _amountController,
-              onChanged: (_) => HapticService.light(),
+              onChanged: (_) => HapticService.lightStatic(),
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               style: theme.textTheme.displayMedium?.copyWith(
                 fontWeight: FontWeight.bold,

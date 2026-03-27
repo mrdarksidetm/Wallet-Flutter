@@ -52,7 +52,7 @@ class _AddEditLoanPageState extends ConsumerState<AddEditLoanPage> {
 
       // Note: We now handle person creation in the service
       await ref.read(loanServiceProvider).saveLoan(loan, personName: _personController.text);
-      await HapticService.success();
+      await HapticService.successStatic();
       if (mounted) context.pop();
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:flex_color_picker/flex_color_picker.dart';
 import '../../../core/database/models/category.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/services/haptic_service.dart';
@@ -62,12 +63,16 @@ class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
     }
 
     await ref.read(categoryServiceProvider).saveCategory(category);
-    await HapticService.success();
+    await HapticService.successStatic();
     if (mounted) context.pop();
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final Color currentColor = Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16));
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.category == null ? 'Add Category' : 'Edit Category'),
@@ -85,34 +90,45 @@ class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
           padding: const EdgeInsets.all(24),
           children: [
             Center(
-              child: InkWell(
-                onTap: () {
-                  showModalBottomSheet(
-                    context: context,
-                    builder: (context) => IconPickerWidget(
-                      selectedIcon: _selectedIcon,
-                      selectedColor: Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16)),
-                      onIconSelected: (icon) {
-                        setState(() => _selectedIcon = icon);
-                        Navigator.pop(context);
-                      },
+              child: Stack(
+                children: [
+                  InkWell(
+                    onTap: _showIconPicker,
+                    borderRadius: BorderRadius.circular(24),
+                    child: Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color: currentColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: currentColor.withOpacity(0.2), width: 2),
+                      ),
+                      child: Icon(
+                        AppIcons.getIcon(_selectedIcon),
+                        size: 48,
+                        color: currentColor,
+                      ),
                     ),
-                  );
-                },
-                borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16)).withOpacity(0.1),
-                    shape: BoxShape.circle,
                   ),
-                  child: Icon(
-                    AppIcons.getIcon(_selectedIcon),
-                    size: 40,
-                    color: Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16)),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: InkWell(
+                      onTap: _showColorPicker,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: colorScheme.surface,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8),
+                          ],
+                        ),
+                        child: Icon(Icons.palette_rounded, size: 20, color: currentColor),
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
             const SizedBox(height: 32),
@@ -123,7 +139,10 @@ class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
                   ButtonSegment(value: CategoryType.income, label: Text('Income'), icon: Icon(Icons.add_rounded)),
                 ],
                 selected: {_type},
-                onSelectionChanged: (s) => setState(() => _type = s.first),
+                onSelectionChanged: (s) {
+                  HapticService.selectionStatic();
+                  setState(() => _type = s.first);
+                },
               ),
             ),
             const SizedBox(height: 32),
@@ -140,7 +159,10 @@ class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
               title: const Text('Enable Budget'),
               subtitle: const Text('Set a monthly spending limit'),
               value: _isBudget,
-              onChanged: (v) => setState(() => _isBudget = v),
+              onChanged: (v) {
+                HapticService.lightStatic();
+                setState(() => _isBudget = v);
+              },
             ),
             if (_isBudget)
               Padding(
@@ -149,7 +171,7 @@ class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
                   controller: _budgetController,
                   decoration: const InputDecoration(
                     labelText: 'Monthly Limit',
-                    prefixIcon: Icon(Icons.currency_rupee_rounded),
+                    prefixIcon: Icon(Symbols.payments),
                   ),
                   keyboardType: TextInputType.number,
                 ),
@@ -169,6 +191,49 @@ class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
     );
   }
 
+  void _showIconPicker() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => IconPickerWidget(
+        selectedIcon: _selectedIcon,
+        selectedColor: Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16)),
+        onIconSelected: (icon) {
+          setState(() => _selectedIcon = icon);
+          Navigator.pop(context);
+        },
+      ),
+    );
+  }
+
+  Future<void> _showColorPicker() async {
+    final Color colorBefore = Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16));
+    final Color newColor = await showColorPickerDialog(
+      context,
+      colorBefore,
+      title: Text('Select Category Color', style: Theme.of(context).textTheme.titleLarge),
+      width: 40,
+      height: 40,
+      spacing: 0,
+      runSpacing: 0,
+      borderRadius: 0,
+      wheelDiameter: 165,
+      enableOpacity: false,
+      showColorCode: true,
+      colorCodeHasColor: true,
+      pickersEnabled: <ColorPickerType, bool>{
+        ColorPickerType.both: false,
+        ColorPickerType.primary: true,
+        ColorPickerType.accent: true,
+        ColorPickerType.bw: false,
+        ColorPickerType.custom: true,
+        ColorPickerType.wheel: true,
+      },
+    );
+    setState(() {
+      _selectedColor = '0x${newColor.value.toRadixString(16).toUpperCase()}';
+    });
+  }
+
   void _showDeleteDialog() {
     showDialog(
       context: context,
@@ -180,7 +245,7 @@ class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
           TextButton(
             onPressed: () async {
               await ref.read(categoryServiceProvider).deleteCategory(widget.category!.id);
-              await HapticService.error();
+              await HapticService.errorStatic();
               if (mounted) {
                 Navigator.pop(context); // Pop dialog
                 context.pop(); // Pop page

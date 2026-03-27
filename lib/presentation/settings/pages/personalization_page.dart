@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/theme/personalization_provider.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/services/haptic_service.dart';
@@ -21,7 +22,7 @@ class PersonalizationPage extends ConsumerWidget {
             floating: true,
             leading: IconButton(
               onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.arrow_back_rounded),
+              icon: const Icon(Symbols.arrow_back_rounded),
             ),
             title: Text(
               'Personalization',
@@ -33,9 +34,9 @@ class PersonalizationPage extends ConsumerWidget {
               IconButton(
                 onPressed: () {
                   notifier.reset();
-                  HapticService.medium();
+                  HapticService.mediumStatic();
                 },
-                icon: const Icon(Icons.refresh_rounded),
+                icon: const Icon(Symbols.refresh_rounded),
                 tooltip: 'Reset',
               ),
             ],
@@ -109,9 +110,14 @@ class PersonalizationPage extends ConsumerWidget {
         _buildSliderSection(context, state, notifier),
         
         const SizedBox(height: 48),
+
+        // Color Schemes
+        _buildColorSchemeSection(context, state, notifier),
+
+        const SizedBox(height: 48),
         
-        // Icons Toggle
-        _buildIconsToggle(context, state, notifier),
+        // Toggles
+        _buildTogglesSection(context, state, notifier),
         
         const SizedBox(height: 100), // Bottom padding for breathing room
       ],
@@ -137,13 +143,6 @@ class PersonalizationPage extends ConsumerWidget {
           onChanged: (v) => notifier.updateWeight(v),
         ),
         _AtelierSlider(
-          label: 'Slant',
-          value: state.slant,
-          min: -10,
-          max: 0,
-          onChanged: (v) => notifier.updateSlant(v),
-        ),
-        _AtelierSlider(
           label: 'Width',
           value: state.width,
           min: 50,
@@ -151,7 +150,21 @@ class PersonalizationPage extends ConsumerWidget {
           onChanged: (v) => notifier.updateWidth(v),
         ),
         _AtelierSlider(
-          label: 'Roundness',
+          label: 'Font Roundness (SOFT)',
+          value: state.fontRoundness,
+          min: 0,
+          max: 100,
+          onChanged: (v) => notifier.updateFontRoundness(v),
+        ),
+        _AtelierSlider(
+          label: 'Optical Size (opsz)',
+          value: state.opticalSize,
+          min: 8,
+          max: 144,
+          onChanged: (v) => notifier.updateOpticalSize(v),
+        ),
+        _AtelierSlider(
+          label: 'Corner Roundness',
           value: state.roundness,
           min: 0,
           max: 32,
@@ -161,12 +174,99 @@ class PersonalizationPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildIconsToggle(BuildContext context, PersonalizationState state, PersonalizationNotifier notifier) {
+  Widget _buildColorSchemeSection(BuildContext context, PersonalizationState state, PersonalizationNotifier notifier) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final variants = {
+      'tonalSpot': 'Tonal Spot',
+      'monochrome': 'Monochrome',
+      'neutral': 'Neutral',
+      'vibrant': 'Vibrant',
+      'expressive': 'Expressive',
+      'content': 'Content',
+      'fidelity': 'Fidelity',
+      'rainbow': 'Rainbow',
+      'fruitSalad': 'Fruit Salad',
+    };
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'COLOR SCHEME VARIANT',
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            letterSpacing: 1.2,
+            fontWeight: FontWeight.w900,
+            color: colorScheme.onSurface.withOpacity(0.5),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: variants.entries.map((e) {
+            final isSelected = state.colorSchemeVariant == e.key;
+            return ChoiceChip(
+              label: Text(e.value),
+              selected: isSelected,
+              onSelected: (selected) {
+                if (selected) {
+                  notifier.updateColorSchemeVariant(e.key);
+                  HapticService.mediumStatic();
+                }
+              },
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTogglesSection(BuildContext context, PersonalizationState state, PersonalizationNotifier notifier) {
+    return Column(
+      children: [
+        _buildToggleItem(
+          context,
+          title: 'Filled Icons',
+          subtitle: 'Enable solid fill for all interface iconography',
+          icon: Symbols.brush_rounded,
+          value: state.fillIcons,
+          onChanged: (v) => notifier.toggleFillIcons(v),
+        ),
+        const SizedBox(height: 16),
+        _buildToggleItem(
+          context,
+          title: 'Haptic Feedback',
+          subtitle: 'System-wide vibrations and clicks',
+          icon: Symbols.vibration_rounded,
+          value: state.vibrationEnabled,
+          onChanged: (v) => notifier.toggleVibration(v),
+        ),
+        const SizedBox(height: 16),
+        _buildToggleItem(
+          context,
+          title: 'Transaction Haptics',
+          subtitle: 'Vibrate specifically when adding transactions',
+          icon: Symbols.add_task_rounded,
+          value: state.vibrateOnTransaction,
+          onChanged: (v) => notifier.toggleVibrateOnTransaction(v),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildToggleItem(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
     final colorScheme = Theme.of(context).colorScheme;
     return InkWell(
       onTap: () {
-        notifier.toggleFillIcons(!state.fillIcons);
-        HapticService.light();
+        onChanged(!value);
+        HapticService.lightStatic();
       },
       borderRadius: BorderRadius.circular(16),
       child: Container(
@@ -180,13 +280,13 @@ class PersonalizationPage extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: state.fillIcons ? colorScheme.primary : colorScheme.surface,
+                color: value ? colorScheme.primary : colorScheme.surface,
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                Icons.brush_rounded,
-                color: state.fillIcons ? Colors.white : colorScheme.primary,
-                fill: state.fillIcons ? 1 : 0,
+                icon,
+                color: value ? Colors.white : colorScheme.primary,
+                fill: value ? 1.0 : 0.0, // Specific local control
               ),
             ),
             const SizedBox(width: 24),
@@ -195,13 +295,13 @@ class PersonalizationPage extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Filled Icons',
+                    title,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
-                    'Enable solid fill for all interface iconography',
+                    subtitle,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurface.withOpacity(0.6),
                     ),
@@ -210,10 +310,10 @@ class PersonalizationPage extends ConsumerWidget {
               ),
             ),
             Switch.adaptive(
-              value: state.fillIcons,
+              value: value,
               onChanged: (v) {
-                notifier.toggleFillIcons(v);
-                HapticService.light();
+                onChanged(v);
+                HapticService.lightStatic();
               },
             ),
           ],
@@ -253,11 +353,11 @@ class _TypeTester extends StatelessWidget {
               ),
               Row(
                 children: [
-                   Icon(Icons.palette_outlined, size: 18, color: colorScheme.primary),
+                   Icon(Symbols.palette, size: 18, color: colorScheme.primary),
                    const SizedBox(width: 12),
-                   Icon(Icons.text_fields_rounded, size: 18, color: colorScheme.primary),
+                   Icon(Symbols.text_fields_rounded, size: 18, color: colorScheme.primary),
                    const SizedBox(width: 12),
-                   Icon(Icons.auto_awesome_rounded, size: 18, color: colorScheme.primary),
+                   Icon(Symbols.auto_awesome_rounded, size: 18, color: colorScheme.primary),
                 ],
               ),
             ],
@@ -274,6 +374,8 @@ class _TypeTester extends StatelessWidget {
                 FontVariation('wght', state.weight),
                 FontVariation('slnt', state.slant),
                 FontVariation('wdth', state.width),
+                FontVariation('SOFT', state.fontRoundness),
+                FontVariation('opsz', state.opticalSize),
               ],
             ),
           ),
@@ -281,13 +383,13 @@ class _TypeTester extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              _PreviewIcon(icon: Icons.face_rounded, state: state),
+              _PreviewIcon(icon: Symbols.face_rounded, state: state),
               const SizedBox(width: 32),
-              _PreviewIcon(icon: Icons.eco_rounded, state: state),
+              _PreviewIcon(icon: Symbols.eco_rounded, state: state),
               const SizedBox(width: 32),
-              _PreviewIcon(icon: Icons.star_rounded, state: state),
+              _PreviewIcon(icon: Symbols.star_rounded, state: state),
               const SizedBox(width: 32),
-              _PreviewIcon(icon: Icons.favorite_rounded, state: state),
+              _PreviewIcon(icon: Symbols.favorite_rounded, state: state),
             ],
           ),
         ],
@@ -362,8 +464,8 @@ class _AtelierSlider extends StatelessWidget {
               trackHeight: 4,
               activeTrackColor: colorScheme.primary.withOpacity(0.3),
               inactiveTrackColor: colorScheme.surfaceContainer,
-              thumbColor: AppColors.tertiary,
-              overlayColor: AppColors.tertiary.withOpacity(0.1),
+              thumbColor: AppColors.primary,
+              overlayColor: AppColors.primary.withOpacity(0.1),
               thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8, elevation: 0),
               trackShape: const RoundedRectSliderTrackShape(),
             ),
@@ -373,7 +475,7 @@ class _AtelierSlider extends StatelessWidget {
               max: max,
               onChanged: (v) {
                 onChanged(v);
-                HapticService.light();
+                HapticService.lightStatic();
               },
             ),
           ),

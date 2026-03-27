@@ -129,7 +129,7 @@ class CategoryDetailsPage extends ConsumerWidget {
                     (context, index) {
                       final tx = categoryTxs[index];
                       return ListTile(
-                        onTap: () => HapticService.selection(),
+                        onTap: () => HapticService.selectionStatic(),
                         leading: CircleAvatar(
                           backgroundColor: categoryColor.withOpacity(0.1),
                           child: Icon(

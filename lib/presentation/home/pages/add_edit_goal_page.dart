@@ -63,7 +63,7 @@ class _AddEditGoalPageState extends ConsumerState<AddEditGoalPage> {
     }
 
     await ref.read(goalServiceProvider).saveGoal(goal);
-    await HapticService.success();
+    await HapticService.successStatic();
     if (mounted) context.pop();
   }
 
@@ -187,7 +187,7 @@ class _AddEditGoalPageState extends ConsumerState<AddEditGoalPage> {
           TextButton(
             onPressed: () async {
               await ref.read(goalServiceProvider).deleteGoal(widget.goal!.id);
-              await HapticService.error();
+              await HapticService.errorStatic();
               if (mounted) {
                 Navigator.pop(context); // Pop dialog
                 context.pop(); // Pop page

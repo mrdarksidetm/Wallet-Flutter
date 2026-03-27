@@ -1,9 +1,8 @@
 import 'dart:io';
 import 'package:csv/csv.dart' as csv;
 import 'package:isar/isar.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:open_filex/open_filex.dart';
+import 'package:path/path.dart' as p;
 import '../models/transaction_model.dart';
 
 import 'package:file_picker/file_picker.dart';
@@ -16,7 +15,6 @@ class CsvService {
   CsvService(this.isar);
 
   Future<void> importTransactions() async {
-    // 1. Pick File
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['csv'],
@@ -27,12 +25,9 @@ class CsvService {
     final file = File(result.files.single.path!);
     final input = await file.readAsString();
     
-    // 2. Parse CSV
     final fields = const csv.CsvToListConverter().convert(input);
     if (fields.length < 2) throw Exception('CSV file is empty or invalid');
 
-    // 3. Process Rows (skip header)
-    // Expecting columns: Date, Time, Type, Amount, Category, Account, Transfer Account, Note, Tags
     await isar.writeTxn(() async {
       for (var i = 1; i < fields.length; i++) {
         final row = fields[i];
@@ -51,7 +46,6 @@ class CsvService {
 
           final dateTime = DateTime.tryParse('${dateStr}T$timeStr') ?? DateTime.now();
           
-          // Find or create Account
           var account = await isar.accounts.filter().nameEqualTo(accountName).findFirst();
           if (account == null) {
             account = Account()
@@ -67,7 +61,6 @@ class CsvService {
             await isar.accounts.put(account);
           }
 
-          // Find or create Category
           final type = typeStr == 'income' ? TransactionType.income : TransactionType.expense;
           var category = await isar.categorys.filter().nameEqualTo(categoryName).findFirst();
           if (category == null) {
@@ -82,7 +75,6 @@ class CsvService {
             await isar.categorys.put(category);
           }
 
-          // Create Transaction
           final transaction = TransactionModel()
             ..amount = amount
             ..date = dateTime
@@ -111,7 +103,6 @@ class CsvService {
             await transaction.transferAccount.save();
           }
 
-          // Update Account Balance
           if (type == TransactionType.income) {
             account.balance += amount;
           } else if (type == TransactionType.expense) {
@@ -120,7 +111,6 @@ class CsvService {
           await isar.accounts.put(account);
 
         } catch (e) {
-          // Skip row on error
           continue;
         }
       }
@@ -128,27 +118,16 @@ class CsvService {
   }
 
   Future<void> exportTransactions() async {
-    // 1. Request Storage Permission
-    if (!await _requestPermission()) {
-      throw Exception('Storage permission denied');
-    }
+    // 1. Prompt User for Directory (Avoid Permission Denied on newer Android)
+    final String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
+    if (selectedDirectory == null) throw Exception('Export cancelled');
 
     // 2. Fetch Data
     final transactions = await isar.transactionModels.where().sortByDateDesc().findAll();
     
     // 3. Convert to CSV List
     List<List<dynamic>> rows = [];
-    rows.add([
-      'Date',
-      'Time',
-      'Type',
-      'Amount',
-      'Category',
-      'Account',
-      'Transfer Account',
-      'Note',
-      'Tags'
-    ]); // Header
+    rows.add(['Date', 'Time', 'Type', 'Amount', 'Category', 'Account', 'Transfer Account', 'Note', 'Tags']);
 
     for (var tx in transactions) {
       rows.add([
@@ -167,39 +146,16 @@ class CsvService {
     // 4. Generate CSV String
     String csvData = const csv.ListToCsvConverter().convert(rows);
 
-    // 5. Save to File
-    final directory = await _getDownloadDirectory();
-    final path = '${directory.path}/wallet_export_${DateTime.now().millisecondsSinceEpoch}.csv';
+    // 5. Save to File in selected directory
+    final path = p.join(selectedDirectory, 'wallet_export_${DateTime.now().millisecondsSinceEpoch}.csv');
     final file = File(path);
     await file.writeAsString(csvData);
     
-    // 6. Open File
-    await OpenFilex.open(path);
-  }
-
-  Future<bool> _requestPermission() async {
-    if (Platform.isAndroid) {
-      // Android 11+ (API 30+) scoped storage usually doesn't need explicit permission for own app dirs,
-      // but for "Downloads" or external, it might.
-      // Manage External Storage is only for file managers.
-      // For standard export, we often use generic storage or just write to app docs and share.
-      // Trying generic storage permission logic.
-      if (await Permission.storage.request().isGranted) return true;
-      if (await Permission.manageExternalStorage.request().isGranted) return true;
-      return false;
+    // 6. Open File (Optional)
+    try {
+      await OpenFilex.open(path);
+    } catch (_) {
+      // Ignore open errors if platform doesn't support
     }
-    return true;
-  }
-
-  Future<Directory> _getDownloadDirectory() async {
-    if (Platform.isAndroid) {
-      // Create a directory in Download folder if possible, or use external storage dir
-      Directory? directory = Directory('/storage/emulated/0/Download');
-      if (!await directory.exists()) {
-        directory = await getExternalStorageDirectory();
-      }
-      return directory ?? await getApplicationDocumentsDirectory();
-    }
-    return await getApplicationDocumentsDirectory();
   }
 }

@@ -60,7 +60,7 @@ class CurrencySelectionPage extends ConsumerWidget {
                 ? Icon(Icons.check_circle_rounded, color: Theme.of(context).colorScheme.primary) 
                 : null,
             onTap: () async {
-              await HapticService.selection();
+              await HapticService.selectionStatic();
               ref.read(currencyProvider.notifier).state = currency['code']!;
               if (context.mounted) context.pop();
             },

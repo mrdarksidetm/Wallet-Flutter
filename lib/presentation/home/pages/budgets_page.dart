@@ -151,7 +151,7 @@ class _BudgetCard extends ConsumerWidget {
             TextButton(
               onPressed: () async {
                 await ref.read(categoryServiceProvider).setBudget(category.id, 0);
-                await HapticService.medium();
+                await HapticService.mediumStatic();
                 if (context.mounted) Navigator.pop(context);
               },
               child: const Text('Remove', style: TextStyle(color: Colors.red)),
@@ -160,7 +160,7 @@ class _BudgetCard extends ConsumerWidget {
             onPressed: () async {
               final limitValue = double.tryParse(controller.text) ?? 0;
               await ref.read(categoryServiceProvider).setBudget(category.id, limitValue);
-              await HapticService.medium();
+              await HapticService.mediumStatic();
               if (context.mounted) Navigator.pop(context);
             },
             child: const Text('Save'),

@@ -151,7 +151,7 @@ class ReportsPage extends ConsumerWidget {
   Widget _buildReportItem(BuildContext context, Category category, String amount, Color color) {
     return ListTile(
       onTap: () {
-        HapticService.selection();
+        HapticService.selectionStatic();
         context.push('/category_details', extra: category);
       },
       contentPadding: EdgeInsets.zero,

@@ -78,8 +78,8 @@ class SeedService {
           ..name = 'Cash'
           ..type = AccountType.cash
           ..balance = 0.0
-          ..color = '4CAF50'
-          ..icon = 'EF4C'
+          ..color = '0xFF4CAF50'
+          ..icon = 'payments'
           ..createdAt = DateTime.now()
           ..updatedAt = DateTime.now();
         await isar.accounts.put(cash);

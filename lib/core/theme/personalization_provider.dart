@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:convert';
-import '../database/providers.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PersonalizationState {
   final double grade;
@@ -8,7 +8,12 @@ class PersonalizationState {
   final double slant;
   final double width;
   final double roundness;
+  final double fontRoundness;
+  final double opticalSize;
   final bool fillIcons;
+  final bool vibrationEnabled;
+  final bool vibrateOnTransaction;
+  final String colorSchemeVariant;
 
   PersonalizationState({
     this.grade = 50,
@@ -16,7 +21,12 @@ class PersonalizationState {
     this.slant = 0,
     this.width = 100,
     this.roundness = 28,
+    this.fontRoundness = 0,
+    this.opticalSize = 12,
     this.fillIcons = false,
+    this.vibrationEnabled = true,
+    this.vibrateOnTransaction = true,
+    this.colorSchemeVariant = 'tonalSpot',
   });
 
   PersonalizationState copyWith({
@@ -25,7 +35,12 @@ class PersonalizationState {
     double? slant,
     double? width,
     double? roundness,
+    double? fontRoundness,
+    double? opticalSize,
     bool? fillIcons,
+    bool? vibrationEnabled,
+    bool? vibrateOnTransaction,
+    String? colorSchemeVariant,
   }) {
     return PersonalizationState(
       grade: grade ?? this.grade,
@@ -33,7 +48,12 @@ class PersonalizationState {
       slant: slant ?? this.slant,
       width: width ?? this.width,
       roundness: roundness ?? this.roundness,
+      fontRoundness: fontRoundness ?? this.fontRoundness,
+      opticalSize: opticalSize ?? this.opticalSize,
       fillIcons: fillIcons ?? this.fillIcons,
+      vibrationEnabled: vibrationEnabled ?? this.vibrationEnabled,
+      vibrateOnTransaction: vibrateOnTransaction ?? this.vibrateOnTransaction,
+      colorSchemeVariant: colorSchemeVariant ?? this.colorSchemeVariant,
     );
   }
 
@@ -44,7 +64,12 @@ class PersonalizationState {
       'slant': slant,
       'width': width,
       'roundness': roundness,
+      'fontRoundness': fontRoundness,
+      'opticalSize': opticalSize,
       'fillIcons': fillIcons,
+      'vibrationEnabled': vibrationEnabled,
+      'vibrateOnTransaction': vibrateOnTransaction,
+      'colorSchemeVariant': colorSchemeVariant,
     };
   }
 
@@ -55,39 +80,36 @@ class PersonalizationState {
       slant: (map['slant'] as num?)?.toDouble() ?? 0,
       width: (map['width'] as num?)?.toDouble() ?? 100,
       roundness: (map['roundness'] as num?)?.toDouble() ?? 28,
+      fontRoundness: (map['fontRoundness'] as num?)?.toDouble() ?? 0,
+      opticalSize: (map['opticalSize'] as num?)?.toDouble() ?? 12,
       fillIcons: map['fillIcons'] as bool? ?? false,
+      vibrationEnabled: map['vibrationEnabled'] as bool? ?? true,
+      vibrateOnTransaction: map['vibrateOnTransaction'] as bool? ?? true,
+      colorSchemeVariant: map['colorSchemeVariant'] as String? ?? 'tonalSpot',
     );
   }
 }
 
 class PersonalizationNotifier extends Notifier<PersonalizationState> {
-  static const _key = 'personalization_settings';
+  static const _key = 'personalization_v1';
 
   @override
   PersonalizationState build() {
-    final prefsAsync = ref.watch(sharedPreferencesProvider);
-    return prefsAsync.when(
-      data: (prefs) {
-        final data = prefs.getString(_key);
-        if (data != null) {
-          try {
-            return PersonalizationState.fromMap(jsonDecode(data));
-          } catch (_) {
-            return PersonalizationState();
-          }
-        }
-        return PersonalizationState();
-      },
-      loading: () => PersonalizationState(),
-      error: (_, __) => PersonalizationState(),
-    );
+    _load();
+    return PersonalizationState();
+  }
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    final data = prefs.getString(_key);
+    if (data != null) {
+      state = PersonalizationState.fromMap(json.decode(data));
+    }
   }
 
   Future<void> _save() async {
-    final prefs = ref.read(sharedPreferencesProvider).value;
-    if (prefs != null) {
-      await prefs.setString(_key, jsonEncode(state.toMap()));
-    }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_key, json.encode(state.toMap()));
   }
 
   void updateGrade(double value) {
@@ -115,8 +137,33 @@ class PersonalizationNotifier extends Notifier<PersonalizationState> {
     _save();
   }
 
+  void updateFontRoundness(double value) {
+    state = state.copyWith(fontRoundness: value);
+    _save();
+  }
+
+  void updateOpticalSize(double value) {
+    state = state.copyWith(opticalSize: value);
+    _save();
+  }
+
   void toggleFillIcons(bool value) {
     state = state.copyWith(fillIcons: value);
+    _save();
+  }
+
+  void toggleVibration(bool value) {
+    state = state.copyWith(vibrationEnabled: value);
+    _save();
+  }
+
+  void toggleVibrateOnTransaction(bool value) {
+    state = state.copyWith(vibrateOnTransaction: value);
+    _save();
+  }
+
+  void updateColorSchemeVariant(String variant) {
+    state = state.copyWith(colorSchemeVariant: variant);
     _save();
   }
 

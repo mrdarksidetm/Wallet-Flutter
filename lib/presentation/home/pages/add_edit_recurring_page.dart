@@ -73,7 +73,7 @@ class _AddEditRecurringPageState extends ConsumerState<AddEditRecurringPage> {
     }
 
     await ref.read(recurringServiceProvider).saveRecurring(recurring);
-    await HapticService.success();
+    await HapticService.successStatic();
     if (mounted) context.pop();
   }
 

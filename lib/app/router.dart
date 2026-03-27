@@ -3,18 +3,19 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:animations/animations.dart';
 import 'package:material_symbols_icons/symbols.dart';
+
 import '../presentation/home/pages/home_page.dart';
 import '../presentation/accounts/pages/accounts_page.dart';
 import '../presentation/transactions/pages/add_transaction_page.dart';
 import '../presentation/reports/pages/reports_page.dart';
-import '../presentation/loans/pages/loans_page.dart';
 import '../presentation/auth/pages/unlock_page.dart';
 import '../presentation/auth/providers/auth_provider.dart';
 import '../presentation/settings/pages/settings_page.dart';
 import '../presentation/home/pages/budgets_page.dart';
 import '../presentation/home/pages/bill_splitter_page.dart';
-import '../presentation/accounts/pages/add_edit_account_page.dart';
+import '../presentation/loans/pages/loans_page.dart';
 import '../presentation/loans/pages/add_edit_loan_page.dart';
+import '../presentation/accounts/pages/add_edit_account_page.dart';
 import '../presentation/home/pages/recurring_page.dart';
 import '../presentation/home/pages/add_edit_recurring_page.dart';
 import '../presentation/settings/pages/categories_page.dart';
@@ -27,9 +28,14 @@ import '../presentation/home/pages/add_edit_goal_page.dart';
 import '../presentation/home/pages/search_page.dart';
 import '../presentation/settings/pages/personalization_page.dart';
 import '../presentation/settings/pages/theme_selection_page.dart';
+import '../presentation/settings/pages/privacy_policy_page.dart';
+import '../presentation/settings/pages/feedback_page.dart';
+import '../presentation/settings/pages/about_page.dart';
+
 import '../core/database/models/account.dart';
 import '../core/database/models/category.dart';
 import '../core/database/models/auxiliary_models.dart';
+import '../core/theme/personalization_provider.dart';
 import '../core/providers/fab_action_provider.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -59,6 +65,9 @@ final routerProvider = Provider<GoRouter>((ref) {
           _shellRoute('/people', const PeoplePage(), type: SharedAxisTransitionType.scaled),
           _shellRoute('/goals', const GoalsPage(), type: SharedAxisTransitionType.scaled),
           _shellRoute('/currency_selection', const CurrencySelectionPage(), type: SharedAxisTransitionType.scaled),
+          _shellRoute('/privacy_policy', const PrivacyPolicyPage(), type: SharedAxisTransitionType.scaled),
+          _shellRoute('/feedback', const FeedbackPage(), type: SharedAxisTransitionType.scaled),
+          _shellRoute('/about', const AboutPage(), type: SharedAxisTransitionType.scaled),
           GoRoute(
             path: '/category_details',
             pageBuilder: (context, state) => _buildSharedAxisTransition(
@@ -67,7 +76,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ],
       ),
-      _rootRoute('/add_transaction', const AddTransactionPage()),
+      _rootRoute('/add_transaction', (_) => const AddTransactionPage()),
       _rootRoute('/add_account', (state) => AddEditAccountPage(account: state.extra as Account?)),
       _rootRoute('/add_loan', (_) => const AddEditLoanPage()),
       _rootRoute('/add_recurring', (state) => AddEditRecurringPage(recurring: state.extra as Recurring?)),
@@ -160,10 +169,15 @@ class _NavDest extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return NavigationDestination(
-      icon: Icon(icon, fill: 0),
-      selectedIcon: Icon(icon, fill: 1),
-      label: label,
+    return Consumer(
+      builder: (context, ref, _) {
+        final fillIcons = ref.watch(personalizationProvider).fillIcons;
+        return NavigationDestination(
+          icon: Icon(icon, fill: fillIcons ? 1.0 : 0.0),
+          selectedIcon: Icon(icon, fill: 1.0),
+          label: label,
+        );
+      },
     );
   }
 }
@@ -176,18 +190,42 @@ class _FAB extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     if (_shouldHideFAB(location)) return const SizedBox.shrink();
 
+    final colorScheme = Theme.of(context).colorScheme;
+    final fillIcons = ref.watch(personalizationProvider).fillIcons;
+
     return FloatingActionButton(
+      backgroundColor: colorScheme.primaryContainer,
+      foregroundColor: colorScheme.onPrimaryContainer,
       onPressed: () => _handleFABPressed(context, ref, location),
-      child: Icon(_getFABIcon(ref, location)),
+      child: Icon(
+        _getFABIcon(location),
+        fill: fillIcons ? 1.0 : 0.0,
+      ),
     );
   }
 
   bool _shouldHideFAB(String loc) {
-    final hiddenRoutes = ['/settings', '/personalization', '/theme_selection'];
-    return hiddenRoutes.any((route) => loc.startsWith(route));
+    final hiddenRoutes = [
+      '/settings',
+      '/personalization',
+      '/categories',
+      '/theme_selection',
+      '/currency_selection',
+      '/privacy_policy',
+      '/feedback',
+      '/about',
+      '/category_details',
+      '/add_transaction',
+      '/add_account',
+      '/add_goal',
+      '/add_loan',
+      '/add_recurring',
+      '/add_category'
+    ];
+    return hiddenRoutes.any((route) => loc == route || loc.startsWith('$route/'));
   }
 
-  IconData _getFABIcon(WidgetRef ref, String loc) {
+  IconData _getFABIcon(String loc) {
     switch (loc) {
       case '/': return Symbols.add;
       case '/accounts': return Symbols.add_card;

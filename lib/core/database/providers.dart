@@ -202,6 +202,8 @@ final searchTransactionsProvider = FutureProvider<List<TransactionModel>>((ref) 
 });
 
 final budgetStatsProvider = StreamProvider<List<Map<String, dynamic>>>((ref) {
+  // Listen to transaction changes to force rebuild of the budget stream
+  ref.watch(transactionsStreamProvider);
   final service = ref.watch(statisticsServiceProvider);
   return service.watchBudgets();
 });

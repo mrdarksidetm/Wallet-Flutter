@@ -26,28 +26,39 @@ class AuthState {
   }
 }
 
-class AuthNotifier extends StateNotifier<AuthState> {
+class AuthNotifier extends Notifier<AuthState> {
   final LocalAuthentication _auth = LocalAuthentication();
   static const _keyBiometric = 'is_biometric_enabled';
 
-  AuthNotifier() : super(AuthState(
-    isLocked: false, 
-    canCheckBiometrics: false,
-    isBiometricEnabled: false,
-  )) {
+  @override
+  AuthState build() {
     _init();
+    return AuthState(
+      isLocked: false, 
+      canCheckBiometrics: false,
+      isBiometricEnabled: false,
+    );
   }
 
   Future<void> _init() async {
     final prefs = await SharedPreferences.getInstance();
     final isEnabled = prefs.getBool(_keyBiometric) ?? false;
-    final canCheck = await _auth.canCheckBiometrics || await _auth.isDeviceSupported();
+    
+    bool canCheck = false;
+    try {
+      canCheck = await _auth.canCheckBiometrics || await _auth.isDeviceSupported();
+    } catch (_) {}
     
     state = state.copyWith(
       canCheckBiometrics: canCheck,
       isBiometricEnabled: isEnabled,
-      isLocked: isEnabled, // Lock by default if enabled
+      isLocked: isEnabled,
     );
+
+    // If locked, try to authenticate automatically
+    if (state.isLocked) {
+      await authenticate();
+    }
   }
 
   Future<void> toggleBiometric(bool value) async {
@@ -71,7 +82,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
         localizedReason: 'Authenticate to unlock Wallet',
         options: const AuthenticationOptions(
           stickyAuth: true,
-          biometricOnly: true,
+          biometricOnly: false, // Allows PIN fallback which is more reliable
+          useErrorDialogs: true,
         ),
       );
       if (authenticated) {
@@ -84,6 +96,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 }
 
-final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
+final authProvider = NotifierProvider<AuthNotifier, AuthState>(() {
   return AuthNotifier();
 });

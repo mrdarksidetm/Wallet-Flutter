@@ -54,7 +54,7 @@ class UnlockPage extends ConsumerWidget {
                 height: 64,
                 child: FilledButton.icon(
                   onPressed: () async {
-                    await HapticService.light();
+                    await HapticService.lightStatic();
                     await authNotifier.authenticate();
                   },
                   icon: const Icon(Icons.fingerprint_rounded),

@@ -65,7 +65,7 @@ class ThemeSelectionPage extends ConsumerWidget {
 
     return ListTile(
       onTap: () async {
-        await HapticService.selection();
+        await HapticService.selectionStatic();
         onTap();
       },
       leading: Container(

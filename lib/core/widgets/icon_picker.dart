@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import '../theme/personalization_provider.dart';
 
 class AppIcons {
   static const Map<String, Map<String, IconData>> categories = {
@@ -170,20 +172,26 @@ class IconPickerWidget extends StatelessWidget {
                         final entry = categoryIcons.entries.elementAt(i);
                         final isSelected = entry.key == selectedIcon;
 
-                        return InkWell(
-                          onTap: () => onIconSelected(entry.key),
-                          borderRadius: BorderRadius.circular(16),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: isSelected ? selectedColor.withOpacity(0.1) : Colors.transparent,
+                        return Consumer(
+                          builder: (context, ref, _) {
+                            final fillIcons = ref.watch(personalizationProvider).fillIcons;
+                            return InkWell(
+                              onTap: () => onIconSelected(entry.key),
                               borderRadius: BorderRadius.circular(16),
-                              border: isSelected ? Border.all(color: selectedColor, width: 2) : null,
-                            ),
-                            child: Icon(
-                              entry.value,
-                              color: isSelected ? selectedColor : null,
-                            ),
-                          ),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: isSelected ? selectedColor.withOpacity(0.1) : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: isSelected ? Border.all(color: selectedColor, width: 2) : null,
+                                ),
+                                child: Icon(
+                                  entry.value,
+                                  color: isSelected ? selectedColor : null,
+                                  fill: fillIcons ? 1.0 : 0.0,
+                                ),
+                              ),
+                            );
+                          },
                         );
                       },
                     ),

@@ -141,6 +141,7 @@ class StatisticsService {
     final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
 
     // Watch both categories and transactions to update when either changes
+    // We combine the streams of categories and transactions
     return isar.categorys
         .filter()
         .isBudgetEqualTo(true)
@@ -154,6 +155,7 @@ class StatisticsService {
             .categoryIdEqualTo(category.id)
             .dateBetween(startOfMonth, endOfMonth)
             .typeEqualTo(TransactionType.expense)
+            .isDeletedEqualTo(false)
             .amountProperty()
             .sum();
             

@@ -230,7 +230,7 @@ class _TransactionTile extends StatelessWidget {
     final isIncome = tx.type == TransactionType.income;
 
     return ListTile(
-      onTap: () => HapticService.selection(),
+      onTap: () => HapticService.selectionStatic(),
       contentPadding: EdgeInsets.zero,
       leading: Container(
         padding: const EdgeInsets.all(10),

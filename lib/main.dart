@@ -4,15 +4,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'core/theme/theme.dart';
 import 'core/theme/theme_provider.dart';
+import 'core/theme/personalization_provider.dart';
+import 'core/services/haptic_service.dart';
 import 'app/router.dart';
 import 'core/database/providers.dart';
 import 'core/widgets/global_error_screen.dart';
 
 void main() async {
-  // 1. Capture Flutter Framework errors (White Screen of Death defense)
+  // 1. Capture Flutter Framework errors
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
-    // Log to console or crashlytics here
     debugPrint('Flutter Error: ${details.exception}');
   };
 
@@ -41,9 +42,11 @@ class WalletApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    HapticService.init(ref);
     final isarInit = ref.watch(isarProvider);
     final router = ref.watch(routerProvider);
     final themeState = ref.watch(themeControllerProvider);
+    final personalization = ref.watch(personalizationProvider);
     
     return DynamicColorBuilder(
       builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
@@ -55,11 +58,15 @@ class WalletApp extends ConsumerWidget {
           darkScheme = darkDynamic.harmonized();
         }
 
-        final lightTheme = ref.watch(themeProvider(Brightness.light)).copyWith(
-          colorScheme: lightScheme,
+        final lightTheme = AppTheme.getTheme(
+          personalization, 
+          Brightness.light, 
+          dynamicColorScheme: lightScheme
         );
-        final darkTheme = ref.watch(themeProvider(Brightness.dark)).copyWith(
-          colorScheme: darkScheme,
+        final darkTheme = AppTheme.getTheme(
+          personalization, 
+          Brightness.dark, 
+          dynamicColorScheme: darkScheme
         );
 
         return MaterialApp.router(

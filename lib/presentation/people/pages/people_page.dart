@@ -81,7 +81,7 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
           TextButton(
             onPressed: () async {
               await ref.read(personServiceProvider).deletePerson(person.id);
-              await HapticService.error();
+              await HapticService.errorStatic();
               if (context.mounted) Navigator.pop(context);
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),

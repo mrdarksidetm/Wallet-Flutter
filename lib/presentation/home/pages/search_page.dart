@@ -191,7 +191,7 @@ class _ResultTile extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return ListTile(
       onTap: () {
-        HapticService.selection();
+        HapticService.selectionStatic();
         onTap();
       },
       contentPadding: EdgeInsets.zero,

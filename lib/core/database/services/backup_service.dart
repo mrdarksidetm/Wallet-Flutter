@@ -3,6 +3,8 @@ import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:path/path.dart' as p;
+import 'package:file_picker/file_picker.dart';
+import 'package:intl/intl.dart';
 
 class BackupService {
   final Isar isar;
@@ -10,35 +12,45 @@ class BackupService {
   BackupService(this.isar);
 
   Future<String> createBackup() async {
+    // 1. Request Permission (Modern Android handling)
     if (Platform.isAndroid) {
-      final status = await Permission.manageExternalStorage.request();
-      if (!status.isGranted) throw Exception('Permission denied');
+      await Permission.storage.request();
+      // Note: On Android 13+, Permission.storage might be permanentlyDenied even if SAF works.
+      // But we request it just in case some legacy logic triggers.
     }
 
-    final directory = await getExternalStorageDirectory() ?? await getApplicationDocumentsDirectory();
-    final backupDir = Directory(p.join(directory.path, 'WalletBackups'));
-    if (!await backupDir.exists()) await backupDir.create(recursive: true);
+    // 2. Prompt User for Directory (SAF)
+    String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
+    
+    if (selectedDirectory == null) {
+      throw Exception('Operation cancelled by user');
+    }
 
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final backupDir = Directory(selectedDirectory);
+    if (!await backupDir.exists()) {
+      try {
+        await backupDir.create(recursive: true);
+      } catch (e) {
+        throw Exception('Storage Permission Denied or folder inaccessible: $e');
+      }
+    }
+
+    final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
     final backupPath = p.join(backupDir.path, 'wallet_backup_$timestamp.isar');
 
-    // Isar copyToFile creates a compact backup of the database
-    await isar.copyToFile(backupPath);
-    return backupPath;
+    try {
+      // Isar copyToFile creates a compact backup of the database
+      await isar.copyToFile(backupPath);
+      return backupPath;
+    } catch (e) {
+      throw Exception('Failed to write backup file: $e');
+    }
   }
 
   Future<void> restoreBackup(String path) async {
     final backupFile = File(path);
     if (!await backupFile.exists()) throw Exception('Backup file not found');
 
-    // Restore logic: 
-    // 1. Close current isar
-    // 2. Replace database file
-    // 3. Reopen isar
-    
-    // Note: Since Isar is usually managed by a provider, a full app restart 
-    // might be required after file replacement for a clean state.
-    
     final dbDir = await getApplicationDocumentsDirectory();
     final dbPath = p.join(dbDir.path, '${isar.name}.isar');
 
@@ -47,7 +59,5 @@ class BackupService {
 
     // Replace file
     await backupFile.copy(dbPath);
-
-    // After this, the app should be restarted or the Isar provider invalidated.
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:flex_color_picker/flex_color_picker.dart';
 import '../../../core/database/models/account.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/services/haptic_service.dart';
@@ -21,8 +22,8 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
   late TextEditingController _nameController;
   late TextEditingController _balanceController;
   late AccountType _selectedType;
-  String _selectedColor = '0xFF2196F3';
-  String _selectedIcon = 'credit_card';
+  String _selectedColor = '0xFF4CAF50';
+  String _selectedIcon = 'payments';
 
   @override
   void initState() {
@@ -30,8 +31,8 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
     _nameController = TextEditingController(text: widget.account?.name ?? '');
     _balanceController = TextEditingController(text: widget.account?.balance.toString() ?? '0');
     _selectedType = widget.account?.type ?? AccountType.cash;
-    _selectedColor = widget.account?.color ?? '0xFF2196F3';
-    _selectedIcon = widget.account?.icon ?? 'credit_card';
+    _selectedColor = widget.account?.color ?? '0xFF4CAF50';
+    _selectedIcon = widget.account?.icon ?? 'payments';
   }
 
   @override
@@ -61,12 +62,16 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
     }
 
     await ref.read(accountServiceProvider).saveAccount(account);
-    await HapticService.success();
+    await HapticService.successStatic();
     if (mounted) context.pop();
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final Color currentColor = Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16));
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.account == null ? 'Add Account' : 'Edit Account'),
@@ -84,34 +89,45 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
           padding: const EdgeInsets.all(24),
           children: [
             Center(
-              child: InkWell(
-                onTap: () {
-                  showModalBottomSheet(
-                    context: context,
-                    builder: (context) => IconPickerWidget(
-                      selectedIcon: _selectedIcon,
-                      selectedColor: Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16)),
-                      onIconSelected: (icon) {
-                        setState(() => _selectedIcon = icon);
-                        Navigator.pop(context);
-                      },
+              child: Stack(
+                children: [
+                  InkWell(
+                    onTap: _showIconPicker,
+                    borderRadius: BorderRadius.circular(24),
+                    child: Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color: currentColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: currentColor.withOpacity(0.2), width: 2),
+                      ),
+                      child: Icon(
+                        AppIcons.getIcon(_selectedIcon),
+                        size: 48,
+                        color: currentColor,
+                      ),
                     ),
-                  );
-                },
-                borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16)).withOpacity(0.1),
-                    shape: BoxShape.circle,
                   ),
-                  child: Icon(
-                    AppIcons.getIcon(_selectedIcon),
-                    size: 40,
-                    color: Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16)),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: InkWell(
+                      onTap: _showColorPicker,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: colorScheme.surface,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8),
+                          ],
+                        ),
+                        child: Icon(Icons.palette_rounded, size: 20, color: currentColor),
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
             const SizedBox(height: 32),
@@ -133,8 +149,8 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 24),
-            Text('Account Type', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
+            Text('Account Type', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
             Wrap(
               spacing: 8,
               children: AccountType.values.map((type) {
@@ -142,7 +158,10 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
                 return ChoiceChip(
                   label: Text(type.name.toUpperCase()),
                   selected: selected,
-                  onSelected: (s) => setState(() => _selectedType = type),
+                  onSelected: (s) {
+                    HapticService.selectionStatic();
+                    setState(() => _selectedType = type);
+                  },
                 );
               }).toList(),
             ),
@@ -161,6 +180,49 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
     );
   }
 
+  void _showIconPicker() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => IconPickerWidget(
+        selectedIcon: _selectedIcon,
+        selectedColor: Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16)),
+        onIconSelected: (icon) {
+          setState(() => _selectedIcon = icon);
+          Navigator.pop(context);
+        },
+      ),
+    );
+  }
+
+  Future<void> _showColorPicker() async {
+    final Color colorBefore = Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16));
+    final Color newColor = await showColorPickerDialog(
+      context,
+      colorBefore,
+      title: Text('Select Account Color', style: Theme.of(context).textTheme.titleLarge),
+      width: 40,
+      height: 40,
+      spacing: 0,
+      runSpacing: 0,
+      borderRadius: 0,
+      wheelDiameter: 165,
+      enableOpacity: false,
+      showColorCode: true,
+      colorCodeHasColor: true,
+      pickersEnabled: <ColorPickerType, bool>{
+        ColorPickerType.both: false,
+        ColorPickerType.primary: true,
+        ColorPickerType.accent: true,
+        ColorPickerType.bw: false,
+        ColorPickerType.custom: true,
+        ColorPickerType.wheel: true,
+      },
+    );
+    setState(() {
+      _selectedColor = '0x${newColor.value.toRadixString(16).toUpperCase()}';
+    });
+  }
+
   void _showDeleteDialog() {
     showDialog(
       context: context,
@@ -172,7 +234,7 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
           TextButton(
             onPressed: () async {
               await ref.read(accountServiceProvider).deleteAccount(widget.account!.id);
-              await HapticService.error();
+              await HapticService.errorStatic();
               if (mounted) {
                 Navigator.pop(context); // Pop dialog
                 context.pop(); // Pop page
