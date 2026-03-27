@@ -134,7 +134,7 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: isDark ? AppColors.surfaceContainerDark.withOpacity(0.5) : AppColors.surfaceContainer,
+        fillColor: isDark ? AppColors.surfaceContainerDark.withValues(alpha: 0.5) : AppColors.surfaceContainer,
         border: OutlineInputBorder(
           borderRadius: borderRadius,
           borderSide: BorderSide.none,

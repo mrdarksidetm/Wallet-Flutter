@@ -155,7 +155,7 @@ class IconPickerWidget extends StatelessWidget {
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                           letterSpacing: 1.2,
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
                         ),
                       ),
                     ),
@@ -180,7 +180,7 @@ class IconPickerWidget extends StatelessWidget {
                               borderRadius: BorderRadius.circular(16),
                               child: Container(
                                 decoration: BoxDecoration(
-                                  color: isSelected ? selectedColor.withOpacity(0.1) : Colors.transparent,
+                                  color: isSelected ? selectedColor.withValues(alpha: 0.1) : Colors.transparent,
                                   borderRadius: BorderRadius.circular(16),
                                   border: isSelected ? Border.all(color: selectedColor, width: 2) : null,
                                 ),

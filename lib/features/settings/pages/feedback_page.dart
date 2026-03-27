@@ -49,7 +49,7 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
             Text(
               'Your thoughts on "The Variable Atelier" help us push the boundaries of financial UI.',
               style: theme.textTheme.bodyLarge?.copyWith(
-                color: colorScheme.onSurface.withOpacity(0.7),
+                color: colorScheme.onSurface.withValues(alpha: 0.7),
               ),
             ),
             const SizedBox(height: 48),

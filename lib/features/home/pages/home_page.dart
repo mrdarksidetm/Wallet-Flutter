@@ -235,13 +235,13 @@ class _TransactionTile extends StatelessWidget {
       leading: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
           shape: BoxShape.circle,
         ),
         child: Icon(Symbols.receipt_long, size: 20, color: colorScheme.onSurfaceVariant),
       ),
       title: Text(tx.note ?? 'Transaction', style: const TextStyle(fontWeight: FontWeight.w600)),
-      subtitle: Text(DateFormat.yMMMd().format(tx.date), style: TextStyle(color: colorScheme.onSurfaceVariant.withOpacity(0.7))),
+      subtitle: Text(DateFormat.yMMMd().format(tx.date), style: TextStyle(color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7))),
       trailing: Text(
         '${isIncome ? '+' : '-'}${format.format(tx.amount)}',
         style: TextStyle(fontWeight: FontWeight.bold, color: isIncome ? Colors.green : colorScheme.error),

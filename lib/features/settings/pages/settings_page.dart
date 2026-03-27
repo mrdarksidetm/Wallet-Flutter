@@ -277,7 +277,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             child: Text(
               'Wallet v$_currentVersion (March 2026)',
               style: theme.textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant.withOpacity(0.5),
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
               ),
             ),
           ),
@@ -408,7 +408,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+          color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Icon(icon, size: 22, fill: ref.watch(personalizationProvider).fillIcons ? 1.0 : 0.0),

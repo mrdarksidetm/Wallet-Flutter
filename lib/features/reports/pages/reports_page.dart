@@ -107,7 +107,7 @@ class ReportsPage extends ConsumerWidget {
                           dotData: const FlDotData(show: false),
                           belowBarData: BarAreaData(
                             show: true,
-                            color: colorScheme.primary.withOpacity(0.1),
+                            color: colorScheme.primary.withValues(alpha: 0.1),
                           ),
                         ),
                       ],
@@ -157,7 +157,7 @@ class ReportsPage extends ConsumerWidget {
       contentPadding: EdgeInsets.zero,
       leading: CircleAvatar(
         radius: 16,
-        backgroundColor: color.withOpacity(0.1),
+        backgroundColor: color.withValues(alpha: 0.1),
         child: Icon(AppIcons.getIcon(category.icon), size: 16, color: color),
       ),
       title: Text(category.name, style: Theme.of(context).textTheme.bodyLarge),

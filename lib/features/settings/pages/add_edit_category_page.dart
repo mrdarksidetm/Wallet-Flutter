@@ -99,9 +99,9 @@ class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
                       width: 100,
                       height: 100,
                       decoration: BoxDecoration(
-                        color: currentColor.withOpacity(0.1),
+                        color: currentColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: currentColor.withOpacity(0.2), width: 2),
+                        border: Border.all(color: currentColor.withValues(alpha: 0.2), width: 2),
                       ),
                       child: Icon(
                         AppIcons.getIcon(_selectedIcon),
@@ -121,7 +121,7 @@ class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
                           color: colorScheme.surface,
                           shape: BoxShape.circle,
                           boxShadow: [
-                            BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8),
+                            BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 8),
                           ],
                         ),
                         child: Icon(Icons.palette_rounded, size: 20, color: currentColor),
@@ -230,7 +230,7 @@ class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
       },
     );
     setState(() {
-      _selectedColor = '0x${newColor.value.toRadixString(16).toUpperCase()}';
+      _selectedColor = '0x${newColor.toARGB32().toRadixString(16).toUpperCase()}';
     });
   }
 

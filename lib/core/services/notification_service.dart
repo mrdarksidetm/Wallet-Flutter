@@ -30,7 +30,7 @@ class NotificationService {
     );
 
     await _notificationsPlugin.initialize(
-      settings: initializationSettings,
+      initializationSettings,
       onDidReceiveNotificationResponse: (details) {
         // Handle notification tap
       },

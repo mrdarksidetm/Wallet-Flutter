@@ -105,7 +105,7 @@ class _AddEditGoalPageState extends ConsumerState<AddEditGoalPage> {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16)).withOpacity(0.1),
+                    color: Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16)).withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(

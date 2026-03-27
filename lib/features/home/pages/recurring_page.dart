@@ -37,7 +37,7 @@ class RecurringPage extends ConsumerWidget {
                 child: ListTile(
                   onTap: () => context.push('/add_recurring', extra: item),
                   leading: CircleAvatar(
-                    backgroundColor: categoryColor.withOpacity(0.1),
+                    backgroundColor: categoryColor.withValues(alpha: 0.1),
                     child: Icon(
                       AppIcons.getIcon(item.category.value?.icon ?? 'repeat'), 
                       color: categoryColor

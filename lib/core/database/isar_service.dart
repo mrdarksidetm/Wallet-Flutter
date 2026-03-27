@@ -39,7 +39,9 @@ class IsarService {
 
       return isar;
     }
-    return Future.value(Isar.getInstance());
+    final existing = Isar.getInstance();
+    if (existing == null) throw StateError('Isar instance not found after initialization.');
+    return Future.value(existing);
   }
 }
 

@@ -91,7 +91,7 @@ class PersonalizationPage extends ConsumerWidget {
         Text(
           'Curate your interface. Adjust the weight, width, and optical properties of the typography to match your creative intent.',
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
           ),
         ),
       ],
@@ -196,7 +196,7 @@ class PersonalizationPage extends ConsumerWidget {
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
             letterSpacing: 1.2,
             fontWeight: FontWeight.w900,
-            color: colorScheme.onSurface.withOpacity(0.5),
+            color: colorScheme.onSurface.withValues(alpha: 0.5),
           ),
         ),
         const SizedBox(height: 16),
@@ -303,7 +303,7 @@ class PersonalizationPage extends ConsumerWidget {
                   Text(
                     subtitle,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurface.withOpacity(0.6),
+                      color: colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                 ],
@@ -348,7 +348,7 @@ class _TypeTester extends StatelessWidget {
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   letterSpacing: 1.5,
                   fontWeight: FontWeight.w900,
-                  color: colorScheme.onSurface.withOpacity(0.4),
+                  color: colorScheme.onSurface.withValues(alpha: 0.4),
                 ),
               ),
               Row(
@@ -446,7 +446,7 @@ class _AtelierSlider extends StatelessWidget {
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   letterSpacing: 1.2,
                   fontWeight: FontWeight.w900,
-                  color: colorScheme.onSurface.withOpacity(0.5),
+                  color: colorScheme.onSurface.withValues(alpha: 0.5),
                 ),
               ),
               Text(
@@ -462,10 +462,10 @@ class _AtelierSlider extends StatelessWidget {
           SliderTheme(
             data: SliderTheme.of(context).copyWith(
               trackHeight: 4,
-              activeTrackColor: colorScheme.primary.withOpacity(0.3),
+              activeTrackColor: colorScheme.primary.withValues(alpha: 0.3),
               inactiveTrackColor: colorScheme.surfaceContainer,
               thumbColor: AppColors.primary,
-              overlayColor: AppColors.primary.withOpacity(0.1),
+              overlayColor: AppColors.primary.withValues(alpha: 0.1),
               thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8, elevation: 0),
               trackShape: const RoundedRectSliderTrackShape(),
             ),
