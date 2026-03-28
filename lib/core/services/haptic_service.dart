@@ -52,7 +52,8 @@ class HapticService {
     try {
       await HapticFeedback.heavyImpact();
       if (await Vibration.hasVibrator() == true) {
-        await Vibration.vibrate(pattern: [0, 50, 100, 50, 100, 50], amplitude: 255);
+        await Vibration.vibrate(
+            pattern: [0, 50, 100, 50, 100, 50], amplitude: 255);
       }
     } catch (_) {}
   }
@@ -83,7 +84,7 @@ class HapticService {
   static Future<void> successStatic() async => _instance.success();
   static Future<void> errorStatic() async => _instance.error();
 
-  // For compatibility with massive existing code base, 
+  // For compatibility with massive existing code base,
   // we can use a getter pattern or just rename the instance methods internally.
   // But safest is to keep Static suffix and update callers.
 }

@@ -10,16 +10,18 @@ class PerformanceAuditService {
 
   Future<Map<String, dynamic>> runAudit() async {
     final results = <String, dynamic>{};
-    
+
     // 1. Clear existing transactions for a clean test
     await isar.writeTxn(() => isar.transactionModels.clear());
 
     // 2. Prepare 10,000 transactions
     final accounts = await isar.accounts.where().findAll();
     final categories = await isar.categorys.where().findAll();
-    
+
     if (accounts.isEmpty || categories.isEmpty) {
-      return {'error': 'Need at least one account and one category to run audit'};
+      return {
+        'error': 'Need at least one account and one category to run audit'
+      };
     }
 
     final accountId = accounts.first.id;
@@ -68,10 +70,7 @@ class PerformanceAuditService {
     // 6. Measure Aggregation Time
     stopwatch.reset();
     stopwatch.start();
-    final total = await isar.transactionModels
-        .where()
-        .amountProperty()
-        .sum();
+    final total = await isar.transactionModels.where().amountProperty().sum();
     stopwatch.stop();
     results['aggregation_sum_ms'] = stopwatch.elapsedMilliseconds;
     results['total_amount'] = total;

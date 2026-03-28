@@ -8,16 +8,16 @@ class Account {
 
   @Index()
   String name = '';
-  
+
   String bankName = '';
-  
+
   String number = '';
-  
+
   @Index()
   DateTime validThru = DateTime.now();
-  
+
   String icon = 'account_balance_wallet';
-  
+
   String color = '0xFF2196F3';
 
   bool isPredefined = false;
@@ -31,7 +31,7 @@ class Account {
   DateTime createdAt = DateTime.now();
 
   DateTime updatedAt = DateTime.now();
-  
+
   @Index()
   @Enumerated(EnumType.name)
   AccountType type = AccountType.cash;

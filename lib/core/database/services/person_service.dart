@@ -5,7 +5,7 @@ import '../repositories/finance_repositories.dart';
 class PersonService {
   final Isar isar;
   final PersonRepository personRepository;
-  
+
   PersonService({required this.isar, required this.personRepository});
 
   Future<void> addPerson({
@@ -21,7 +21,7 @@ class PersonService {
       ..avatar = avatar
       ..createdAt = DateTime.now()
       ..updatedAt = DateTime.now();
-      
+
     await personRepository.save(person);
   }
 

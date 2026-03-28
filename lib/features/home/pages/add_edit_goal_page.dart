@@ -30,9 +30,12 @@ class _AddEditGoalPageState extends ConsumerState<AddEditGoalPage> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.goal?.name ?? '');
-    _targetController = TextEditingController(text: widget.goal?.targetAmount.toString() ?? '');
-    _currentController = TextEditingController(text: widget.goal?.currentAmount.toString() ?? '0');
-    _deadline = widget.goal?.deadline ?? DateTime.now().add(const Duration(days: 30));
+    _targetController =
+        TextEditingController(text: widget.goal?.targetAmount.toString() ?? '');
+    _currentController = TextEditingController(
+        text: widget.goal?.currentAmount.toString() ?? '0');
+    _deadline =
+        widget.goal?.deadline ?? DateTime.now().add(const Duration(days: 30));
     _selectedColor = widget.goal?.color ?? '0xFF4CAF50';
     _selectedIcon = widget.goal?.icon ?? 'savings';
   }
@@ -92,7 +95,9 @@ class _AddEditGoalPageState extends ConsumerState<AddEditGoalPage> {
                     context: context,
                     builder: (context) => IconPickerWidget(
                       selectedIcon: _selectedIcon,
-                      selectedColor: Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16)),
+                      selectedColor: Color(int.parse(
+                          _selectedColor.replaceAll('0x', ''),
+                          radix: 16)),
                       onIconSelected: (icon) {
                         setState(() => _selectedIcon = icon);
                         Navigator.pop(context);
@@ -105,13 +110,16 @@ class _AddEditGoalPageState extends ConsumerState<AddEditGoalPage> {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16)).withValues(alpha: 0.1),
+                    color: Color(int.parse(_selectedColor.replaceAll('0x', ''),
+                            radix: 16))
+                        .withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     AppIcons.getIcon(_selectedIcon),
                     size: 40,
-                    color: Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16)),
+                    color: Color(int.parse(_selectedColor.replaceAll('0x', ''),
+                        radix: 16)),
                   ),
                 ),
               ),
@@ -158,7 +166,8 @@ class _AddEditGoalPageState extends ConsumerState<AddEditGoalPage> {
               leading: const Icon(Icons.event_rounded),
               title: const Text('Deadline'),
               subtitle: Text(DateFormat('MMM d, yyyy').format(_deadline)),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
               tileColor: Theme.of(context).colorScheme.surfaceContainerLow,
             ),
             const SizedBox(height: 48),
@@ -181,9 +190,12 @@ class _AddEditGoalPageState extends ConsumerState<AddEditGoalPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Goal?'),
-        content: const Text('This savings goal will be permanently removed. Proceed?'),
+        content: const Text(
+            'This savings goal will be permanently removed. Proceed?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
           TextButton(
             onPressed: () async {
               await ref.read(goalServiceProvider).deleteGoal(widget.goal!.id);

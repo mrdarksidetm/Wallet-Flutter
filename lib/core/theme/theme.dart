@@ -29,36 +29,32 @@ class AppTheme {
     }
   }
 
-  static ThemeData getTheme(PersonalizationState state, Brightness brightness, {ColorScheme? dynamicColorScheme}) {
+  static ThemeData getTheme(PersonalizationState state, Brightness brightness,
+      {ColorScheme? dynamicColorScheme}) {
     final bool isDark = brightness == Brightness.dark;
-    
+
     final List<FontVariation> variations = [
       FontVariation('GRAD', state.grade),
       FontVariation('wght', state.weight),
       FontVariation('slnt', state.slant),
       FontVariation('wdth', state.width),
-      FontVariation('SOFT', state.fontRoundness),
+      FontVariation('ROND', state.fontRoundness),
       FontVariation('opsz', state.opticalSize),
     ];
 
-    // Using DynamicColorScheme to support variants manually if needed, 
+    // Using DynamicColorScheme to support variants manually if needed,
     // but ColorScheme.fromSeed is standard now in Flutter 3.22+
     // If 'variant' is not found, it might be a version mismatch.
     // In Flutter 3.22+, it is available.
-    
+
     final Color seedColor = isDark ? AppColors.primaryDark : AppColors.primary;
 
-    final colorScheme = dynamicColorScheme ?? ColorScheme.fromSeed(
-      seedColor: seedColor,
-      brightness: brightness,
-      primary: isDark ? AppColors.primaryDark : AppColors.primary,
-      surface: isDark ? AppColors.surfaceDark : AppColors.surface,
-      onSurface: isDark ? AppColors.onSurfaceDark : AppColors.onSurface,
-      surfaceContainerLowest: isDark ? AppColors.backgroundDark : AppColors.surfaceContainerLowest,
-      surfaceContainerLow: isDark ? AppColors.surfaceDark : AppColors.surfaceContainerLow,
-      surfaceContainer: isDark ? AppColors.cardDark : AppColors.surfaceContainer,
-      surfaceContainerHigh: isDark ? AppColors.surfaceContainerDark : AppColors.surfaceContainerHigh,
-    );
+    final colorScheme = dynamicColorScheme ??
+        ColorScheme.fromSeed(
+          seedColor: seedColor,
+          brightness: brightness,
+          dynamicSchemeVariant: _getVariant(state.colorSchemeVariant),
+        );
 
     final baseTextStyle = TextStyle(
       fontFamily: 'GoogleSansFlex',
@@ -77,21 +73,36 @@ class AppTheme {
       fontFamily: 'GoogleSansFlex',
       fontFamilyFallback: const ['AppleColorEmoji'],
       textTheme: TextTheme(
-        displayLarge: baseTextStyle.copyWith(fontSize: 57, fontWeight: FontWeight.normal),
-        displayMedium: baseTextStyle.copyWith(fontSize: 45, fontWeight: FontWeight.normal),
-        displaySmall: baseTextStyle.copyWith(fontSize: 36, fontWeight: FontWeight.normal),
-        headlineLarge: baseTextStyle.copyWith(fontSize: 32, fontWeight: FontWeight.normal),
-        headlineMedium: baseTextStyle.copyWith(fontSize: 28, fontWeight: FontWeight.normal),
-        headlineSmall: baseTextStyle.copyWith(fontSize: 24, fontWeight: FontWeight.normal),
-        titleLarge: baseTextStyle.copyWith(fontSize: 22, fontWeight: FontWeight.normal),
-        titleMedium: baseTextStyle.copyWith(fontSize: 16, fontWeight: FontWeight.normal),
-        titleSmall: baseTextStyle.copyWith(fontSize: 14, fontWeight: FontWeight.normal),
-        bodyLarge: baseTextStyle.copyWith(fontSize: 16, fontWeight: FontWeight.normal),
-        bodyMedium: baseTextStyle.copyWith(fontSize: 14, fontWeight: FontWeight.normal),
-        bodySmall: baseTextStyle.copyWith(fontSize: 12, fontWeight: FontWeight.normal),
-        labelLarge: baseTextStyle.copyWith(fontSize: 14, fontWeight: FontWeight.normal),
-        labelMedium: baseTextStyle.copyWith(fontSize: 12, fontWeight: FontWeight.normal),
-        labelSmall: baseTextStyle.copyWith(fontSize: 11, fontWeight: FontWeight.normal),
+        displayLarge:
+            baseTextStyle.copyWith(fontSize: 57, fontWeight: FontWeight.normal),
+        displayMedium:
+            baseTextStyle.copyWith(fontSize: 45, fontWeight: FontWeight.normal),
+        displaySmall:
+            baseTextStyle.copyWith(fontSize: 36, fontWeight: FontWeight.normal),
+        headlineLarge:
+            baseTextStyle.copyWith(fontSize: 32, fontWeight: FontWeight.normal),
+        headlineMedium:
+            baseTextStyle.copyWith(fontSize: 28, fontWeight: FontWeight.normal),
+        headlineSmall:
+            baseTextStyle.copyWith(fontSize: 24, fontWeight: FontWeight.normal),
+        titleLarge:
+            baseTextStyle.copyWith(fontSize: 22, fontWeight: FontWeight.normal),
+        titleMedium:
+            baseTextStyle.copyWith(fontSize: 16, fontWeight: FontWeight.normal),
+        titleSmall:
+            baseTextStyle.copyWith(fontSize: 14, fontWeight: FontWeight.normal),
+        bodyLarge:
+            baseTextStyle.copyWith(fontSize: 16, fontWeight: FontWeight.normal),
+        bodyMedium:
+            baseTextStyle.copyWith(fontSize: 14, fontWeight: FontWeight.normal),
+        bodySmall:
+            baseTextStyle.copyWith(fontSize: 12, fontWeight: FontWeight.normal),
+        labelLarge:
+            baseTextStyle.copyWith(fontSize: 14, fontWeight: FontWeight.normal),
+        labelMedium:
+            baseTextStyle.copyWith(fontSize: 12, fontWeight: FontWeight.normal),
+        labelSmall:
+            baseTextStyle.copyWith(fontSize: 11, fontWeight: FontWeight.normal),
       ).apply(
         bodyColor: colorScheme.onSurface,
         displayColor: colorScheme.onSurface,
@@ -108,7 +119,8 @@ class AppTheme {
           visualDensity: VisualDensity.compact,
         ),
       ),
-      scaffoldBackgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
+      scaffoldBackgroundColor:
+          isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
       cardTheme: CardThemeData(
         shape: shape,
         elevation: 0,
@@ -135,7 +147,9 @@ class AppTheme {
         filled: true,
         // Dark mode uses semi-transparent fill to blend with layered surfaces.
         // Light mode uses a fully opaque tonal surface for higher contrast on white backgrounds.
-        fillColor: isDark ? AppColors.surfaceContainerDark.withValues(alpha: 0.5) : AppColors.surfaceContainer,
+        fillColor: isDark
+            ? AppColors.surfaceContainerDark.withValues(alpha: 0.5)
+            : AppColors.surfaceContainer,
         border: OutlineInputBorder(
           borderRadius: borderRadius,
           borderSide: BorderSide.none,
@@ -160,14 +174,17 @@ class AppTheme {
         style: OutlinedButton.styleFrom(
           shape: shape,
           side: BorderSide.none,
-          backgroundColor: isDark ? colorScheme.surfaceContainerHigh : colorScheme.surfaceContainerHigh,
+          backgroundColor: isDark
+              ? colorScheme.surfaceContainerHigh
+              : colorScheme.surfaceContainerHigh,
           foregroundColor: colorScheme.onSurface,
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: colorScheme.surface,
         indicatorColor: colorScheme.primaryContainer,
-        labelTextStyle: WidgetStateProperty.all(baseTextStyle.copyWith(fontSize: 12, fontWeight: FontWeight.w500)),
+        labelTextStyle: WidgetStateProperty.all(
+            baseTextStyle.copyWith(fontSize: 12, fontWeight: FontWeight.w500)),
       ),
     );
   }

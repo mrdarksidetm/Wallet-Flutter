@@ -34,12 +34,12 @@ class AuthNotifier extends Notifier<AuthState> {
   AuthState build() {
     final prefs = ref.watch(sharedPreferencesProvider);
     final isEnabled = prefs.getBool(_keyBiometric) ?? false;
-    
+
     // Check capabilities in background
     Future.microtask(() => _checkCapabilities());
-    
+
     return AuthState(
-      isLocked: isEnabled, 
+      isLocked: isEnabled,
       canCheckBiometrics: false,
       isBiometricEnabled: isEnabled,
     );
@@ -48,11 +48,12 @@ class AuthNotifier extends Notifier<AuthState> {
   Future<void> _checkCapabilities() async {
     bool canCheck = false;
     try {
-      canCheck = await _auth.canCheckBiometrics || await _auth.isDeviceSupported();
+      canCheck =
+          await _auth.canCheckBiometrics || await _auth.isDeviceSupported();
     } catch (_) {}
-    
+
     state = state.copyWith(canCheckBiometrics: canCheck);
-    
+
     // Auto-authenticate if locked
     if (state.isLocked) {
       await authenticate();
@@ -74,7 +75,7 @@ class AuthNotifier extends Notifier<AuthState> {
       state = state.copyWith(isLocked: false);
       return true;
     }
-    
+
     try {
       final authenticated = await _auth.authenticate(
         localizedReason: 'Authenticate to unlock Wallet',

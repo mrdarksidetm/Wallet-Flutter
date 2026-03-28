@@ -54,7 +54,6 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
               ),
             ),
             const SizedBox(height: 48),
-            
             TextField(
               controller: _nameController,
               decoration: const InputDecoration(
@@ -63,7 +62,6 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
               ),
             ),
             const SizedBox(height: 16),
-            
             TextField(
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
@@ -73,7 +71,6 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
               ),
             ),
             const SizedBox(height: 16),
-            
             TextField(
               controller: _messageController,
               maxLines: 5,
@@ -87,35 +84,40 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
               ),
             ),
             const SizedBox(height: 48),
-            
             PrimaryAtelierButton(
               onPressed: () async {
                 final email = _emailController.text;
                 final message = _messageController.text;
-                
+
                 if (message.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Please enter a message')),
                   );
                   return;
                 }
-                
-                final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+
+                // Robust Email Regex
+                final emailRegex = RegExp(
+                  r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+",
+                );
+
                 if (email.isNotEmpty && !emailRegex.hasMatch(email)) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Please enter a valid email or leave it empty')),
+                    const SnackBar(
+                        content: Text('Please enter a valid email address')),
                   );
                   return;
                 }
 
                 await HapticService.successStatic();
-                
+
                 final Uri emailLaunchUri = Uri(
                   scheme: 'mailto',
-                  path: 'abhi@antigravity.ideas', // Dummy dev email
+                  path: 'contact.dsidetm+walletf@gmail.com',
                   query: encodeQueryParameters({
                     'subject': 'Wallet App Feedback',
-                    'body': 'Name: ${_nameController.text}\nEmail: $email\n\n$message',
+                    'body':
+                        'Name: ${_nameController.text}\nEmail: $email\n\n$message',
                   }),
                 );
 
@@ -123,7 +125,9 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
                   await launchUrl(emailLaunchUri);
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Feedback prepared! Please send via your email app.')),
+                      const SnackBar(
+                          content: Text(
+                              'Feedback prepared! Please send via your email app.')),
                     );
                     Navigator.pop(context);
                   }

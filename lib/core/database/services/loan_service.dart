@@ -11,9 +11,13 @@ class LoanService {
   Future<void> saveLoan(Loan loan, {String? personName}) async {
     await isar.writeTxn(() async {
       if (personName != null) {
-        var person = await isar.persons.filter().nameEqualTo(personName).findFirst();
+        var person =
+            await isar.persons.filter().nameEqualTo(personName).findFirst();
         if (person == null) {
-          person = Person()..name = personName..createdAt = DateTime.now()..updatedAt = DateTime.now();
+          person = Person()
+            ..name = personName
+            ..createdAt = DateTime.now()
+            ..updatedAt = DateTime.now();
           await isar.persons.put(person);
         }
         loan.person.value = person;
@@ -38,9 +42,9 @@ class LoanService {
         ..note = note
         ..createdAt = DateTime.now()
         ..updatedAt = DateTime.now();
-        
+
       loan.person.value = person;
-      
+
       await isar.loans.put(loan);
       await loan.person.save();
     });
@@ -53,7 +57,7 @@ class LoanService {
       await isar.loans.put(loan);
     });
   }
-  
+
   Future<void> deleteLoan(Id id) async {
     await loanRepository.delete(id);
   }

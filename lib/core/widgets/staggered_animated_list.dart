@@ -6,7 +6,7 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 /// CRITICAL: Fluid Entrance Animations
 /// When the list loads initially, items should cascade into view rather than
 /// popping in instantly. Using `AnimationLimiter` ensures this stagger
-/// only runs on initial load (or when new items are added), keeping scroll 
+/// only runs on initial load (or when new items are added), keeping scroll
 /// performance butter-smooth at 120Hz afterwards.
 class StaggeredAnimatedList extends StatelessWidget {
   final int itemCount;

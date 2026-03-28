@@ -8,4 +8,6 @@ class FABActionNotifier extends StateNotifier<void Function()?> {
   }
 }
 
-final fabActionProvider = StateNotifierProvider<FABActionNotifier, void Function()?>( (ref) => FABActionNotifier());
+final fabActionProvider =
+    StateNotifierProvider<FABActionNotifier, void Function()?>(
+        (ref) => FABActionNotifier());

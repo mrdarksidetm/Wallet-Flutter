@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../../core/database/providers.dart';
 
-class BillSplitterPage extends StatefulWidget {
+class BillSplitterPage extends ConsumerStatefulWidget {
   const BillSplitterPage({super.key});
 
   @override
-  State<BillSplitterPage> createState() => _BillSplitterPageState();
+  ConsumerState<BillSplitterPage> createState() => _BillSplitterPageState();
 }
 
-class _BillSplitterPageState extends State<BillSplitterPage> {
+class _BillSplitterPageState extends ConsumerState<BillSplitterPage> {
   final _amountController = TextEditingController();
   final _peopleController = TextEditingController(text: '2');
   final _taxController = TextEditingController(text: '0');
@@ -36,7 +38,7 @@ class _BillSplitterPageState extends State<BillSplitterPage> {
 
     final taxAmount = amount * (taxPercent / 100);
     final tipAmount = amount * (tipPercent / 100);
-    
+
     setState(() {
       _grandTotal = amount + taxAmount + tipAmount;
       _totalPerPerson = _grandTotal / people;
@@ -46,7 +48,8 @@ class _BillSplitterPageState extends State<BillSplitterPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final currencyFormat = NumberFormat.simpleCurrency(locale: 'en_IN');
+    final selectedCurrency = ref.watch(currencyProvider);
+    final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
 
     return Scaffold(
       appBar: AppBar(
@@ -98,12 +101,13 @@ class _BillSplitterPageState extends State<BillSplitterPage> {
             // Inputs
             TextField(
               controller: _amountController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
               onChanged: (_) => _calculate(),
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Bill Amount',
-                prefixIcon: Icon(Icons.receipt_long_rounded),
-                suffixText: 'INR',
+                prefixIcon: const Icon(Icons.receipt_long_rounded),
+                suffixText: selectedCurrency,
               ),
             ),
             const SizedBox(height: 16),

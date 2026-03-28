@@ -44,7 +44,7 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
           if (accounts.isEmpty) {
             return const Center(child: Text('No accounts found'));
           }
-          
+
           if (_isGridView) {
             return GridView.builder(
               padding: const EdgeInsets.all(16),
@@ -57,9 +57,12 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
               itemCount: accounts.length,
               itemBuilder: (context, index) {
                 final account = accounts[index];
-                final color = Color(int.parse(account.color.replaceAll('0x', ''), radix: 16));
-                
-                return _buildAccountCard(context, account, currencyFormat, color, isGrid: true);
+                final color = Color(
+                    int.parse(account.color.replaceAll('0x', ''), radix: 16));
+
+                return _buildAccountCard(
+                    context, account, currencyFormat, color,
+                    isGrid: true);
               },
             );
           }
@@ -69,9 +72,11 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
             itemCount: accounts.length,
             itemBuilder: (context, index) {
               final account = accounts[index];
-              final color = Color(int.parse(account.color.replaceAll('0x', ''), radix: 16));
-              
-              return _buildAccountCard(context, account, currencyFormat, color, isGrid: false);
+              final color = Color(
+                  int.parse(account.color.replaceAll('0x', ''), radix: 16));
+
+              return _buildAccountCard(context, account, currencyFormat, color,
+                  isGrid: false);
             },
           );
         },
@@ -81,76 +86,147 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
     );
   }
 
-  Widget _buildAccountCard(BuildContext context, dynamic account, NumberFormat format, Color color, {required bool isGrid}) {
+  Widget _buildAccountCard(
+      BuildContext context, dynamic account, NumberFormat format, Color color,
+      {required bool isGrid}) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return GestureDetector(
-      onTap: () async {
-        await HapticService.selectionStatic();
-        context.push('/add_account', extra: account);
+    return Dismissible(
+      key: ValueKey(account.id),
+      direction: DismissDirection.endToStart,
+      confirmDismiss: (direction) async {
+        await HapticService.mediumStatic();
+        return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Delete Account'),
+            content: Text(
+                'Are you sure you want to delete "${account.name}"? This will also delete all associated transactions.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: colorScheme.error,
+                  foregroundColor: colorScheme.onError,
+                ),
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Delete'),
+              ),
+            ],
+          ),
+        );
       },
-      child: Container(
+      onDismissed: (direction) async {
+        await HapticService.heavyStatic();
+        await ref.read(accountServiceProvider).deleteAccount(account.id);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Account "${account.name}" deleted')),
+          );
+        }
+      },
+      background: Container(
         margin: isGrid ? EdgeInsets.zero : const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
+          color: colorScheme.errorContainer,
           borderRadius: BorderRadius.circular(28),
-          border: Border.all(color: color.withValues(alpha: 0.2), width: 1),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: isGrid ? MainAxisAlignment.spaceBetween : MainAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    AppIcons.getIcon(account.icon),
-                    color: color,
-                    size: 20,
-                  ),
-                ),
-                if (!isGrid)
-                  Text(
-                    account.type.name.toUpperCase(),
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: color.withValues(alpha: 0.7),
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.1,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 24),
+        child: const Icon(Symbols.delete, color: Colors.white),
+      ),
+      child: GestureDetector(
+        onTap: () async {
+          await HapticService.selectionStatic();
+          context.push('/account_details', extra: account);
+        },
+        child: Container(
+          margin: isGrid ? EdgeInsets.zero : const EdgeInsets.only(bottom: 12),
+          padding: EdgeInsets.all(isGrid ? 20 : 16),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: color.withValues(alpha: 0.2), width: 1),
+          ),
+          child: isGrid
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(AppIcons.getIcon(account.icon),
+                          color: color, size: 20),
                     ),
-                  ),
-              ],
-            ),
-            if (!isGrid) const SizedBox(height: 24),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  account.name,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          account.name,
+                          style: theme.textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          format.format(account.balance),
+                          style: theme.textTheme.headlineSmall
+                              ?.copyWith(fontWeight: FontWeight.w900),
+                        ),
+                      ],
+                    ),
+                  ],
+                )
+              : Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(AppIcons.getIcon(account.icon),
+                          color: color, size: 24),
+                    ),
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            account.name,
+                            style: theme.textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            account.type.name.toUpperCase(),
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: color.withValues(alpha: 0.7),
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.1,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Text(
+                      format.format(account.balance),
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w900,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  format.format(account.balance),
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w900,
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-              ],
-            ),
-          ],
         ),
       ),
     );

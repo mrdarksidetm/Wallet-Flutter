@@ -29,7 +29,8 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.account?.name ?? '');
-    _balanceController = TextEditingController(text: widget.account?.balance.toString() ?? '0');
+    _balanceController =
+        TextEditingController(text: widget.account?.balance.toString() ?? '0');
     _selectedType = widget.account?.type ?? AccountType.cash;
     _selectedColor = widget.account?.color ?? '0xFF4CAF50';
     _selectedIcon = widget.account?.icon ?? 'payments';
@@ -70,7 +71,8 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final Color currentColor = Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16));
+    final Color currentColor =
+        Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16));
 
     return Scaffold(
       appBar: AppBar(
@@ -100,7 +102,9 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
                       decoration: BoxDecoration(
                         color: currentColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: currentColor.withValues(alpha: 0.2), width: 2),
+                        border: Border.all(
+                            color: currentColor.withValues(alpha: 0.2),
+                            width: 2),
                       ),
                       child: Icon(
                         AppIcons.getIcon(_selectedIcon),
@@ -120,10 +124,13 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
                           color: colorScheme.surface,
                           shape: BoxShape.circle,
                           boxShadow: [
-                            BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 8),
+                            BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.1),
+                                blurRadius: 8),
                           ],
                         ),
-                        child: Icon(Icons.palette_rounded, size: 20, color: currentColor),
+                        child: Icon(Icons.palette_rounded,
+                            size: 20, color: currentColor),
                       ),
                     ),
                   ),
@@ -149,7 +156,9 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 24),
-            Text('Account Type', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            Text('Account Type',
+                style: theme.textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,
@@ -185,7 +194,8 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
       context: context,
       builder: (context) => IconPickerWidget(
         selectedIcon: _selectedIcon,
-        selectedColor: Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16)),
+        selectedColor:
+            Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16)),
         onIconSelected: (icon) {
           setState(() => _selectedIcon = icon);
           Navigator.pop(context);
@@ -195,11 +205,13 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
   }
 
   Future<void> _showColorPicker() async {
-    final Color colorBefore = Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16));
+    final Color colorBefore =
+        Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16));
     final Color newColor = await showColorPickerDialog(
       context,
       colorBefore,
-      title: Text('Select Account Color', style: Theme.of(context).textTheme.titleLarge),
+      title: Text('Select Account Color',
+          style: Theme.of(context).textTheme.titleLarge),
       width: 40,
       height: 40,
       spacing: 0,
@@ -219,7 +231,8 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
       },
     );
     setState(() {
-      _selectedColor = '0x${newColor.toARGB32().toRadixString(16).toUpperCase()}';
+      _selectedColor =
+          '0x${newColor.toARGB32().toRadixString(16).toUpperCase()}';
     });
   }
 
@@ -228,12 +241,17 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Account?'),
-        content: const Text('All transactions associated with this account will remain, but the account will be permanently removed. Proceed?'),
+        content: const Text(
+            'All transactions associated with this account will remain, but the account will be permanently removed. Proceed?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
           TextButton(
             onPressed: () async {
-              await ref.read(accountServiceProvider).deleteAccount(widget.account!.id);
+              await ref
+                  .read(accountServiceProvider)
+                  .deleteAccount(widget.account!.id);
               await HapticService.errorStatic();
               if (mounted) {
                 Navigator.pop(context); // Pop dialog

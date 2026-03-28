@@ -4,60 +4,89 @@ workflows:
     max_build_duration: 60
     instance_type: mac_mini_m2
 
+    # 1. ENVIRONMENT CONFIGURATION
     environment:
+      groups:
+        # Imports the variables we set in the Codemagic web UI
+        - android-signing 
+      # Sets the Flutter channel and Java version to use on the build machine
       flutter: stable
       java: 17
 
+    # 2. CACHING
     cache:
       cache_paths:
+        # Caches dependencies to make future builds much faster
         - ~/.pub-cache
         - ~/.gradle
 
+    # 3. BUILD SCRIPTS
     scripts:
+      - name: Set up key.properties
+        script: |
+          # Creates the key.properties file that Android/Flutter uses to sign the app.
+          # The single '>' creates/overwrites the file. The '>>' appends to the file.
+          echo "keyAlias=$F_KEY_ALIAS" > android/key.properties
+          echo "keyPassword=$F_KEY_PASSWORD" >> android/key.properties
+          echo "storeFile=upload-keystore.jks" >> android/key.properties
+          
+          # FIXED: Now correctly using the F_KEYSTORE_PASSWORD variable from the UI
+          echo "storePassword=$F_KEYSTORE_PASSWORD" >> android/key.properties
+          
+          # Decodes the Base64 text string back into a binary .jks file 
+          # Quotes are added around "$F_KEYSTORE" to safely handle the massive string
+          echo "$F_KEYSTORE" | base64 --decode > android/app/upload-keystore.jks
 
       - name: Initialize Flutter
         script: |
+          # Verifies the Flutter setup and pre-downloads necessary artifacts
           flutter doctor -v
-          flutter --version
           flutter precache
 
       - name: Clean Project
         script: |
+          # Removes old build files to ensure a fresh, clean build
           flutter clean
 
       - name: Get Dependencies
         script: |
+          # Fetches all the packages listed in your pubspec.yaml
           flutter pub get
-
-      - name: Patch Isar for AGP 8 Compatibility
-        script: |
-          echo "Patching Isar Manifest..."
-          find $HOME/.pub-cache/hosted/pub.dev/isar_flutter_libs-* \
-          -name "AndroidManifest.xml" \
-          -exec sed -i '' 's/package="dev.isar.isar_flutter_libs"//g' {} + || true
-          echo "Patch complete."
 
       - name: Run Code Generation
         script: |
+          # Runs build_runner to generate files (useful if using packages like Freezed or Retrofit)
           dart run build_runner build --delete-conflicting-outputs
 
       - name: Static Analysis
         script: |
+          # Checks your Dart code for syntax errors or linting issues
           flutter analyze
 
       - name: Build Android Release APKs
         script: |
+          # Creates a custom folder to store the final output files
           mkdir -p build/artifacts
+          
+          # 1st Build: Architecture-specific APKs (Split APKs)
+          # These are smaller APKs optimized for specific phone processors
           flutter build apk --release --split-per-abi --no-tree-shake-icons
           cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk build/artifacts/Wallet-armeabi-v7a.apk
           cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk build/artifacts/Wallet-arm64-v8a.apk
+
+          # 2nd Build: Universal APK
+          # A larger APK that works on any Android processor (Good for manual sharing/testing)
           flutter build apk --release --no-tree-shake-icons
           cp build/app/outputs/flutter-apk/app-release.apk build/artifacts/Wallet-universal.apk
 
+    # 4. ARTIFACTS COLLECTION
     artifacts:
+      # Tells Codemagic where to find the final files so it can attach them to the dashboard
       - build/artifacts/*.apk
 
+    # 5. PUBLISHING / NOTIFICATIONS
     publishing:
       email:
         recipients:
+          # Emails the final APKs directly to you when the build succeeds
           - ajukr99901@gmail.com

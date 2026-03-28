@@ -30,8 +30,10 @@ import '../features/home/pages/search_page.dart';
 import '../features/settings/pages/personalization_page.dart';
 import '../features/settings/pages/theme_selection_page.dart';
 import '../features/settings/pages/privacy_policy_page.dart';
+import '../features/settings/pages/terms_of_use_page.dart';
 import '../features/settings/pages/feedback_page.dart';
 import '../features/settings/pages/about_page.dart';
+import '../features/accounts/pages/account_details_page.dart';
 
 import '../core/database/models/transaction_model.dart';
 import '../core/database/models/account.dart';
@@ -41,6 +43,7 @@ import '../core/theme/personalization_provider.dart';
 import '../core/providers/fab_action_provider.dart';
 
 import '../features/auth/pages/onboarding_page.dart';
+import '../features/auth/pages/user_info_page.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -73,17 +76,27 @@ final routerProvider = Provider<GoRouter>((ref) {
           _shellRoute('/', const HomePage()),
           _shellRoute('/accounts', const AccountsPage()),
           _shellRoute('/reports', const ReportsPage()),
-          _shellRoute('/search', const SearchPage(), type: SharedAxisTransitionType.scaled),
-          _shellRoute('/loans', const LoansPage(), type: SharedAxisTransitionType.scaled),
-          _shellRoute('/budgets', const BudgetsPage(), type: SharedAxisTransitionType.scaled),
-          _shellRoute('/bill_splitter', const BillSplitterPage(), type: SharedAxisTransitionType.scaled),
-          _shellRoute('/recurring', const RecurringPage(), type: SharedAxisTransitionType.scaled),
-          _shellRoute('/people', const PeoplePage(), type: SharedAxisTransitionType.scaled),
-          _shellRoute('/goals', const GoalsPage(), type: SharedAxisTransitionType.scaled),
+          _shellRoute('/search', const SearchPage(),
+              type: SharedAxisTransitionType.scaled),
+          _shellRoute('/loans', const LoansPage(),
+              type: SharedAxisTransitionType.scaled),
+          _shellRoute('/budgets', const BudgetsPage(),
+              type: SharedAxisTransitionType.scaled),
+          _shellRoute('/bill_splitter', const BillSplitterPage(),
+              type: SharedAxisTransitionType.scaled),
+          _shellRoute('/recurring', const RecurringPage(),
+              type: SharedAxisTransitionType.scaled),
+          _shellRoute('/people', const PeoplePage(),
+              type: SharedAxisTransitionType.scaled),
+          _shellRoute('/goals', const GoalsPage(),
+              type: SharedAxisTransitionType.scaled),
           GoRoute(
             path: '/category_details',
             pageBuilder: (context, state) => _buildSharedAxisTransition(
-              context, state, CategoryDetailsPage(category: state.extra as Category), SharedAxisTransitionType.scaled,
+              context,
+              state,
+              CategoryDetailsPage(category: state.extra as Category),
+              SharedAxisTransitionType.scaled,
             ),
           ),
         ],
@@ -94,23 +107,38 @@ final routerProvider = Provider<GoRouter>((ref) {
       _rootRoute('/categories', (_) => const CategoriesPage()),
       _rootRoute('/currency_selection', (_) => const CurrencySelectionPage()),
       _rootRoute('/privacy_policy', (_) => const PrivacyPolicyPage()),
+      _rootRoute('/terms_of_use', (_) => const TermsOfUsePage()),
       _rootRoute('/feedback', (_) => const FeedbackPage()),
       _rootRoute('/about', (_) => const AboutPage()),
+      _rootRoute('/user_info', (_) => const UserInfoPage()),
       _rootRoute('/all_transactions', (_) => const AllTransactionsPage()),
-      _rootRoute('/add_transaction', (state) => AddTransactionPage(transaction: state.extra as TransactionModel?)),
-      _rootRoute('/add_account', (state) => AddEditAccountPage(account: state.extra as Account?)),
+      _rootRoute('/account_details',
+          (state) => AccountDetailsPage(account: state.extra as Account)),
+      _rootRoute(
+          '/add_transaction',
+          (state) => AddTransactionPage(
+              transaction: state.extra as TransactionModel?)),
+      _rootRoute('/add_account',
+          (state) => AddEditAccountPage(account: state.extra as Account?)),
       _rootRoute('/add_loan', (_) => const AddEditLoanPage()),
-      _rootRoute('/add_recurring', (state) => AddEditRecurringPage(recurring: state.extra as Recurring?)),
-      _rootRoute('/add_category', (state) => AddEditCategoryPage(category: state.extra as Category?)),
-      _rootRoute('/add_goal', (state) => AddEditGoalPage(goal: state.extra as Goal?)),
+      _rootRoute(
+          '/add_recurring',
+          (state) =>
+              AddEditRecurringPage(recurring: state.extra as Recurring?)),
+      _rootRoute('/add_category',
+          (state) => AddEditCategoryPage(category: state.extra as Category?)),
+      _rootRoute(
+          '/add_goal', (state) => AddEditGoalPage(goal: state.extra as Goal?)),
     ],
   );
 });
 
-GoRoute _shellRoute(String path, Widget child, {SharedAxisTransitionType type = SharedAxisTransitionType.horizontal}) {
+GoRoute _shellRoute(String path, Widget child,
+    {SharedAxisTransitionType type = SharedAxisTransitionType.horizontal}) {
   return GoRoute(
     path: path,
-    pageBuilder: (context, state) => _buildSharedAxisTransition(context, state, child, type),
+    pageBuilder: (context, state) =>
+        _buildSharedAxisTransition(context, state, child, type),
   );
 }
 
@@ -122,12 +150,17 @@ GoRoute _rootRoute(String path, Widget Function(GoRouterState) builder) {
   );
 }
 
-Page _buildSharedAxisTransition(BuildContext context, GoRouterState state, Widget child, SharedAxisTransitionType type) {
+Page _buildSharedAxisTransition(BuildContext context, GoRouterState state,
+    Widget child, SharedAxisTransitionType type) {
   return CustomTransitionPage(
     key: state.pageKey,
     child: child,
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      return SharedAxisTransition(animation: animation, secondaryAnimation: secondaryAnimation, transitionType: type, child: child);
+      return SharedAxisTransition(
+          animation: animation,
+          secondaryAnimation: secondaryAnimation,
+          transitionType: type,
+          child: child);
     },
   );
 }
@@ -234,6 +267,7 @@ class _FAB extends ConsumerWidget {
       '/theme_selection',
       '/currency_selection',
       '/privacy_policy',
+      '/terms_of_use',
       '/feedback',
       '/about',
       '/category_details',
@@ -245,40 +279,62 @@ class _FAB extends ConsumerWidget {
       '/add_category'
     ];
     // Don't hide for /reports anymore
-    return hiddenRoutes.any((route) => loc == route || loc.startsWith('$route/'));
+    return hiddenRoutes
+        .any((route) => loc == route || loc.startsWith('$route/'));
   }
 
   IconData _getFABIcon(String loc) {
     switch (loc) {
-      case '/': return Symbols.add;
-      case '/accounts': return Symbols.add_card;
-      case '/reports': return Symbols.filter_alt;
-      case '/categories': return Symbols.category;
-      case '/people': return Symbols.person_add;
-      case '/goals': return Symbols.flag;
-      case '/loans': return Symbols.front_loader;
-      case '/recurring': return Symbols.event_repeat;
-      default: return Symbols.add;
+      case '/':
+        return Symbols.add;
+      case '/accounts':
+        return Symbols.add_card;
+      case '/reports':
+        return Symbols.filter_alt;
+      case '/categories':
+        return Symbols.category;
+      case '/people':
+        return Symbols.person_add;
+      case '/goals':
+        return Symbols.flag;
+      case '/loans':
+        return Symbols.front_loader;
+      case '/recurring':
+        return Symbols.event_repeat;
+      default:
+        return Symbols.add;
     }
   }
 
   void _handleFABPressed(BuildContext context, WidgetRef ref, String loc) {
     switch (loc) {
-      case '/': context.push('/add_transaction'); break;
-      case '/accounts': context.push('/add_account'); break;
-      case '/reports': 
+      case '/':
+        context.push('/add_transaction');
+        break;
+      case '/accounts':
+        context.push('/add_account');
+        break;
+      case '/reports':
         // Show filter bottom sheet or dialog
         final action = ref.read(fabActionProvider);
         if (action != null) action();
         break;
-      case '/categories': context.push('/add_category'); break;
-      case '/people': 
+      case '/categories':
+        context.push('/add_category');
+        break;
+      case '/people':
         final action = ref.read(fabActionProvider);
         if (action != null) action();
         break;
-      case '/goals': context.push('/add_goal'); break;
-      case '/loans': context.push('/add_loan'); break;
-      case '/recurring': context.push('/add_recurring'); break;
+      case '/goals':
+        context.push('/add_goal');
+        break;
+      case '/loans':
+        context.push('/add_loan');
+        break;
+      case '/recurring':
+        context.push('/add_recurring');
+        break;
     }
   }
 }

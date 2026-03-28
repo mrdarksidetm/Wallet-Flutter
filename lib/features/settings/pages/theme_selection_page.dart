@@ -48,7 +48,6 @@ class ThemeSelectionPage extends ConsumerWidget {
             currentMode: themeState.themeMode,
             onTap: () => themeNotifier.setThemeMode(ThemeMode.dark),
           ),
-          
           if (themeState.useMaterialYou) ...[
             const Divider(indent: 24, endIndent: 24, height: 32),
             _buildSectionHeader(context, 'Dynamic Color Style'),
@@ -73,14 +72,15 @@ class ThemeSelectionPage extends ConsumerWidget {
       child: Text(
         title,
         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-          color: Theme.of(context).colorScheme.primary,
-          fontWeight: FontWeight.bold,
-        ),
+              color: Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.bold,
+            ),
       ),
     );
   }
 
-  Widget _buildVariantTile(BuildContext context, WidgetRef ref, String title, String variant) {
+  Widget _buildVariantTile(
+      BuildContext context, WidgetRef ref, String title, String variant) {
     final personalization = ref.watch(personalizationProvider);
     final isSelected = personalization.colorSchemeVariant == variant;
     final colorScheme = Theme.of(context).colorScheme;
@@ -88,11 +88,17 @@ class ThemeSelectionPage extends ConsumerWidget {
     return ListTile(
       onTap: () async {
         await HapticService.selectionStatic();
-        ref.read(personalizationProvider.notifier).updateColorSchemeVariant(variant);
+        ref
+            .read(personalizationProvider.notifier)
+            .updateColorSchemeVariant(variant);
       },
       contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-      title: Text(title, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
-      trailing: isSelected ? Icon(Symbols.check_circle, color: colorScheme.primary, fill: 1) : null,
+      title: Text(title,
+          style: TextStyle(
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+      trailing: isSelected
+          ? Icon(Symbols.check_circle, color: colorScheme.primary, fill: 1)
+          : null,
     );
   }
 
@@ -116,12 +122,15 @@ class ThemeSelectionPage extends ConsumerWidget {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: isSelected ? colorScheme.primaryContainer : colorScheme.surfaceContainer,
+          color: isSelected
+              ? colorScheme.primaryContainer
+              : colorScheme.surfaceContainer,
           shape: BoxShape.circle,
         ),
         child: Icon(
           icon,
-          color: isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
+          color:
+              isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
           fill: isSelected ? 1 : 0,
         ),
       ),

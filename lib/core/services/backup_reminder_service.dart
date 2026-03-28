@@ -8,11 +8,12 @@ class BackupReminderService {
   static bool shouldShowBackupReminder(int lastBackupTimestampMillis) {
     if (lastBackupTimestampMillis == 0) return true; // Never backed up
 
-    final lastBackupDate = DateTime.fromMillisecondsSinceEpoch(lastBackupTimestampMillis);
+    final lastBackupDate =
+        DateTime.fromMillisecondsSinceEpoch(lastBackupTimestampMillis);
     final currentDate = DateTime.now();
-    
+
     final diffInDays = currentDate.difference(lastBackupDate).inDays;
-    
+
     return diffInDays >= _backupTtlDays;
   }
 }

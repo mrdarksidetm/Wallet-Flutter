@@ -29,6 +29,7 @@ class ReconciliationNotifier extends StateNotifier<double> {
   }
 }
 
-final reconciliationProvider = StateNotifierProvider<ReconciliationNotifier, double>((ref) {
+final reconciliationProvider =
+    StateNotifierProvider<ReconciliationNotifier, double>((ref) {
   return ReconciliationNotifier();
 });

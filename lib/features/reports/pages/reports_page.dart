@@ -46,19 +46,22 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
             children: [
               Text(
                 'Filter Reports',
-                style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                style: theme.textTheme.headlineSmall
+                    ?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 24),
               ListTile(
                 // ------------------------------------------------------------------
                 // FIX: Added the 'const' keyword to the Icon constructor below.
                 // Since 'Symbols.calendar_month' is an immutable static constant,
-                // making the Icon itself 'const' allows Dart to allocate it once at 
+                // making the Icon itself 'const' allows Dart to allocate it once at
                 // compile-time rather than recreating it on every single UI rebuild.
                 // ------------------------------------------------------------------
                 leading: const Icon(Symbols.calendar_month),
                 title: const Text('Date Range'),
-                subtitle: Text(_customRange == null ? 'This Month' : '${DateFormat.yMMMd().format(_customRange!.start)} - ${DateFormat.yMMMd().format(_customRange!.end)}'),
+                subtitle: Text(_customRange == null
+                    ? 'This Month'
+                    : '${DateFormat.yMMMd().format(_customRange!.start)} - ${DateFormat.yMMMd().format(_customRange!.end)}'),
                 onTap: () async {
                   final range = await showDateRangePicker(
                     context: context,
@@ -77,7 +80,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
               ListTile(
                 // ------------------------------------------------------------------
                 // FIX: Added the 'const' keyword to this Icon constructor as well.
-                // This resolves the second 'prefer_const_constructors' warning 
+                // This resolves the second 'prefer_const_constructors' warning
                 // and follows Flutter's best practices for memory optimization.
                 // ------------------------------------------------------------------
                 leading: const Icon(Symbols.restart_alt),
@@ -106,7 +109,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
     final now = DateTime.now();
     final startOfMonth = DateTime(now.year, now.month, 1);
     final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
-    final currentRange = _customRange ?? DateTimeRange(start: startOfMonth, end: endOfMonth);
+    final currentRange =
+        _customRange ?? DateTimeRange(start: startOfMonth, end: endOfMonth);
 
     final breakdownAsync = ref.watch(categoryBreakdownProvider(currentRange));
     final dailyStatsAsync = ref.watch(dailyStatsProvider(currentRange));
@@ -114,6 +118,17 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Reports'),
+        actions: [
+          IconButton(
+            onPressed: () {
+              HapticService.selectionStatic();
+              _showFilterDialog();
+            },
+            icon: const Icon(Symbols.filter_alt),
+            tooltip: 'Filter Reports',
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -122,21 +137,24 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
           children: [
             Text(
               'Spending Breakdown',
-              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 24),
-            
+
             // Donut Chart
             SizedBox(
               height: 200,
               child: breakdownAsync.when(
                 data: (breakdown) {
                   if (breakdown.isEmpty) {
-                    return const Center(child: Text('No expense data for this month'));
+                    return const Center(
+                        child: Text('No expense data for this month'));
                   }
-                  
-                  final total = breakdown.values.fold<double>(0, (sum, val) => sum + val);
-                  
+
+                  final total =
+                      breakdown.values.fold<double>(0, (sum, val) => sum + val);
+
                   return PieChart(
                     PieChartData(
                       sectionsSpace: 4,
@@ -144,10 +162,13 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                       sections: breakdown.entries.map((entry) {
                         final category = entry.key;
                         final value = entry.value;
-                        final percentage = (value / total * 100).toStringAsFixed(1);
-                        
+                        final percentage =
+                            (value / total * 100).toStringAsFixed(1);
+
                         return PieChartSectionData(
-                          color: Color(int.parse(category.color.replaceAll('0x', ''), radix: 16)),
+                          color: Color(int.parse(
+                              category.color.replaceAll('0x', ''),
+                              radix: 16)),
                           value: value,
                           title: '$percentage%',
                           radius: 20,
@@ -165,7 +186,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
 
             Text(
               'Daily Expenses (This Month)',
-              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 24),
 
@@ -175,9 +197,10 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
               child: dailyStatsAsync.when(
                 data: (stats) {
                   if (stats.isEmpty) {
-                    return const Center(child: Text('Not enough data for chart'));
+                    return const Center(
+                        child: Text('Not enough data for chart'));
                   }
-                  
+
                   return LineChart(
                     LineChartData(
                       gridData: const FlGridData(show: false),
@@ -185,14 +208,17 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                       borderData: FlBorderData(show: false),
                       lineBarsData: [
                         LineChartBarData(
-                          spots: stats.map((e) => FlSpot(e.key.day.toDouble(), e.value)).toList(),
+                          spots: stats
+                              .map((e) => FlSpot(e.key.day.toDouble(), e.value))
+                              .toList(),
                           isCurved: true,
                           color: theme.colorScheme.primary,
                           barWidth: 4,
                           dotData: const FlDotData(show: false),
                           belowBarData: BarAreaData(
                             show: true,
-                            color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                            color: theme.colorScheme.primary
+                                .withValues(alpha: 0.1),
                           ),
                         ),
                       ],
@@ -203,24 +229,29 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                 error: (err, stack) => Center(child: Text('Error: $err')),
               ),
             ),
-            
+
             const SizedBox(height: 32),
-            
+
             // Summary List
             Text(
               'Categories',
-              style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.titleSmall
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             breakdownAsync.when(
               data: (breakdown) {
-                final sortedEntries = breakdown.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+                final sortedEntries = breakdown.entries.toList()
+                  ..sort((a, b) => b.value.compareTo(a.value));
                 return Column(
                   children: sortedEntries.map((entry) {
                     final category = entry.key;
                     final value = entry.value;
-                    final color = Color(int.parse(category.color.replaceAll('0x', ''), radix: 16));
-                    return _buildReportItem(context, category, currencyFormat.format(value), color);
+                    final color = Color(int.parse(
+                        category.color.replaceAll('0x', ''),
+                        radix: 16));
+                    return _buildReportItem(
+                        context, category, currencyFormat.format(value), color);
                   }).toList(),
                 );
               },
@@ -233,7 +264,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
     );
   }
 
-  Widget _buildReportItem(BuildContext context, Category category, String amount, Color color) {
+  Widget _buildReportItem(
+      BuildContext context, Category category, String amount, Color color) {
     return ListTile(
       onTap: () {
         HapticService.selectionStatic();
@@ -246,7 +278,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
         child: Icon(AppIcons.getIcon(category.icon), size: 16, color: color),
       ),
       title: Text(category.name, style: Theme.of(context).textTheme.bodyLarge),
-      trailing: Text(amount, style: const TextStyle(fontWeight: FontWeight.bold)),
+      trailing:
+          Text(amount, style: const TextStyle(fontWeight: FontWeight.bold)),
     );
   }
 }

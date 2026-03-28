@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../core/services/haptic_service.dart';
@@ -24,7 +25,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
   TransactionType _transactionType = TransactionType.expense;
   final _amountController = TextEditingController();
   final _noteController = TextEditingController();
-  
+
   Account? _selectedAccount;
   Category? _selectedCategory;
   Account? _selectedTransferAccount;
@@ -56,19 +57,21 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
   Future<void> _save() async {
     final amount = double.tryParse(_amountController.text) ?? 0.0;
     if (amount <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter a valid amount')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Enter a valid amount')));
       return;
     }
 
     if (_selectedAccount == null || _selectedCategory == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select account and category')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select account and category')));
       return;
     }
 
     try {
       final service = ref.read(transactionServiceProvider);
       final personalization = ref.read(personalizationProvider);
-      
+
       if (widget.transaction != null) {
         final updatedTx = TransactionModel()
           ..id = widget.transaction!.id
@@ -79,7 +82,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
           ..icon = _selectedIcon
           ..createdAt = widget.transaction!.createdAt
           ..updatedAt = DateTime.now();
-        
+
         updatedTx.account.value = _selectedAccount;
         updatedTx.category.value = _selectedCategory;
         updatedTx.transferAccount.value = _selectedTransferAccount;
@@ -98,10 +101,14 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
         );
       }
 
-      await ref.read(hapticServiceProvider).transaction(personalization.vibrateOnTransaction);
+      await ref
+          .read(hapticServiceProvider)
+          .transaction(personalization.vibrateOnTransaction);
       if (mounted) context.pop();
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
 
@@ -110,12 +117,16 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Transaction?'),
-        content: const Text('This action cannot be undone and will revert the account balance.'),
+        content: const Text(
+            'This action cannot be undone and will revert the account balance.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel')),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+            style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.error),
             child: const Text('Delete'),
           ),
         ],
@@ -124,10 +135,14 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
 
     if (confirmed == true && widget.transaction != null) {
       try {
-        await ref.read(transactionServiceProvider).deleteTransaction(widget.transaction!);
+        await ref
+            .read(transactionServiceProvider)
+            .deleteTransaction(widget.transaction!);
         if (mounted) context.pop();
       } catch (e) {
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Delete failed: $e')));
+        if (mounted)
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('Delete failed: $e')));
       }
     }
   }
@@ -136,13 +151,15 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     final accountsAsync = ref.watch(accountsStreamProvider);
     final categoriesAsync = ref.watch(categoriesStreamProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.transaction != null ? 'Edit Transaction' : 'Add Transaction'),
+        title: Text(widget.transaction != null
+            ? 'Edit Transaction'
+            : 'Add Transaction'),
         leading: IconButton(
           onPressed: () => context.pop(),
           icon: const Icon(Icons.close_rounded),
@@ -165,9 +182,18 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
             Center(
               child: SegmentedButton<TransactionType>(
                 segments: const [
-                  ButtonSegment(value: TransactionType.expense, label: Text('Expense'), icon: Icon(Icons.remove_rounded)),
-                  ButtonSegment(value: TransactionType.income, label: Text('Income'), icon: Icon(Icons.add_rounded)),
-                  ButtonSegment(value: TransactionType.transfer, label: Text('Transfer'), icon: Icon(Icons.swap_horiz_rounded)),
+                  ButtonSegment(
+                      value: TransactionType.expense,
+                      label: Text('Expense'),
+                      icon: Icon(Icons.remove_rounded)),
+                  ButtonSegment(
+                      value: TransactionType.income,
+                      label: Text('Income'),
+                      icon: Icon(Icons.add_rounded)),
+                  ButtonSegment(
+                      value: TransactionType.transfer,
+                      label: Text('Transfer'),
+                      icon: Icon(Icons.swap_horiz_rounded)),
                 ],
                 selected: {_transactionType},
                 onSelectionChanged: (Set<TransactionType> newSelection) {
@@ -184,7 +210,8 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
             TextField(
               controller: _amountController,
               onChanged: (_) => HapticService.lightStatic(),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
               style: theme.textTheme.displayMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: colorScheme.primary,
@@ -192,7 +219,8 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
               textAlign: TextAlign.center,
               decoration: InputDecoration(
                 hintText: '0.00',
-                prefixText: ref.watch(currencyProvider) == 'INR' ? '₹ ' : '\$ ',
+                prefixText:
+                    '${NumberFormat.simpleCurrency(name: ref.watch(currencyProvider)).currencySymbol} ',
                 prefixStyle: theme.textTheme.displaySmall?.copyWith(
                   color: colorScheme.outline,
                 ),
@@ -230,11 +258,15 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
                   ),
                 );
               },
-              leading: Icon(AppIcons.getIcon(_selectedIcon ?? _selectedCategory?.icon)),
+              leading: Icon(
+                  AppIcons.getIcon(_selectedIcon ?? _selectedCategory?.icon)),
               title: const Text('Custom Icon'),
-              subtitle: Text(_selectedIcon == null ? 'Using category icon' : 'Custom icon selected'),
+              subtitle: Text(_selectedIcon == null
+                  ? 'Using category icon'
+                  : 'Custom icon selected'),
               trailing: const Icon(Icons.chevron_right_rounded),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
               tileColor: colorScheme.surfaceContainerLow,
             ),
             const SizedBox(height: 16),
@@ -246,7 +278,8 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
               title: const Text('Category'),
               subtitle: Text(_selectedCategory?.name ?? 'Select Category'),
               trailing: const Icon(Icons.chevron_right_rounded),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
               tileColor: colorScheme.surfaceContainerLow,
             ),
             const SizedBox(height: 16),
@@ -258,32 +291,39 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
               title: const Text('Account'),
               subtitle: Text(_selectedAccount?.name ?? 'Select Account'),
               trailing: const Icon(Icons.chevron_right_rounded),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
               tileColor: colorScheme.surfaceContainerLow,
             ),
 
             if (_transactionType == TransactionType.transfer) ...[
               const SizedBox(height: 16),
               ListTile(
-                onTap: () => _showAccountPicker(accountsAsync.value ?? [], isTransfer: true),
+                onTap: () => _showAccountPicker(accountsAsync.value ?? [],
+                    isTransfer: true),
                 leading: const Icon(Icons.swap_horiz_rounded),
                 title: const Text('To Account'),
-                subtitle: Text(_selectedTransferAccount?.name ?? 'Select Target Account'),
+                subtitle: Text(
+                    _selectedTransferAccount?.name ?? 'Select Target Account'),
                 trailing: const Icon(Icons.chevron_right_rounded),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
                 tileColor: colorScheme.surfaceContainerLow,
               ),
             ],
-            
+
             const SizedBox(height: 48),
-            
+
             // Save Button
             PrimaryAtelierButton(
               onPressed: _save,
               icon: const Icon(Symbols.save, color: Colors.white),
               label: Text(
-                widget.transaction != null ? 'Update Transaction' : 'Save Transaction',
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                widget.transaction != null
+                    ? 'Update Transaction'
+                    : 'Save Transaction',
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -297,10 +337,11 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
       context: context,
       builder: (context) {
         final filtered = categories.where((c) {
-          if (_transactionType == TransactionType.transfer) return c.type == CategoryType.transfer;
+          if (_transactionType == TransactionType.transfer)
+            return c.type == CategoryType.transfer;
           return c.type.name == _transactionType.name;
         }).toList();
-        
+
         return ListView.builder(
           itemCount: filtered.length,
           itemBuilder: (context, index) {

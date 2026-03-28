@@ -29,7 +29,8 @@ import '../theme/personalization_provider.dart';
 
 // --- Storage Providers ---
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
-  throw UnimplementedError('sharedPreferencesProvider must be overridden in main.dart');
+  throw UnimplementedError(
+      'sharedPreferencesProvider must be overridden in main.dart');
 });
 
 // --- Database Provider ---
@@ -162,7 +163,8 @@ final backupServiceProvider = Provider<BackupService>((ref) {
   return BackupService(isar);
 });
 
-final performanceAuditServiceProvider = Provider<PerformanceAuditService>((ref) {
+final performanceAuditServiceProvider =
+    Provider<PerformanceAuditService>((ref) {
   final isar = ref.watch(isarProvider).value!;
   return PerformanceAuditService(isar);
 });
@@ -197,17 +199,19 @@ final currencyProvider = Provider<String>((ref) {
 // --- Search Providers ---
 final searchQueryProvider = StateProvider<String>((ref) => '');
 
-final searchTransactionsProvider = FutureProvider<List<TransactionModel>>((ref) async {
+final searchTransactionsProvider =
+    FutureProvider<List<TransactionModel>>((ref) async {
   final query = ref.watch(searchQueryProvider);
   if (query.isEmpty) return [];
-  
+
   final repo = ref.watch(transactionRepositoryProvider);
   return await repo.searchTransactions(query);
 });
 
 final budgetStatsProvider = StreamProvider<List<Map<String, dynamic>>>((ref) {
-  // Listen to transaction changes to force rebuild of the budget stream
+  // Listen to transaction and category changes to force rebuild of the budget stream
   ref.watch(transactionsStreamProvider);
+  ref.watch(categoriesStreamProvider);
   final service = ref.watch(statisticsServiceProvider);
   return service.watchBudgets();
 });
@@ -222,19 +226,25 @@ final recentStatsProvider = StreamProvider<Map<String, double>>((ref) {
   return service.watchRecentStats();
 });
 
-final categoryBreakdownProvider = FutureProvider.family<Map<Category, double>, DateTimeRange?>((ref, range) async {
+final categoryBreakdownProvider =
+    FutureProvider.family<Map<Category, double>, DateTimeRange?>(
+        (ref, range) async {
   if (range == null) return {};
   final service = ref.watch(statisticsServiceProvider);
   return await service.getCategoryBreakdown(range.start, range.end);
 });
 
-final dailyStatsProvider = FutureProvider.family<List<MapEntry<DateTime, double>>, DateTimeRange?>((ref, range) async {
+final dailyStatsProvider =
+    FutureProvider.family<List<MapEntry<DateTime, double>>, DateTimeRange?>(
+        (ref, range) async {
   if (range == null) return [];
   final service = ref.watch(statisticsServiceProvider);
   return await service.getDailyStats(range.start, range.end);
 });
 
-final categoryMonthlyStatsProvider = FutureProvider.family<List<MapEntry<DateTime, double>>, Id>((ref, categoryId) async {
+final categoryMonthlyStatsProvider =
+    FutureProvider.family<List<MapEntry<DateTime, double>>, Id>(
+        (ref, categoryId) async {
   final service = ref.watch(statisticsServiceProvider);
   return await service.getCategoryMonthlyStats(categoryId);
 });
@@ -244,9 +254,16 @@ final categoriesStreamProvider = StreamProvider<List<Category>>((ref) {
   return repo.watchAll();
 });
 
-final transactionsStreamProvider = StreamProvider<List<TransactionModel>>((ref) {
+final transactionsStreamProvider =
+    StreamProvider<List<TransactionModel>>((ref) {
   final repo = ref.watch(transactionRepositoryProvider);
   return repo.watchLatest();
+});
+
+final accountTransactionsProvider =
+    StreamProvider.family<List<TransactionModel>, Id>((ref, accountId) {
+  final repo = ref.watch(transactionRepositoryProvider);
+  return repo.watchByAccount(accountId);
 });
 
 final budgetsStreamProvider = StreamProvider<List<Budget>>((ref) {

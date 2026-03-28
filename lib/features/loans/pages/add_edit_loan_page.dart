@@ -24,8 +24,10 @@ class _AddEditLoanPageState extends ConsumerState<AddEditLoanPage> {
   @override
   void initState() {
     super.initState();
-    _amountController = TextEditingController(text: widget.loan?.amount.toString() ?? '');
-    _personController = TextEditingController(text: widget.loan?.person.value?.name ?? '');
+    _amountController =
+        TextEditingController(text: widget.loan?.amount.toString() ?? '');
+    _personController =
+        TextEditingController(text: widget.loan?.person.value?.name ?? '');
     _type = widget.loan?.type ?? LoanType.borrowed;
     _selectedDate = widget.loan?.createdAt ?? DateTime.now();
   }
@@ -42,7 +44,7 @@ class _AddEditLoanPageState extends ConsumerState<AddEditLoanPage> {
 
     // In a real implementation, we would first find or create a Person object.
     // For this port, we'll assume a person is managed by the service.
-    
+
     try {
       final loan = Loan()
         ..amount = double.tryParse(_amountController.text) ?? 0.0
@@ -51,11 +53,15 @@ class _AddEditLoanPageState extends ConsumerState<AddEditLoanPage> {
         ..updatedAt = DateTime.now();
 
       // Note: We now handle person creation in the service
-      await ref.read(loanServiceProvider).saveLoan(loan, personName: _personController.text);
+      await ref
+          .read(loanServiceProvider)
+          .saveLoan(loan, personName: _personController.text);
       await HapticService.successStatic();
       if (mounted) context.pop();
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
 
@@ -73,8 +79,14 @@ class _AddEditLoanPageState extends ConsumerState<AddEditLoanPage> {
             Center(
               child: SegmentedButton<LoanType>(
                 segments: const [
-                  ButtonSegment(value: LoanType.borrowed, label: Text('Borrowed'), icon: Icon(Icons.arrow_downward_rounded)),
-                  ButtonSegment(value: LoanType.lent, label: Text('Lent'), icon: Icon(Icons.arrow_upward_rounded)),
+                  ButtonSegment(
+                      value: LoanType.borrowed,
+                      label: Text('Borrowed'),
+                      icon: Icon(Icons.arrow_downward_rounded)),
+                  ButtonSegment(
+                      value: LoanType.lent,
+                      label: Text('Lent'),
+                      icon: Icon(Icons.arrow_upward_rounded)),
                 ],
                 selected: {_type},
                 onSelectionChanged: (s) => setState(() => _type = s.first),
@@ -113,7 +125,8 @@ class _AddEditLoanPageState extends ConsumerState<AddEditLoanPage> {
               leading: const Icon(Icons.calendar_today_rounded),
               title: const Text('Date'),
               subtitle: Text(DateFormat('MMM d, yyyy').format(_selectedDate)),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
               tileColor: Theme.of(context).colorScheme.surfaceContainerLow,
             ),
             const SizedBox(height: 48),

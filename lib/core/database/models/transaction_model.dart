@@ -30,7 +30,8 @@ class TransactionModel {
   List<String>? tags;
   bool isArchived = false;
   bool isDeleted = false;
-  bool isTemplate = false; // Added to mark template transactions for recurring use
+  bool isTemplate =
+      false; // Added to mark template transactions for recurring use
 
   final account = IsarLink<Account>();
   final category = IsarLink<Category>();

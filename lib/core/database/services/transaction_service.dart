@@ -54,6 +54,10 @@ class TransactionService {
       transaction.category.value = category;
       transaction.person.value = person;
 
+      // Sync IDs for faster querying without loading links
+      transaction.accountId = account.id;
+      transaction.categoryId = category.id;
+
       // 2. Update Balance
       if (type == TransactionType.income) {
         account.balance += amount;
@@ -76,7 +80,8 @@ class TransactionService {
   }
 
   /// Updates a transaction and recalculates account balances.
-  Future<void> updateTransaction(TransactionModel oldTransaction, TransactionModel newTransaction) async {
+  Future<void> updateTransaction(
+      TransactionModel oldTransaction, TransactionModel newTransaction) async {
     await isar.writeTxn(() async {
       final account = oldTransaction.account.value;
       final category = oldTransaction.category.value;
@@ -89,7 +94,8 @@ class TransactionService {
         account.balance -= oldTransaction.amount;
       } else if (oldTransaction.type == TransactionType.expense) {
         account.balance += oldTransaction.amount;
-      } else if (oldTransaction.type == TransactionType.transfer && transferAccount != null) {
+      } else if (oldTransaction.type == TransactionType.transfer &&
+          transferAccount != null) {
         account.balance += oldTransaction.amount;
         transferAccount.balance -= oldTransaction.amount;
         await isar.accounts.put(transferAccount);
@@ -105,7 +111,8 @@ class TransactionService {
         newAcc.balance += newAmount;
       } else if (newType == TransactionType.expense) {
         newAcc.balance -= newAmount;
-      } else if (newType == TransactionType.transfer && newTransferAcc != null) {
+      } else if (newType == TransactionType.transfer &&
+          newTransferAcc != null) {
         newAcc.balance -= newAmount;
         newTransferAcc.balance += newAmount;
         await isar.accounts.put(newTransferAcc);
@@ -113,13 +120,18 @@ class TransactionService {
 
       // 3. Save Changes
       if (account.id != newAcc.id) {
-         await isar.accounts.put(account); // Save the reverted one
+        await isar.accounts.put(account); // Save the reverted one
       }
       await isar.accounts.put(newAcc);
-      
+
       // Update the person link and custom icon
-      newTransaction.person.value = newTransaction.person.value; 
-      
+      newTransaction.person.value = newTransaction.person.value;
+
+      // Sync IDs
+      newTransaction.accountId = newAcc.id;
+      newTransaction.categoryId =
+          newTransaction.category.value?.id ?? category.id;
+
       newTransaction.updatedAt = DateTime.now();
       await isar.transactionModels.put(newTransaction);
     });
@@ -138,7 +150,8 @@ class TransactionService {
         account.balance -= transaction.amount;
       } else if (transaction.type == TransactionType.expense) {
         account.balance += transaction.amount;
-      } else if (transaction.type == TransactionType.transfer && transferAccount != null) {
+      } else if (transaction.type == TransactionType.transfer &&
+          transferAccount != null) {
         account.balance += transaction.amount;
         transferAccount.balance -= transaction.amount;
         await isar.accounts.put(transferAccount);

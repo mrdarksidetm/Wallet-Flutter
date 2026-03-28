@@ -14,7 +14,8 @@ class AddEditCategoryPage extends ConsumerStatefulWidget {
   const AddEditCategoryPage({super.key, this.category});
 
   @override
-  ConsumerState<AddEditCategoryPage> createState() => _AddEditCategoryPageState();
+  ConsumerState<AddEditCategoryPage> createState() =>
+      _AddEditCategoryPageState();
 }
 
 class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
@@ -30,7 +31,8 @@ class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.category?.name ?? '');
-    _budgetController = TextEditingController(text: widget.category?.budgetLimit?.toString() ?? '');
+    _budgetController = TextEditingController(
+        text: widget.category?.budgetLimit?.toString() ?? '');
     _type = widget.category?.type ?? CategoryType.expense;
     _selectedColor = widget.category?.color ?? '0xFF2196F3';
     _selectedIcon = widget.category?.icon ?? 'category';
@@ -53,7 +55,8 @@ class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
       ..icon = _selectedIcon
       ..color = _selectedColor
       ..type = _type
-      ..budgetLimit = _isBudget ? (double.tryParse(_budgetController.text) ?? 0.0) : null
+      ..budgetLimit =
+          _isBudget ? (double.tryParse(_budgetController.text) ?? 0.0) : null
       ..isBudget = _isBudget
       ..createdAt = widget.category?.createdAt ?? DateTime.now()
       ..updatedAt = DateTime.now();
@@ -71,7 +74,8 @@ class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final Color currentColor = Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16));
+    final Color currentColor =
+        Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16));
 
     return Scaffold(
       appBar: AppBar(
@@ -101,7 +105,9 @@ class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
                       decoration: BoxDecoration(
                         color: currentColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: currentColor.withValues(alpha: 0.2), width: 2),
+                        border: Border.all(
+                            color: currentColor.withValues(alpha: 0.2),
+                            width: 2),
                       ),
                       child: Icon(
                         AppIcons.getIcon(_selectedIcon),
@@ -121,10 +127,13 @@ class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
                           color: colorScheme.surface,
                           shape: BoxShape.circle,
                           boxShadow: [
-                            BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 8),
+                            BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.1),
+                                blurRadius: 8),
                           ],
                         ),
-                        child: Icon(Icons.palette_rounded, size: 20, color: currentColor),
+                        child: Icon(Icons.palette_rounded,
+                            size: 20, color: currentColor),
                       ),
                     ),
                   ),
@@ -135,8 +144,14 @@ class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
             Center(
               child: SegmentedButton<CategoryType>(
                 segments: const [
-                  ButtonSegment(value: CategoryType.expense, label: Text('Expense'), icon: Icon(Icons.remove_rounded)),
-                  ButtonSegment(value: CategoryType.income, label: Text('Income'), icon: Icon(Icons.add_rounded)),
+                  ButtonSegment(
+                      value: CategoryType.expense,
+                      label: Text('Expense'),
+                      icon: Icon(Icons.remove_rounded)),
+                  ButtonSegment(
+                      value: CategoryType.income,
+                      label: Text('Income'),
+                      icon: Icon(Icons.add_rounded)),
                 ],
                 selected: {_type},
                 onSelectionChanged: (s) {
@@ -196,7 +211,8 @@ class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
       context: context,
       builder: (context) => IconPickerWidget(
         selectedIcon: _selectedIcon,
-        selectedColor: Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16)),
+        selectedColor:
+            Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16)),
         onIconSelected: (icon) {
           setState(() => _selectedIcon = icon);
           Navigator.pop(context);
@@ -206,11 +222,13 @@ class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
   }
 
   Future<void> _showColorPicker() async {
-    final Color colorBefore = Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16));
+    final Color colorBefore =
+        Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16));
     final Color newColor = await showColorPickerDialog(
       context,
       colorBefore,
-      title: Text('Select Category Color', style: Theme.of(context).textTheme.titleLarge),
+      title: Text('Select Category Color',
+          style: Theme.of(context).textTheme.titleLarge),
       width: 40,
       height: 40,
       spacing: 0,
@@ -230,7 +248,8 @@ class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
       },
     );
     setState(() {
-      _selectedColor = '0x${newColor.toARGB32().toRadixString(16).toUpperCase()}';
+      _selectedColor =
+          '0x${newColor.toARGB32().toRadixString(16).toUpperCase()}';
     });
   }
 
@@ -239,12 +258,17 @@ class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Category?'),
-        content: const Text('This category will be permanently removed. Transactions using this category will lose their link. Proceed?'),
+        content: const Text(
+            'This category will be permanently removed. Transactions using this category will lose their link. Proceed?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
           TextButton(
             onPressed: () async {
-              await ref.read(categoryServiceProvider).deleteCategory(widget.category!.id);
+              await ref
+                  .read(categoryServiceProvider)
+                  .deleteCategory(widget.category!.id);
               await HapticService.errorStatic();
               if (mounted) {
                 Navigator.pop(context); // Pop dialog

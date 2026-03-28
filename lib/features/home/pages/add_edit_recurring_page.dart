@@ -15,14 +15,15 @@ class AddEditRecurringPage extends ConsumerStatefulWidget {
   const AddEditRecurringPage({super.key, this.recurring});
 
   @override
-  ConsumerState<AddEditRecurringPage> createState() => _AddEditRecurringPageState();
+  ConsumerState<AddEditRecurringPage> createState() =>
+      _AddEditRecurringPageState();
 }
 
 class _AddEditRecurringPageState extends ConsumerState<AddEditRecurringPage> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _amountController;
-  
+
   Account? _selectedAccount;
   Category? _selectedCategory;
   TransactionType _type = TransactionType.expense;
@@ -33,7 +34,8 @@ class _AddEditRecurringPageState extends ConsumerState<AddEditRecurringPage> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.recurring?.name ?? '');
-    _amountController = TextEditingController(text: widget.recurring?.amount.toString() ?? '');
+    _amountController =
+        TextEditingController(text: widget.recurring?.amount.toString() ?? '');
     _type = widget.recurring?.type ?? TransactionType.expense;
     _frequency = widget.recurring?.frequency ?? RecurrenceFrequency.monthly;
     _nextDate = widget.recurring?.nextDate ?? DateTime.now();
@@ -51,7 +53,8 @@ class _AddEditRecurringPageState extends ConsumerState<AddEditRecurringPage> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedAccount == null || _selectedCategory == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Select account and category')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Select account and category')));
       return;
     }
 
@@ -84,7 +87,8 @@ class _AddEditRecurringPageState extends ConsumerState<AddEditRecurringPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.recurring == null ? 'Add Recurring' : 'Edit Recurring'),
+        title:
+            Text(widget.recurring == null ? 'Add Recurring' : 'Edit Recurring'),
       ),
       body: Form(
         key: _formKey,
@@ -94,8 +98,14 @@ class _AddEditRecurringPageState extends ConsumerState<AddEditRecurringPage> {
             Center(
               child: SegmentedButton<TransactionType>(
                 segments: const [
-                  ButtonSegment(value: TransactionType.expense, label: Text('Expense'), icon: Icon(Icons.remove_rounded)),
-                  ButtonSegment(value: TransactionType.income, label: Text('Income'), icon: Icon(Icons.add_rounded)),
+                  ButtonSegment(
+                      value: TransactionType.expense,
+                      label: Text('Expense'),
+                      icon: Icon(Icons.remove_rounded)),
+                  ButtonSegment(
+                      value: TransactionType.income,
+                      label: Text('Income'),
+                      icon: Icon(Icons.add_rounded)),
                 ],
                 selected: {_type},
                 onSelectionChanged: (s) => setState(() => _type = s.first),
@@ -121,7 +131,6 @@ class _AddEditRecurringPageState extends ConsumerState<AddEditRecurringPage> {
               validator: (v) => v?.isEmpty ?? true ? 'Required' : null,
             ),
             const SizedBox(height: 24),
-            
             Text('Frequency', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
             Wrap(
@@ -134,23 +143,25 @@ class _AddEditRecurringPageState extends ConsumerState<AddEditRecurringPage> {
                 );
               }).toList(),
             ),
-            
             const SizedBox(height: 24),
             ListTile(
               onTap: () => _showAccountPicker(accountsAsync.value ?? []),
               leading: const Icon(Icons.account_balance_wallet_rounded),
               title: const Text('Account'),
               subtitle: Text(_selectedAccount?.name ?? 'Select Account'),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
               tileColor: Theme.of(context).colorScheme.surfaceContainerLow,
             ),
             const SizedBox(height: 16),
             ListTile(
               onTap: () => _showCategoryPicker(categoriesAsync.value ?? []),
-              leading: Icon(AppIcons.getIcon(_selectedCategory?.icon ?? 'category')),
+              leading:
+                  Icon(AppIcons.getIcon(_selectedCategory?.icon ?? 'category')),
               title: const Text('Category'),
               subtitle: Text(_selectedCategory?.name ?? 'Select Category'),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
               tileColor: Theme.of(context).colorScheme.surfaceContainerLow,
             ),
             const SizedBox(height: 16),
@@ -167,7 +178,8 @@ class _AddEditRecurringPageState extends ConsumerState<AddEditRecurringPage> {
               leading: const Icon(Icons.calendar_today_rounded),
               title: const Text('Next Occurrence'),
               subtitle: Text(DateFormat('MMM d, yyyy').format(_nextDate)),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
               tileColor: Theme.of(context).colorScheme.surfaceContainerLow,
             ),
             const SizedBox(height: 48),
@@ -175,7 +187,8 @@ class _AddEditRecurringPageState extends ConsumerState<AddEditRecurringPage> {
               onPressed: _save,
               icon: const Icon(Icons.save_rounded),
               label: const Text('Save Recurring'),
-              style: FilledButton.styleFrom(minimumSize: const Size(double.infinity, 56)),
+              style: FilledButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 56)),
             ),
           ],
         ),
@@ -203,7 +216,8 @@ class _AddEditRecurringPageState extends ConsumerState<AddEditRecurringPage> {
     showModalBottomSheet(
       context: context,
       builder: (context) {
-        final filtered = categories.where((c) => c.type.name == _type.name).toList();
+        final filtered =
+            categories.where((c) => c.type.name == _type.name).toList();
         return ListView.builder(
           itemCount: filtered.length,
           itemBuilder: (context, index) => ListTile(

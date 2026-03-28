@@ -133,7 +133,10 @@ class IconPickerWidget extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Text(
               'Select Icon',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
           ),
           const SizedBox(height: 24),
@@ -153,16 +156,20 @@ class IconPickerWidget extends StatelessWidget {
                       child: Text(
                         categoryName.toUpperCase(),
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.2,
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
-                        ),
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.2,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.5),
+                            ),
                       ),
                     ),
                     GridView.builder(
                       physics: const NeverScrollableScrollPhysics(),
                       shrinkWrap: true,
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 6,
                         mainAxisSpacing: 8,
                         crossAxisSpacing: 8,
@@ -174,15 +181,21 @@ class IconPickerWidget extends StatelessWidget {
 
                         return Consumer(
                           builder: (context, ref, _) {
-                            final fillIcons = ref.watch(personalizationProvider).fillIcons;
+                            final fillIcons =
+                                ref.watch(personalizationProvider).fillIcons;
                             return InkWell(
                               onTap: () => onIconSelected(entry.key),
                               borderRadius: BorderRadius.circular(16),
                               child: Container(
                                 decoration: BoxDecoration(
-                                  color: isSelected ? selectedColor.withValues(alpha: 0.1) : Colors.transparent,
+                                  color: isSelected
+                                      ? selectedColor.withValues(alpha: 0.1)
+                                      : Colors.transparent,
                                   borderRadius: BorderRadius.circular(16),
-                                  border: isSelected ? Border.all(color: selectedColor, width: 2) : null,
+                                  border: isSelected
+                                      ? Border.all(
+                                          color: selectedColor, width: 2)
+                                      : null,
                                 ),
                                 child: Icon(
                                   entry.value,

@@ -27,8 +27,8 @@ class PersonalizationPage extends ConsumerWidget {
             title: Text(
               'Personalization',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             actions: [
               IconButton(
@@ -46,14 +46,19 @@ class PersonalizationPage extends ConsumerWidget {
               builder: (context, constraints) {
                 final isWide = constraints.maxWidth > 900;
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
                   child: isWide
                       ? Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(flex: 4, child: _buildEditorialHeader(context)),
+                            Expanded(
+                                flex: 4, child: _buildEditorialHeader(context)),
                             const SizedBox(width: 48),
-                            Expanded(flex: 8, child: _buildConfigCanvas(context, state, notifier)),
+                            Expanded(
+                                flex: 8,
+                                child: _buildConfigCanvas(
+                                    context, state, notifier)),
                           ],
                         )
                       : Column(
@@ -91,40 +96,45 @@ class PersonalizationPage extends ConsumerWidget {
         Text(
           'Curate your interface. Adjust the weight, width, and optical properties of the typography to match your creative intent.',
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-          ),
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.7),
+              ),
         ),
       ],
     );
   }
 
-  Widget _buildConfigCanvas(BuildContext context, PersonalizationState state, PersonalizationNotifier notifier) {
+  Widget _buildConfigCanvas(BuildContext context, PersonalizationState state,
+      PersonalizationNotifier notifier) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Preview Card (Type-Tester)
         _TypeTester(state: state),
         const SizedBox(height: 48),
-        
+
         // Sliders
         _buildSliderSection(context, state, notifier),
-        
+
         const SizedBox(height: 48),
 
         // Color Schemes
         _buildColorSchemeSection(context, state, notifier),
 
         const SizedBox(height: 48),
-        
+
         // Toggles
         _buildTogglesSection(context, state, notifier),
-        
+
         const SizedBox(height: 100), // Bottom padding for breathing room
       ],
     );
   }
 
-  Widget _buildSliderSection(BuildContext context, PersonalizationState state, PersonalizationNotifier notifier) {
+  Widget _buildSliderSection(BuildContext context, PersonalizationState state,
+      PersonalizationNotifier notifier) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -156,7 +166,6 @@ class PersonalizationPage extends ConsumerWidget {
           max: 100,
           onChanged: (v) {
             notifier.updateFontRoundness(v);
-            notifier.updateRoundness(v * 0.32); // Scale 0-100% to 0-32dp
           },
         ),
         _AtelierSlider(
@@ -170,7 +179,8 @@ class PersonalizationPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildColorSchemeSection(BuildContext context, PersonalizationState state, PersonalizationNotifier notifier) {
+  Widget _buildColorSchemeSection(BuildContext context,
+      PersonalizationState state, PersonalizationNotifier notifier) {
     final colorScheme = Theme.of(context).colorScheme;
     final variants = {
       'tonalSpot': 'Tonal Spot',
@@ -190,10 +200,10 @@ class PersonalizationPage extends ConsumerWidget {
         Text(
           'COLOR SCHEME VARIANT',
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            letterSpacing: 1.2,
-            fontWeight: FontWeight.w900,
-            color: colorScheme.onSurface.withValues(alpha: 0.5),
-          ),
+                letterSpacing: 1.2,
+                fontWeight: FontWeight.w900,
+                color: colorScheme.onSurface.withValues(alpha: 0.5),
+              ),
         ),
         const SizedBox(height: 16),
         Wrap(
@@ -217,7 +227,8 @@ class PersonalizationPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildTogglesSection(BuildContext context, PersonalizationState state, PersonalizationNotifier notifier) {
+  Widget _buildTogglesSection(BuildContext context, PersonalizationState state,
+      PersonalizationNotifier notifier) {
     return Column(
       children: [
         _buildToggleItem(
@@ -293,14 +304,14 @@ class PersonalizationPage extends ConsumerWidget {
                   Text(
                     title,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   Text(
                     subtitle,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurface.withValues(alpha: 0.6),
-                    ),
+                          color: colorScheme.onSurface.withValues(alpha: 0.6),
+                        ),
                   ),
                 ],
               ),
@@ -342,18 +353,20 @@ class _TypeTester extends StatelessWidget {
               Text(
                 'LIVE PREVIEW',
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  letterSpacing: 1.5,
-                  fontWeight: FontWeight.w900,
-                  color: colorScheme.onSurface.withValues(alpha: 0.4),
-                ),
+                      letterSpacing: 1.5,
+                      fontWeight: FontWeight.w900,
+                      color: colorScheme.onSurface.withValues(alpha: 0.4),
+                    ),
               ),
               Row(
                 children: [
-                   Icon(Symbols.palette, size: 18, color: colorScheme.primary),
-                   const SizedBox(width: 12),
-                   Icon(Symbols.text_fields_rounded, size: 18, color: colorScheme.primary),
-                   const SizedBox(width: 12),
-                   Icon(Symbols.auto_awesome_rounded, size: 18, color: colorScheme.primary),
+                  Icon(Symbols.palette, size: 18, color: colorScheme.primary),
+                  const SizedBox(width: 12),
+                  Icon(Symbols.text_fields_rounded,
+                      size: 18, color: colorScheme.primary),
+                  const SizedBox(width: 12),
+                  Icon(Symbols.auto_awesome_rounded,
+                      size: 18, color: colorScheme.primary),
                 ],
               ),
             ],
@@ -440,17 +453,17 @@ class _AtelierSlider extends StatelessWidget {
               Text(
                 label.toUpperCase(),
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  letterSpacing: 1.2,
-                  fontWeight: FontWeight.w900,
-                  color: colorScheme.onSurface.withValues(alpha: 0.5),
-                ),
+                      letterSpacing: 1.2,
+                      fontWeight: FontWeight.w900,
+                      color: colorScheme.onSurface.withValues(alpha: 0.5),
+                    ),
               ),
               Text(
                 value.toStringAsFixed(0),
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  color: colorScheme.primary,
-                ),
+                      fontWeight: FontWeight.w900,
+                      color: colorScheme.primary,
+                    ),
               ),
             ],
           ),
@@ -462,7 +475,8 @@ class _AtelierSlider extends StatelessWidget {
               inactiveTrackColor: colorScheme.surfaceContainer,
               thumbColor: AppColors.primary,
               overlayColor: AppColors.primary.withValues(alpha: 0.1),
-              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8, elevation: 0),
+              thumbShape: const RoundSliderThumbShape(
+                  enabledThumbRadius: 8, elevation: 0),
               trackShape: const RoundedRectSliderTrackShape(),
             ),
             child: Slider(

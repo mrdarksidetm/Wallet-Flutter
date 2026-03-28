@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../database/providers.dart';
 
-class TransactionListTile extends StatelessWidget {
+class TransactionListTile extends ConsumerWidget {
   final IconData categoryIcon;
   final Color categoryColor;
   final String title;
@@ -22,12 +24,9 @@ class TransactionListTile extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final NumberFormat currencyFormat = NumberFormat.currency(
-      locale: 'en_IN',
-      symbol: '₹',
-      decimalDigits: 2,
-    );
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedCurrency = ref.watch(currencyProvider);
+    final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
 
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -64,7 +63,10 @@ class TransactionListTile extends StatelessWidget {
               width: 4,
               height: 4,
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurfaceVariant
+                    .withValues(alpha: 0.5),
                 shape: BoxShape.circle,
               ),
             ),

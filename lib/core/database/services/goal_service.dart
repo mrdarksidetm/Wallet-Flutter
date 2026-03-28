@@ -25,7 +25,7 @@ class GoalService {
         ..icon = icon
         ..createdAt = DateTime.now()
         ..updatedAt = DateTime.now();
-        
+
       await isar.goals.put(goal);
     });
   }

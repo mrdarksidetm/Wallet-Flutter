@@ -30,10 +30,10 @@ void main() async {
   };
 
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // 4. Pre-load SharedPreferences for synchronous access
   final sharedPrefs = await SharedPreferences.getInstance();
-  
+
   runApp(
     ProviderScope(
       overrides: [
@@ -54,27 +54,23 @@ class WalletApp extends ConsumerWidget {
     final router = ref.watch(routerProvider);
     final themeState = ref.watch(themeControllerProvider);
     final personalization = ref.watch(personalizationProvider);
-    
+
     return DynamicColorBuilder(
       builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
         ColorScheme? lightScheme;
         ColorScheme? darkScheme;
 
-        if (themeState.useMaterialYou && lightDynamic != null && darkDynamic != null) {
+        if (themeState.useMaterialYou &&
+            lightDynamic != null &&
+            darkDynamic != null) {
           lightScheme = lightDynamic.harmonized();
           darkScheme = darkDynamic.harmonized();
         }
 
-        final lightTheme = AppTheme.getTheme(
-          personalization, 
-          Brightness.light, 
-          dynamicColorScheme: lightScheme
-        );
-        final darkTheme = AppTheme.getTheme(
-          personalization, 
-          Brightness.dark, 
-          dynamicColorScheme: darkScheme
-        );
+        final lightTheme = AppTheme.getTheme(personalization, Brightness.light,
+            dynamicColorScheme: lightScheme);
+        final darkTheme = AppTheme.getTheme(personalization, Brightness.dark,
+            dynamicColorScheme: darkScheme);
 
         return MaterialApp.router(
           title: 'Wallet',

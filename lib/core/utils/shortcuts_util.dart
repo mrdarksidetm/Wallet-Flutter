@@ -16,8 +16,8 @@ class ShortcutsUtil {
     //
     // quickActions.setShortcutItems(<ShortcutItem>[
     //   const ShortcutItem(
-    //     type: 'add_expense', 
-    //     localizedTitle: 'Add Expense', 
+    //     type: 'add_expense',
+    //     localizedTitle: 'Add Expense',
     //     icon: 'icon_add'
     //   ),
     // ]);

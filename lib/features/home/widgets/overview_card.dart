@@ -19,7 +19,8 @@ class OverviewCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final cardShape = theme.cardTheme.shape as RoundedRectangleBorder?;
-    final borderRadius = (cardShape?.borderRadius as BorderRadius?) ?? BorderRadius.circular(28);
+    final borderRadius =
+        (cardShape?.borderRadius as BorderRadius?) ?? BorderRadius.circular(28);
 
     return Card(
       child: InkWell(

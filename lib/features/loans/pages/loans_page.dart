@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/auxiliary_models.dart';
+import '../../../core/services/haptic_service.dart';
 
 class LoansPage extends ConsumerWidget {
   const LoansPage({super.key});
@@ -19,7 +21,8 @@ class LoansPage extends ConsumerWidget {
       ),
       body: loansAsync.when(
         data: (loans) {
-          final borrowed = loans.where((l) => l.type == LoanType.borrowed).toList();
+          final borrowed =
+              loans.where((l) => l.type == LoanType.borrowed).toList();
           final lent = loans.where((l) => l.type == LoanType.lent).toList();
 
           if (loans.isEmpty) {
@@ -32,16 +35,19 @@ class LoansPage extends ConsumerWidget {
               if (borrowed.isNotEmpty)
                 _buildLoanSection(
                   context,
+                  ref,
                   'Borrowed',
                   'You owe others',
                   borrowed,
                   Colors.red,
                   currencyFormat,
                 ),
-              if (borrowed.isNotEmpty && lent.isNotEmpty) const SizedBox(height: 32),
+              if (borrowed.isNotEmpty && lent.isNotEmpty)
+                const SizedBox(height: 32),
               if (lent.isNotEmpty)
                 _buildLoanSection(
                   context,
+                  ref,
                   'Lent',
                   'Others owe you',
                   lent,
@@ -59,6 +65,7 @@ class LoansPage extends ConsumerWidget {
 
   Widget _buildLoanSection(
     BuildContext context,
+    WidgetRef ref,
     String title,
     String subtitle,
     List<Loan> items,
@@ -69,25 +76,111 @@ class LoansPage extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-        Text(subtitle, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+        Text(title,
+            style: theme.textTheme.titleLarge
+                ?.copyWith(fontWeight: FontWeight.bold)),
+        Text(subtitle,
+            style: theme.textTheme.bodySmall
+                ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
         const SizedBox(height: 16),
         ...items.map((item) {
           final personName = item.person.value?.name ?? 'Unknown';
-          final dateStr = item.dueDate != null ? 'Due: ${DateFormat('MMM d').format(item.dueDate!)}' : 'No due date';
-          
-          return Card(
-            margin: const EdgeInsets.only(bottom: 12),
-            child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor: color.withValues(alpha: 0.1),
-                child: Icon(item.type == LoanType.lent ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded, color: color),
+          final dateStr = item.dueDate != null
+              ? 'Due: ${DateFormat('MMM d').format(item.dueDate!)}'
+              : 'No due date';
+          final isPaid = item.isPaid;
+
+          return Dismissible(
+            key: ValueKey(item.id),
+            direction: DismissDirection.horizontal,
+            confirmDismiss: (direction) async {
+              if (direction == DismissDirection.startToEnd) {
+                await HapticService.successStatic();
+                item.isPaid = !isPaid;
+                item.updatedAt = DateTime.now();
+                await ref.read(loanRepositoryProvider).save(item);
+                return false;
+              } else {
+                return await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Delete Loan?'),
+                    content: const Text(
+                        'Are you sure you want to delete this loan record?'),
+                    actions: [
+                      TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text('Cancel')),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        style: TextButton.styleFrom(
+                            foregroundColor: theme.colorScheme.error),
+                        child: const Text('Delete'),
+                      ),
+                    ],
+                  ),
+                );
+              }
+            },
+            onDismissed: (direction) async {
+              if (direction == DismissDirection.endToStart) {
+                await HapticService.heavyStatic();
+                await ref.read(loanRepositoryProvider).delete(item.id);
+              }
+            },
+            background: Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                color: isPaid ? Colors.orange : Colors.green,
+                borderRadius: BorderRadius.circular(16),
               ),
-              title: Text(personName, style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Text(dateStr),
-              trailing: Text(
-                format.format(item.amount),
-                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900, color: color),
+              alignment: Alignment.centerLeft,
+              padding: const EdgeInsets.only(left: 24),
+              child: Icon(isPaid ? Symbols.undo : Symbols.check_circle,
+                  color: Colors.white),
+            ),
+            secondaryBackground: Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.error,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.only(right: 24),
+              child: const Icon(Symbols.delete, color: Colors.white),
+            ),
+            child: Card(
+              margin: const EdgeInsets.only(bottom: 12),
+              elevation: isPaid ? 0 : 1,
+              color: isPaid
+                  ? theme.colorScheme.surfaceContainerHighest
+                      .withValues(alpha: 0.5)
+                  : null,
+              child: ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: color.withValues(alpha: isPaid ? 0.05 : 0.1),
+                  child: Icon(
+                      item.type == LoanType.lent
+                          ? Icons.arrow_upward_rounded
+                          : Icons.arrow_downward_rounded,
+                      color: isPaid ? color.withValues(alpha: 0.5) : color),
+                ),
+                title: Text(
+                  personName,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    decoration: isPaid ? TextDecoration.lineThrough : null,
+                    color: isPaid ? Colors.grey : null,
+                  ),
+                ),
+                subtitle: Text(dateStr,
+                    style: TextStyle(color: isPaid ? Colors.grey : null)),
+                trailing: Text(
+                  format.format(item.amount),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      color: isPaid ? color.withValues(alpha: 0.5) : color),
+                ),
               ),
             ),
           );

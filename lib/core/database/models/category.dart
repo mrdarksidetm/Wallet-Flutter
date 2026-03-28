@@ -25,7 +25,7 @@ class Category {
 
   DateTime createdAt = DateTime.now();
   DateTime updatedAt = DateTime.now();
-  
+
   @Index()
   @Enumerated(EnumType.name)
   CategoryType type = CategoryType.expense;

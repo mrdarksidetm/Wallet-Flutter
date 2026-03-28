@@ -16,7 +16,8 @@ class ExpressiveBottomSheet extends StatelessWidget {
     return showModalBottomSheet<T>(
       context: context,
       isScrollControlled: isScrollControlled,
-      backgroundColor: Colors.transparent, // Theme handles this, but forcing it here
+      backgroundColor:
+          Colors.transparent, // Theme handles this, but forcing it here
       builder: (context) => ExpressiveBottomSheet(child: child),
     );
   }
@@ -43,7 +44,10 @@ class ExpressiveBottomSheet extends StatelessWidget {
             width: 48,
             height: 6,
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurfaceVariant
+                  .withValues(alpha: 0.4),
               borderRadius: BorderRadius.circular(10),
             ),
           ),

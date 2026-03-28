@@ -41,7 +41,16 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
-    
+
+    signingConfigs {
+        create("release") {
+            keyAlias = keystoreProperties["keyAlias"] as String?
+            keyPassword = keystoreProperties["keyPassword"] as String?
+            storeFile = keystoreProperties["storeFile"]?.let { file(it) }
+            storePassword = keystoreProperties["storePassword"] as String?
+        }
+    }
+
     splits {
         abi {
             isEnable = true
@@ -51,11 +60,20 @@ android {
         }
     }
 
-    // signingConfigs removed for prototype testing
-
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("debug") // Prototype fallback
+            signingConfig = if (keystorePropertiesFile.exists()) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
+            
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
 }

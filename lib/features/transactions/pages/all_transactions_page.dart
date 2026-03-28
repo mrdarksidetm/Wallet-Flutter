@@ -11,7 +11,8 @@ class AllTransactionsPage extends ConsumerStatefulWidget {
   const AllTransactionsPage({super.key});
 
   @override
-  ConsumerState<AllTransactionsPage> createState() => _AllTransactionsPageState();
+  ConsumerState<AllTransactionsPage> createState() =>
+      _AllTransactionsPageState();
 }
 
 class _AllTransactionsPageState extends ConsumerState<AllTransactionsPage> {
@@ -36,7 +37,9 @@ class _AllTransactionsPageState extends ConsumerState<AllTransactionsPage> {
                 _ascending = !_ascending;
               });
             },
-            icon: Icon(_ascending ? Symbols.keyboard_double_arrow_up : Symbols.keyboard_double_arrow_down),
+            icon: Icon(_ascending
+                ? Symbols.keyboard_double_arrow_up
+                : Symbols.keyboard_double_arrow_down),
             tooltip: _ascending ? 'Oldest to Newest' : 'Newest to Oldest',
           ),
           const SizedBox(width: 8),
@@ -62,26 +65,81 @@ class _AllTransactionsPageState extends ConsumerState<AllTransactionsPage> {
               final tx = sortedTxs[index];
               final isIncome = tx.type == TransactionType.income;
 
-              return ListTile(
-                onTap: () async {
-                  await HapticService.selectionStatic();
-                  context.push('/add_transaction', extra: tx);
+              return Dismissible(
+                key: ValueKey(tx.id),
+                direction: DismissDirection.endToStart,
+                confirmDismiss: (direction) async {
+                  await HapticService.mediumStatic();
+                  return await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Delete Transaction'),
+                      content: Text(
+                          'Are you sure you want to delete this ${tx.type.name} for ${currencyFormat.format(tx.amount)}?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text('Cancel'),
+                        ),
+                        FilledButton(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: colorScheme.error,
+                            foregroundColor: colorScheme.onError,
+                          ),
+                          onPressed: () => Navigator.pop(context, true),
+                          child: const Text('Delete'),
+                        ),
+                      ],
+                    ),
+                  );
                 },
-                contentPadding: const EdgeInsets.symmetric(vertical: 4),
-                leading: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                    shape: BoxShape.circle,
+                onDismissed: (direction) async {
+                  await HapticService.heavyStatic();
+                  await ref
+                      .read(transactionServiceProvider)
+                      .deleteTransaction(tx);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Transaction deleted')),
+                    );
+                  }
+                },
+                background: Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.redAccent,
+                    borderRadius: BorderRadius.all(Radius.circular(16)),
                   ),
-                  child: Icon(Symbols.receipt_long, size: 20, color: colorScheme.onSurfaceVariant),
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.only(right: 24),
+                  child: const Icon(Symbols.delete, color: Colors.white),
                 ),
-                title: Text(tx.note ?? 'Transaction', style: const TextStyle(fontWeight: FontWeight.w600)),
-                subtitle: Text(DateFormat.yMMMd().add_jm().format(tx.date), 
-                  style: TextStyle(color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7), fontSize: 12)),
-                trailing: Text(
-                  '${isIncome ? '+' : '-'}${currencyFormat.format(tx.amount)}',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: isIncome ? Colors.green : colorScheme.error),
+                child: ListTile(
+                  onTap: () async {
+                    await HapticService.selectionStatic();
+                    context.push('/add_transaction', extra: tx);
+                  },
+                  contentPadding: const EdgeInsets.symmetric(vertical: 4),
+                  leading: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: const BoxDecoration(
+                      color: Colors.black12,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Symbols.receipt_long, size: 20),
+                  ),
+                  title: Text(tx.note ?? 'Transaction',
+                      style: const TextStyle(fontWeight: FontWeight.w600)),
+                  subtitle: Text(DateFormat.yMMMd().add_jm().format(tx.date),
+                      style: TextStyle(
+                          color: colorScheme.onSurfaceVariant
+                              .withValues(alpha: 0.7),
+                          fontSize: 12)),
+                  trailing: Text(
+                    '${isIncome ? '+' : '-'}${currencyFormat.format(tx.amount)}',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: isIncome ? Colors.green : colorScheme.error),
+                  ),
                 ),
               );
             },

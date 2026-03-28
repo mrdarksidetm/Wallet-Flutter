@@ -38,6 +38,9 @@ class RecurringRepository extends BaseRepository<Recurring> {
   RecurringRepository(super.isar);
 
   Stream<List<Recurring>> watchAll() {
-    return isar.recurrings.where().sortByNextDate().watch(fireImmediately: true);
+    return isar.recurrings
+        .where()
+        .sortByNextDate()
+        .watch(fireImmediately: true);
   }
 }

@@ -54,7 +54,7 @@ class ThemeController extends Notifier<ThemeState> {
   @override
   ThemeState build() {
     final prefs = ref.watch(sharedPreferencesProvider);
-    
+
     final modeIndex = prefs.getInt(_keyThemeMode) ?? 0;
     final useMaterialYou = prefs.getBool(_keyUseMaterialYou) ?? true;
     final customColorVal = prefs.getInt(_keyCustomColor);
@@ -65,9 +65,14 @@ class ThemeController extends Notifier<ThemeState> {
 
     ThemeMode mode;
     switch (modeIndex) {
-      case 1: mode = ThemeMode.light; break;
-      case 2: mode = ThemeMode.dark; break;
-      default: mode = ThemeMode.system;
+      case 1:
+        mode = ThemeMode.light;
+        break;
+      case 2:
+        mode = ThemeMode.dark;
+        break;
+      default:
+        mode = ThemeMode.system;
     }
 
     return ThemeState(
@@ -84,7 +89,7 @@ class ThemeController extends Notifier<ThemeState> {
   Future<void> setThemeMode(ThemeMode mode) async {
     state = state.copyWith(themeMode: mode);
     final prefs = ref.read(sharedPreferencesProvider);
-    int index = 0; 
+    int index = 0;
     if (mode == ThemeMode.light) index = 1;
     if (mode == ThemeMode.dark) index = 2;
     await prefs.setInt(_keyThemeMode, index);
@@ -95,7 +100,7 @@ class ThemeController extends Notifier<ThemeState> {
     final prefs = ref.read(sharedPreferencesProvider);
     await prefs.setBool(_keyUseMaterialYou, use);
   }
-  
+
   Future<void> setCustomColor(Color? color) async {
     state = state.copyWith(customColor: color);
     final prefs = ref.read(sharedPreferencesProvider);
@@ -126,6 +131,7 @@ class ThemeController extends Notifier<ThemeState> {
   }
 }
 
-final themeControllerProvider = NotifierProvider<ThemeController, ThemeState>(() {
+final themeControllerProvider =
+    NotifierProvider<ThemeController, ThemeState>(() {
   return ThemeController();
 });

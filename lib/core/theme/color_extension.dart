@@ -9,7 +9,7 @@ extension StringColorExtension on String {
       }
       return Color(int.parse(hex, radix: 16));
     } catch (e) {
-      return Colors.blue; 
+      return Colors.blue;
     }
   }
 }

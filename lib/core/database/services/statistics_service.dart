@@ -1,4 +1,5 @@
 import 'package:isar/isar.dart';
+import 'package:rxdart/rxdart.dart';
 import '../models/account.dart';
 import '../models/category.dart';
 import '../models/transaction_model.dart';
@@ -18,12 +19,14 @@ class StatisticsService {
 
   Future<double> getTotalBalance() async {
     final accounts = await isar.accounts.where().findAll();
-    return accounts.fold<double>(0.0, (double sum, Account account) => sum + account.balance);
+    return accounts.fold<double>(
+        0.0, (double sum, Account account) => sum + account.balance);
   }
 
   Stream<double> watchTotalBalance() {
     return isar.accounts.where().watch(fireImmediately: true).map((accounts) {
-      return accounts.fold<double>(0.0, (double sum, Account account) => sum + account.balance);
+      return accounts.fold<double>(
+          0.0, (double sum, Account account) => sum + account.balance);
     });
   }
 
@@ -35,14 +38,15 @@ class StatisticsService {
         .typeEqualTo(AccountType.asset)
         .watch(fireImmediately: true)
         .map((accounts) {
-      return accounts.fold<double>(0.0, (double sum, Account account) => sum + account.balance);
+      return accounts.fold<double>(
+          0.0, (double sum, Account account) => sum + account.balance);
     });
   }
 
   Future<double> getMonthlyIncome(DateTime date) async {
     final start = DateTime(date.year, date.month, 1);
     final end = DateTime(date.year, date.month + 1, 0, 23, 59, 59);
-    
+
     return await isar.transactionModels
         .filter()
         .typeEqualTo(TransactionType.income)
@@ -72,7 +76,8 @@ class StatisticsService {
         .sum();
   }
 
-  Future<Map<Category, double>> getCategoryBreakdown(DateTime start, DateTime end) async {
+  Future<Map<Category, double>> getCategoryBreakdown(
+      DateTime start, DateTime end) async {
     final transactions = await isar.transactionModels
         .filter()
         .typeEqualTo(TransactionType.expense)
@@ -89,7 +94,8 @@ class StatisticsService {
     return breakdown;
   }
 
-  Future<List<MapEntry<DateTime, double>>> getDailyStats(DateTime start, DateTime end) async {
+  Future<List<MapEntry<DateTime, double>>> getDailyStats(
+      DateTime start, DateTime end) async {
     final transactions = await isar.transactionModels
         .filter()
         .typeEqualTo(TransactionType.expense)
@@ -101,8 +107,9 @@ class StatisticsService {
       final date = DateTime(tx.date.year, tx.date.month, tx.date.day);
       daily[date] = (daily[date] ?? 0) + tx.amount;
     }
-    
-    final sorted = daily.entries.toList()..sort((a, b) => a.key.compareTo(b.key));
+
+    final sorted = daily.entries.toList()
+      ..sort((a, b) => a.key.compareTo(b.key));
     return sorted;
   }
 
@@ -119,7 +126,7 @@ class StatisticsService {
         .map((transactions) {
       double last7Days = 0;
       double last30Days = 0;
-      
+
       for (var tx in transactions) {
         if (tx.type == TransactionType.expense) {
           if (tx.date.isAfter(sevenDaysAgo)) {
@@ -141,19 +148,16 @@ class StatisticsService {
     final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
 
     // Watch both categories and transactions to update when either changes
-    // We combine the streams by watching transactions as the primary trigger
-    return isar.transactionModels
-        .filter()
-        .dateBetween(startOfMonth, endOfMonth)
-        .watch(fireImmediately: true)
-        .asyncMap((_) async {
-      final categories = await isar.categorys
-          .filter()
-          .isBudgetEqualTo(true)
-          .findAll();
-          
+    return CombineLatestStream.combine2(
+      isar.transactionModels.where().watch(fireImmediately: true),
+      isar.categorys.where().watch(fireImmediately: true),
+      (t, c) => null,
+    ).asyncMap((_) async {
+      final categories =
+          await isar.categorys.filter().isBudgetEqualTo(true).findAll();
+
       final List<Map<String, dynamic>> budgetStats = [];
-      
+
       for (var category in categories) {
         final spent = await isar.transactionModels
             .filter()
@@ -163,29 +167,31 @@ class StatisticsService {
             .isDeletedEqualTo(false)
             .amountProperty()
             .sum();
-            
+
+        final limit = category.budgetLimit ?? 0.0;
+        final percent = limit > 0 ? (spent / limit) : 0.0;
+
         budgetStats.add({
           'category': category,
           'spent': spent,
-          'limit': category.budgetLimit ?? 0.0,
-          'percent': (category.budgetLimit != null && category.budgetLimit! > 0) 
-              ? (spent / category.budgetLimit!) 
-              : 0.0,
+          'limit': limit,
+          'percent': percent,
         });
       }
       return budgetStats;
     });
   }
 
-  Future<List<MapEntry<DateTime, double>>> getCategoryMonthlyStats(Id categoryId) async {
+  Future<List<MapEntry<DateTime, double>>> getCategoryMonthlyStats(
+      Id categoryId) async {
     final now = DateTime.now();
     final List<MapEntry<DateTime, double>> stats = [];
-    
+
     for (var i = 5; i >= 0; i--) {
       final date = DateTime(now.year, now.month - i, 1);
       final start = DateTime(date.year, date.month, 1);
       final end = DateTime(date.year, date.month + 1, 0, 23, 59, 59);
-      
+
       final spent = await isar.transactionModels
           .filter()
           .categoryIdEqualTo(categoryId)
@@ -193,7 +199,7 @@ class StatisticsService {
           .typeEqualTo(TransactionType.expense)
           .amountProperty()
           .sum();
-          
+
       stats.add(MapEntry(date, spent));
     }
     return stats;

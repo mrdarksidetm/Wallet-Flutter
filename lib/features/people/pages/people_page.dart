@@ -17,7 +17,9 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(fabActionProvider.notifier).setAction(() => _showAddPersonDialog(context, ref));
+      ref
+          .read(fabActionProvider.notifier)
+          .setAction(() => _showAddPersonDialog(context, ref));
     });
   }
 
@@ -50,13 +52,17 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
                 margin: const EdgeInsets.only(bottom: 12),
                 child: ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                    backgroundColor:
+                        Theme.of(context).colorScheme.primaryContainer,
                     child: Text(person.name[0].toUpperCase()),
                   ),
-                  title: Text(person.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: person.contact != null ? Text(person.contact!) : null,
+                  title: Text(person.name,
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle:
+                      person.contact != null ? Text(person.contact!) : null,
                   trailing: IconButton(
-                    icon: const Icon(Icons.delete_outline_rounded, color: Colors.red),
+                    icon: const Icon(Icons.delete_outline_rounded,
+                        color: Colors.red),
                     onPressed: () => _showDeleteDialog(context, ref, person),
                   ),
                 ),
@@ -75,9 +81,12 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Person?'),
-        content: Text('Remove ${person.name} from your contacts? Loans associated with this person will remain but the person link will be lost.'),
+        content: Text(
+            'Remove ${person.name} from your contacts? Loans associated with this person will remain but the person link will be lost.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
           TextButton(
             onPressed: () async {
               await ref.read(personServiceProvider).deletePerson(person.id);
@@ -103,7 +112,9 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
           autofocus: true,
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
           TextButton(
             onPressed: () async {
               if (nameController.text.isNotEmpty) {

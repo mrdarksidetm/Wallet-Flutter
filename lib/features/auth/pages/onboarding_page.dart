@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/theme/personalization_provider.dart';
@@ -30,9 +31,28 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
     final picker = ImagePicker();
     final image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
-      setState(() {
-        _imagePath = image.path;
-      });
+      final croppedFile = await ImageCropper().cropImage(
+        sourcePath: image.path,
+        aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Crop Profile Photo',
+            toolbarColor: Theme.of(context).colorScheme.primary,
+            toolbarWidgetColor: Colors.white,
+            initAspectRatio: CropAspectRatioPreset.square,
+            lockAspectRatio: true,
+          ),
+          IOSUiSettings(
+            title: 'Crop Profile Photo',
+            aspectRatioLockEnabled: true,
+          ),
+        ],
+      );
+      if (croppedFile != null) {
+        setState(() {
+          _imagePath = croppedFile.path;
+        });
+      }
     }
   }
 
@@ -45,10 +65,10 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
     }
 
     ref.read(personalizationProvider.notifier).completeOnboarding(
-      name: _nameController.text,
-      currency: _selectedCurrency,
-      photo: _imagePath,
-    );
+          name: _nameController.text,
+          currency: _selectedCurrency,
+          photo: _imagePath,
+        );
   }
 
   @override
@@ -79,8 +99,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                 ),
               ),
               const SizedBox(height: 64),
-              
-              // Profile Photo
+
               Center(
                 child: GestureDetector(
                   onTap: () async {
@@ -103,10 +122,10 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                               : null,
                         ),
                         child: _imagePath == null
-                            ? Icon(
+                            ? const Icon(
                                 Symbols.add_a_photo,
                                 size: 40,
-                                color: colorScheme.onSurfaceVariant,
+                                color: Colors.grey,
                               )
                             : null,
                       ),
@@ -130,9 +149,9 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 48),
-              
+
               // Name Field
               Text(
                 'DISPLAY NAME',
@@ -147,7 +166,9 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                 controller: _nameController,
                 decoration: InputDecoration(
                   hintText: 'Your name',
-                  hintStyle: TextStyle(color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
+                  hintStyle: TextStyle(
+                      color:
+                          colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
                   contentPadding: const EdgeInsets.all(20),
                   filled: true,
                   fillColor: colorScheme.surfaceContainer,
@@ -157,9 +178,9 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 32),
-              
+
               // Currency Selection
               Text(
                 'PREFERRED CURRENCY',
@@ -195,9 +216,9 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                   }
                 },
               ),
-              
+
               const SizedBox(height: 48),
-              
+
               // Continue Button
               SizedBox(
                 width: double.infinity,
@@ -213,14 +234,16 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                   child: const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('Continue', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      Text('Continue',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold)),
                       SizedBox(width: 8),
                       Icon(Symbols.arrow_forward),
                     ],
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 24),
               Center(
                 child: Row(
@@ -235,7 +258,8 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                     Text(
                       'OPEN SOURCE AND PRIVATE',
                       style: theme.textTheme.labelSmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                        color:
+                            colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
                         letterSpacing: 1.0,
                         fontWeight: FontWeight.bold,
                       ),

@@ -48,7 +48,8 @@ class _BudgetList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (categories.isEmpty) {
-      return const Center(child: Text('No categories found. Create one to set a budget.'));
+      return const Center(
+          child: Text('No categories found. Create one to set a budget.'));
     }
 
     return budgetsAsync.when(
@@ -70,7 +71,8 @@ class _BudgetList extends ConsumerWidget {
     );
   }
 
-  Map<String, dynamic> _getBudgetData(Category category, List<Map<String, dynamic>> budgets) {
+  Map<String, dynamic> _getBudgetData(
+      Category category, List<Map<String, dynamic>> budgets) {
     return budgets.firstWhere(
       (b) => (b['category'] as Category).id == category.id,
       orElse: () => {
@@ -100,7 +102,8 @@ class _BudgetCard extends ConsumerWidget {
     final double spent = budgetData['spent'] as double;
     final double percent = budgetData['percent'] as double;
     final bool hasBudget = limit > 0;
-    final color = Color(int.parse(category.color.replaceAll('0x', ''), radix: 16));
+    final color =
+        Color(int.parse(category.color.replaceAll('0x', ''), radix: 16));
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -116,10 +119,18 @@ class _BudgetCard extends ConsumerWidget {
                   child: Icon(AppIcons.getIcon(category.icon), color: color),
                 ),
                 const SizedBox(width: 16),
-                Expanded(child: _BudgetInfo(category: category, hasBudget: hasBudget, spent: spent, limit: limit, currencyFormat: currencyFormat)),
+                Expanded(
+                    child: _BudgetInfo(
+                        category: category,
+                        hasBudget: hasBudget,
+                        spent: spent,
+                        limit: limit,
+                        currencyFormat: currencyFormat)),
                 IconButton(
-                  icon: Icon(hasBudget ? Symbols.edit : Symbols.add_circle, color: Theme.of(context).colorScheme.primary),
-                  onPressed: () => _showSetBudgetDialog(context, ref, category, limit, currencyFormat),
+                  icon: Icon(hasBudget ? Symbols.edit : Symbols.add_circle,
+                      color: Theme.of(context).colorScheme.primary),
+                  onPressed: () => _showSetBudgetDialog(
+                      context, ref, category, limit, currencyFormat),
                 ),
               ],
             ),
@@ -130,8 +141,10 @@ class _BudgetCard extends ConsumerWidget {
     );
   }
 
-  void _showSetBudgetDialog(BuildContext context, WidgetRef ref, Category category, double currentLimit, NumberFormat format) {
-    final controller = TextEditingController(text: currentLimit > 0 ? currentLimit.toString() : '');
+  void _showSetBudgetDialog(BuildContext context, WidgetRef ref,
+      Category category, double currentLimit, NumberFormat format) {
+    final controller = TextEditingController(
+        text: currentLimit > 0 ? currentLimit.toString() : '');
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -146,11 +159,15 @@ class _BudgetCard extends ConsumerWidget {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
           if (currentLimit > 0)
             TextButton(
               onPressed: () async {
-                await ref.read(categoryServiceProvider).setBudget(category.id, 0);
+                await ref
+                    .read(categoryServiceProvider)
+                    .setBudget(category.id, 0);
                 await HapticService.mediumStatic();
                 if (context.mounted) Navigator.pop(context);
               },
@@ -159,7 +176,9 @@ class _BudgetCard extends ConsumerWidget {
           TextButton(
             onPressed: () async {
               final limitValue = double.tryParse(controller.text) ?? 0;
-              await ref.read(categoryServiceProvider).setBudget(category.id, limitValue);
+              await ref
+                  .read(categoryServiceProvider)
+                  .setBudget(category.id, limitValue);
               await HapticService.mediumStatic();
               if (context.mounted) Navigator.pop(context);
             },
@@ -191,10 +210,14 @@ class _BudgetInfo extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(category.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        Text(category.name,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         Text(
-          hasBudget ? '${currencyFormat.format(spent)} of ${currencyFormat.format(limit)}' : 'No budget set',
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+          hasBudget
+              ? '${currencyFormat.format(spent)} of ${currencyFormat.format(limit)}'
+              : 'No budget set',
+          style:
+              TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
       ],
     );
@@ -216,7 +239,10 @@ class _BudgetProgress extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('${(percent * 100).toStringAsFixed(0)}% used'),
-            if (percent > 1.0) const Text('Over budget!', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+            if (percent > 1.0)
+              const Text('Over budget!',
+                  style: TextStyle(
+                      color: Colors.red, fontWeight: FontWeight.bold)),
           ],
         ),
         const SizedBox(height: 8),

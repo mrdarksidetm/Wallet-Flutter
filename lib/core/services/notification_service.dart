@@ -8,23 +8,25 @@ final notificationServiceProvider = Provider<NotificationService>((ref) {
 });
 
 /// Phase 24: Local Scheduled Notifications
-/// 
+///
 /// This service handles on-device reminders without a server.
-/// It uses the 'flutter_local_notifications' package to schedule 
+/// It uses the 'flutter_local_notifications' package to schedule
 /// triggers for recurring bills or budget alerts.
 class NotificationService {
-  final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _notificationsPlugin =
+      FlutterLocalNotificationsPlugin();
 
   Future<void> init() async {
     tz.initializeTimeZones();
-    
+
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
-        
+
     const DarwinInitializationSettings initializationSettingsDarwin =
         DarwinInitializationSettings();
 
-    const InitializationSettings initializationSettings = InitializationSettings(
+    const InitializationSettings initializationSettings =
+        InitializationSettings(
       android: initializationSettingsAndroid,
       iOS: initializationSettingsDarwin,
     );
@@ -38,7 +40,8 @@ class NotificationService {
   }
 
   Future<void> showInstantNotification(String title, String body) async {
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
       'wallet_channel',
       'Wallet Notifications',
       channelDescription: 'Financial reminders and alerts',
@@ -46,7 +49,8 @@ class NotificationService {
       priority: Priority.high,
     );
 
-    const NotificationDetails details = NotificationDetails(android: androidDetails);
+    const NotificationDetails details =
+        NotificationDetails(android: androidDetails);
     await _notificationsPlugin.show(
       id: 0,
       title: title,
@@ -56,11 +60,7 @@ class NotificationService {
   }
 
   Future<void> scheduleNotification(
-    int id,
-    String title,
-    String body,
-    DateTime scheduledDate
-  ) async {
+      int id, String title, String body, DateTime scheduledDate) async {
     await _notificationsPlugin.zonedSchedule(
       id: id,
       title: title,

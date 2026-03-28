@@ -24,7 +24,7 @@ class CsvService {
 
     final file = File(result.files.single.path!);
     final input = await file.readAsString();
-    
+
     final fields = const csv.CsvToListConverter().convert(input);
     if (fields.length < 2) throw Exception('CSV file is empty or invalid');
 
@@ -44,9 +44,11 @@ class CsvService {
           final note = row.length > 7 ? row[7].toString() : '';
           final tagsStr = row.length > 8 ? row[8].toString() : '';
 
-          final dateTime = DateTime.tryParse('${dateStr}T$timeStr') ?? DateTime.now();
-          
-          var account = await isar.accounts.filter().nameEqualTo(accountName).findFirst();
+          final dateTime =
+              DateTime.tryParse('${dateStr}T$timeStr') ?? DateTime.now();
+
+          var account =
+              await isar.accounts.filter().nameEqualTo(accountName).findFirst();
           if (account == null) {
             account = Account()
               ..name = accountName
@@ -61,12 +63,19 @@ class CsvService {
             await isar.accounts.put(account);
           }
 
-          final type = typeStr == 'income' ? TransactionType.income : TransactionType.expense;
-          var category = await isar.categorys.filter().nameEqualTo(categoryName).findFirst();
+          final type = typeStr == 'income'
+              ? TransactionType.income
+              : TransactionType.expense;
+          var category = await isar.categorys
+              .filter()
+              .nameEqualTo(categoryName)
+              .findFirst();
           if (category == null) {
             category = Category()
               ..name = categoryName
-              ..type = type == TransactionType.income ? CategoryType.income : CategoryType.expense
+              ..type = type == TransactionType.income
+                  ? CategoryType.income
+                  : CategoryType.expense
               ..color = '0xFF9E9E9E'
               ..icon = 'category'
               ..description = ''
@@ -89,11 +98,15 @@ class CsvService {
           transaction.account.value = account;
           transaction.category.value = category;
 
-          if (type == TransactionType.transfer && transferAccountName.isNotEmpty) {
-             var tAccount = await isar.accounts.filter().nameEqualTo(transferAccountName).findFirst();
-             if (tAccount != null) {
-               transaction.transferAccount.value = tAccount;
-             }
+          if (type == TransactionType.transfer &&
+              transferAccountName.isNotEmpty) {
+            var tAccount = await isar.accounts
+                .filter()
+                .nameEqualTo(transferAccountName)
+                .findFirst();
+            if (tAccount != null) {
+              transaction.transferAccount.value = tAccount;
+            }
           }
 
           await isar.transactionModels.put(transaction);
@@ -109,7 +122,6 @@ class CsvService {
             account.balance -= amount;
           }
           await isar.accounts.put(account);
-
         } catch (e) {
           continue;
         }
@@ -120,22 +132,34 @@ class CsvService {
   Future<void> exportTransactions() async {
     // 1. Check/Request Permission on Android
     if (Platform.isAndroid) {
-      if (!await Permission.storage.request().isGranted && 
+      if (!await Permission.storage.request().isGranted &&
           !await Permission.manageExternalStorage.request().isGranted) {
         // Many newer devices require MANAGE_EXTERNAL_STORAGE for non-media files
       }
     }
 
     // 2. Prompt User for Directory
-    final String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
+    final String? selectedDirectory =
+        await FilePicker.platform.getDirectoryPath();
     if (selectedDirectory == null) throw Exception('Export cancelled');
 
     // 3. Fetch Data
-    final transactions = await isar.transactionModels.where().sortByDateDesc().findAll();
-    
+    final transactions =
+        await isar.transactionModels.where().sortByDateDesc().findAll();
+
     // 4. Convert to CSV List
     List<List<dynamic>> rows = [];
-    rows.add(['Date', 'Time', 'Type', 'Amount', 'Category', 'Account', 'Transfer Account', 'Note', 'Tags']);
+    rows.add([
+      'Date',
+      'Time',
+      'Type',
+      'Amount',
+      'Category',
+      'Account',
+      'Transfer Account',
+      'Note',
+      'Tags'
+    ]);
 
     for (var tx in transactions) {
       rows.add([
@@ -156,16 +180,18 @@ class CsvService {
 
     try {
       // 6. Save to File in selected directory
-      final path = p.join(selectedDirectory, 'wallet_export_${DateTime.now().millisecondsSinceEpoch}.csv');
+      final path = p.join(selectedDirectory,
+          'wallet_export_${DateTime.now().millisecondsSinceEpoch}.csv');
       final file = File(path);
       await file.writeAsString(csvData);
-      
+
       // 7. Open File (Optional)
       try {
         await OpenFilex.open(path);
       } catch (_) {}
     } catch (e) {
-      throw Exception('Could not write to folder. Please ensure you have given storage permission to Wallet. Error: $e');
+      throw Exception(
+          'Could not write to folder. Please ensure you have given storage permission to Wallet. Error: $e');
     }
   }
 }

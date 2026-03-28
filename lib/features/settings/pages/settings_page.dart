@@ -95,23 +95,28 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               if (context.mounted) context.push('/currency_selection');
             },
           ),
-
           const Divider(indent: 24, endIndent: 24, height: 32),
           _buildSectionHeader(context, 'Security'),
           _buildSettingsTile(
             context,
-            icon: authState.isBiometricEnabled ? Symbols.lock_open : Symbols.lock,
+            icon:
+                authState.isBiometricEnabled ? Symbols.lock_open : Symbols.lock,
             title: 'Biometric Lock',
-            subtitle: authState.canCheckBiometrics ? 'Protect your data' : 'Not supported on device',
+            subtitle: authState.canCheckBiometrics
+                ? 'Protect your data'
+                : 'Not supported on device',
             trailing: Switch(
               value: authState.isBiometricEnabled,
-              onChanged: authState.canCheckBiometrics ? (val) async {
-                await HapticService.mediumStatic();
-                await ref.read(authProvider.notifier).toggleBiometric(val);
-              } : null,
+              onChanged: authState.canCheckBiometrics
+                  ? (val) async {
+                      await HapticService.mediumStatic();
+                      await ref
+                          .read(authProvider.notifier)
+                          .toggleBiometric(val);
+                    }
+                  : null,
             ),
           ),
-
           const Divider(indent: 24, endIndent: 24, height: 32),
           _buildSectionHeader(context, 'Data Management'),
           _buildSettingsTile(
@@ -126,7 +131,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 await HapticService.successStatic();
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Exported successfully! Check your selected folder.')),
+                    const SnackBar(
+                        content: Text(
+                            'Exported successfully! Check your selected folder.')),
                   );
                 }
               } catch (e) {
@@ -172,7 +179,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             onTap: () async {
               await HapticService.mediumStatic();
               try {
-                final path = await ref.read(backupServiceProvider).createBackup();
+                final path =
+                    await ref.read(backupServiceProvider).createBackup();
                 await HapticService.successStatic();
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -198,7 +206,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             onTap: () async {
               await HapticService.mediumStatic();
               try {
-                final success = await ref.read(backupServiceProvider).restoreBackup();
+                final success =
+                    await ref.read(backupServiceProvider).restoreBackup();
                 if (success && context.mounted) {
                   await HapticService.successStatic();
                   showDialog(
@@ -206,7 +215,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     barrierDismissible: false,
                     builder: (context) => AlertDialog(
                       title: const Text('Restore Successful'),
-                      content: const Text('Database has been restored. Please restart the app to apply changes.'),
+                      content: const Text(
+                          'Database has been restored. Please restart the app to apply changes.'),
                       actions: [
                         FilledButton(
                           onPressed: () => exit(0),
@@ -227,7 +237,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               }
             },
           ),
-          
           const Divider(indent: 24, endIndent: 24, height: 32),
           _buildSectionHeader(context, 'Privacy & Policy'),
           _buildSettingsTile(
@@ -250,7 +259,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               if (context.mounted) context.push('/terms_of_use');
             },
           ),
-
           const Divider(indent: 24, endIndent: 24, height: 32),
           _buildSectionHeader(context, 'Feedback'),
           _buildSettingsTile(
@@ -263,7 +271,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               if (context.mounted) context.push('/feedback');
             },
           ),
-
           const Divider(indent: 24, endIndent: 24, height: 32),
           _buildSectionHeader(context, 'Update & Contact'),
           _buildSettingsTile(
@@ -286,7 +293,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               _checkForUpdates(context);
             },
           ),
-
           const SizedBox(height: 48),
           Center(
             child: Text(
@@ -319,36 +325,41 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Connecting to GitHub...', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text('Connecting to GitHub...',
+                style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             LinearProgressIndicator(
               borderRadius: BorderRadius.circular(4),
-              backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+              backgroundColor:
+                  Theme.of(context).colorScheme.surfaceContainerHighest,
             ),
           ],
         ),
       ),
     );
-    
+
     try {
       final updateService = ref.read(updateServiceProvider);
       final update = await updateService.checkForUpdates();
-      
+
       if (context.mounted) {
         Navigator.pop(context); // Close loading dialog
 
-        if (update != null && updateService.isNewerVersion(_currentVersion, update.version)) {
+        if (update != null &&
+            updateService.isNewerVersion(_currentVersion, update.version)) {
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28)),
               title: Text('New Version v${update.version}'),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Changelog:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text('Changelog:',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     Text(update.changelog),
                   ],
@@ -374,9 +385,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28)),
               title: const Text('Up to Date'),
-              content: const Text('You are already using the most refined version of Wallet.'),
+              content: const Text(
+                  'You are already using the most refined version of Wallet.'),
               actions: [
                 FilledButton(
                   onPressed: () => Navigator.pop(context),
@@ -407,7 +420,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           builder: (context, snapshot) {
             double progress = 0;
             String status = 'Initializing...';
-            
+
             if (snapshot.hasData) {
               final event = snapshot.data as OtaEvent;
               status = event.status.name.toUpperCase();
@@ -417,7 +430,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             }
 
             return AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28)),
               title: const Text('Downloading Update'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -433,7 +447,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 ],
               ),
               actions: [
-                if (snapshot.hasError || (snapshot.hasData && (snapshot.data as OtaEvent).status == OtaStatus.INTERNAL_ERROR))
+                if (snapshot.hasError ||
+                    (snapshot.hasData &&
+                        (snapshot.data as OtaEvent).status ==
+                            OtaStatus.INTERNAL_ERROR))
                   TextButton(
                     onPressed: () => Navigator.pop(context),
                     child: const Text('Cancel'),
@@ -452,9 +469,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       child: Text(
         title,
         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-          color: Theme.of(context).colorScheme.primary,
-          fontWeight: FontWeight.bold,
-        ),
+              color: Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.bold,
+            ),
       ),
     );
   }
@@ -472,10 +489,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+          color: Theme.of(context)
+              .colorScheme
+              .surfaceContainerHighest
+              .withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Icon(icon, size: 22, fill: ref.watch(personalizationProvider).fillIcons ? 1.0 : 0.0),
+        child: Icon(icon,
+            size: 22,
+            fill: ref.watch(personalizationProvider).fillIcons ? 1.0 : 0.0),
       ),
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
       subtitle: Text(subtitle),

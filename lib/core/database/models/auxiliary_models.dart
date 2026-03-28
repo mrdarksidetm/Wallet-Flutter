@@ -38,13 +38,13 @@ class Budget {
   Id id = Isar.autoIncrement;
   double amount = 0.0;
   final category = IsarLink<Category>();
-  
+
   @Enumerated(EnumType.name)
   BudgetPeriod period = BudgetPeriod.monthly;
-  
+
   DateTime startDate = DateTime.now();
   DateTime endDate = DateTime.now();
-  
+
   bool isActive = true;
   DateTime createdAt = DateTime.now();
   DateTime updatedAt = DateTime.now();
@@ -62,19 +62,19 @@ enum BudgetPeriod {
 @collection
 class Loan {
   Id id = Isar.autoIncrement;
-  
+
   final person = IsarLink<Person>();
-  
+
   double amount = 0.0;
-  
+
   @Enumerated(EnumType.name)
   LoanType type = LoanType.borrowed;
-  
+
   DateTime? dueDate;
   bool isPaid = false;
   bool isActive = true;
   String? note;
-  
+
   DateTime createdAt = DateTime.now();
   DateTime updatedAt = DateTime.now();
   bool isDeleted = false;
@@ -95,7 +95,7 @@ class Goal {
   DateTime deadline = DateTime.now();
   String color = '0xFF2196F3';
   String? icon;
-  
+
   bool isCompleted = false;
   DateTime createdAt = DateTime.now();
   DateTime updatedAt = DateTime.now();
@@ -106,23 +106,23 @@ class Goal {
 @collection
 class Recurring {
   Id id = Isar.autoIncrement;
-  
+
   String name = '';
   double amount = 0.0;
-  
+
   @Enumerated(EnumType.name)
   TransactionType type = TransactionType.expense;
-  
+
   final account = IsarLink<Account>();
   final category = IsarLink<Category>();
   final transferAccount = IsarLink<Account>();
-  
+
   @Enumerated(EnumType.name)
   RecurrenceFrequency frequency = RecurrenceFrequency.monthly;
-  
+
   DateTime nextDate = DateTime.now();
   DateTime? endDate;
-  
+
   bool isActive = true;
   DateTime createdAt = DateTime.now();
   DateTime updatedAt = DateTime.now();

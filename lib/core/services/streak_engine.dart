@@ -10,7 +10,7 @@ class StreakEngine {
     if (sortedTimestampsMillis.isEmpty) return 0;
 
     int currentStreak = 0;
-    
+
     final now = DateTime.now();
     // Normalize current day to midnight
     var targetDay = DateTime(now.year, now.month, now.day);
@@ -23,13 +23,14 @@ class StreakEngine {
       if (normalizedTxDay.isAtSameMomentAs(targetDay)) {
         // Match found for this target day
         currentStreak++;
-        targetDay = targetDay.subtract(const Duration(days: 1)); // Move target back 1 day
+        targetDay = targetDay
+            .subtract(const Duration(days: 1)); // Move target back 1 day
       } else if (normalizedTxDay.isBefore(targetDay)) {
         // Missed a day
         break;
       }
     }
-    
+
     return currentStreak;
   }
 }

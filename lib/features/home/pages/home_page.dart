@@ -1,13 +1,16 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/transaction_model.dart';
 import '../../../core/services/haptic_service.dart';
 import '../../../core/services/greeting_service.dart';
+import '../../../core/theme/personalization_provider.dart';
 import '../widgets/total_balance_card.dart';
 import '../widgets/overview_card.dart';
 
@@ -17,23 +20,25 @@ class HomePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final greeting = ref.watch(greetingServiceProvider).getGreeting();
+    final userName =
+        ref.watch(personalizationProvider.select((p) => p.userName)) ?? 'User';
     final selectedCurrency = ref.watch(currencyProvider);
     final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
 
     return AnimationLimiter(
       child: CustomScrollView(
         slivers: [
-          _HomeAppBar(greeting: greeting),
+          _HomeAppBar(greeting: greeting, userName: userName),
           const SliverToBoxAdapter(child: _HomeBalanceSection()),
-          _buildSectionHeader('Finances'),
+          const _SectionHeader(title: 'Finances'),
           _HomeFinanceGrid(currencyFormat: currencyFormat),
           const SliverToBoxAdapter(child: SizedBox(height: 32)),
-          _buildSectionHeader('Recent Transactions'),
+          const _SectionHeader(title: 'Recent Transactions'),
           _HomeRecentTransactions(currencyFormat: currencyFormat),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: OutlinedButton(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              child: FilledButton.tonal(
                 onPressed: () => context.push('/all_transactions'),
                 child: const Text('View All Transactions'),
               ),
@@ -44,8 +49,14 @@ class HomePage extends ConsumerWidget {
       ),
     );
   }
+}
 
-  Widget _buildSectionHeader(String title) {
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  const _SectionHeader({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 8, 16, 12),
@@ -62,18 +73,49 @@ class HomePage extends ConsumerWidget {
   }
 }
 
-class _HomeAppBar extends StatelessWidget {
+class _HomeAppBar extends ConsumerWidget {
   final String greeting;
-  const _HomeAppBar({required this.greeting});
+  final String userName;
+  const _HomeAppBar({required this.greeting, required this.userName});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final photo = ref.watch(personalizationProvider).userPhoto;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return SliverAppBar.large(
-      title: Text('$greeting, Abhi'),
+      leading: Padding(
+        padding: const EdgeInsets.only(left: 16),
+        child: SvgPicture.asset(
+          'assets/images/logo.svg',
+          height: 32,
+          width: 32,
+        ),
+      ),
+      leadingWidth: 48,
+      title: Text('$greeting, $userName'),
       actions: [
+        GestureDetector(
+          onTap: () => context.push('/user_info'),
+          child: Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: colorScheme.surfaceContainerHighest,
+              image: photo != null
+                  ? DecorationImage(
+                      image: FileImage(File(photo)),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
+            ),
+            child: photo == null ? const Icon(Symbols.person, size: 20) : null,
+          ),
+        ),
         IconButton(
           onPressed: () => context.push('/settings'),
-          icon: const Icon(Symbols.person),
+          icon: const Icon(Symbols.settings),
         ),
         const SizedBox(width: 8),
       ],
@@ -111,7 +153,8 @@ class _HomeBalanceSection extends ConsumerWidget {
 class _LoadingBalance extends StatelessWidget {
   const _LoadingBalance();
   @override
-  Widget build(BuildContext context) => const TotalBalanceCard(totalBalance: 0, monthlyIncome: 0, monthlyExpense: 0);
+  Widget build(BuildContext context) => const TotalBalanceCard(
+      totalBalance: 0, monthlyIncome: 0, monthlyExpense: 0);
 }
 
 class _HomeFinanceGrid extends ConsumerWidget {
@@ -188,8 +231,17 @@ class _HomeRecentTransactions extends ConsumerWidget {
 
     return transactionsAsync.when(
       data: (transactions) {
-        if (transactions.isEmpty) return const SliverToBoxAdapter(child: Center(child: Text('No transactions yet')));
-        
+        if (transactions.isEmpty) {
+          return const SliverToBoxAdapter(
+            child: Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 32),
+                child: Text('No transactions yet'),
+              ),
+            ),
+          );
+        }
+
         final recentTxs = transactions.take(20).toList();
         return SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -201,7 +253,8 @@ class _HomeRecentTransactions extends ConsumerWidget {
                 child: SlideAnimation(
                   verticalOffset: 50.0,
                   child: FadeInAnimation(
-                    child: _TransactionTile(tx: recentTxs[index], format: currencyFormat),
+                    child: _TransactionTile(
+                        tx: recentTxs[index], format: currencyFormat),
                   ),
                 ),
               ),
@@ -210,8 +263,10 @@ class _HomeRecentTransactions extends ConsumerWidget {
           ),
         );
       },
-      loading: () => const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator())),
-      error: (err, _) => SliverToBoxAdapter(child: Center(child: Text('Error: $err'))),
+      loading: () => const SliverToBoxAdapter(
+          child: Center(child: CircularProgressIndicator())),
+      error: (err, _) =>
+          SliverToBoxAdapter(child: Center(child: Text('Error: $err'))),
     );
   }
 }
@@ -227,21 +282,32 @@ class _TransactionTile extends StatelessWidget {
     final isIncome = tx.type == TransactionType.income;
 
     return ListTile(
-      onTap: () => HapticService.selectionStatic(),
+      onTap: () {
+        HapticService.selectionStatic();
+        // Add navigation to edit if needed
+      },
       contentPadding: EdgeInsets.zero,
       leading: Container(
         padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        decoration: const BoxDecoration(
+          color: Colors.black12,
           shape: BoxShape.circle,
         ),
-        child: Icon(Symbols.receipt_long, size: 20, color: colorScheme.onSurfaceVariant),
+        child: const Icon(Symbols.receipt_long, size: 20),
       ),
-      title: Text(tx.note ?? 'Transaction', style: const TextStyle(fontWeight: FontWeight.w600)),
-      subtitle: Text(DateFormat.yMMMd().format(tx.date), style: TextStyle(color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7))),
+      title: Text(tx.note ?? 'Transaction',
+          style: const TextStyle(fontWeight: FontWeight.w600)),
+      subtitle: Text(
+        DateFormat.yMMMd().format(tx.date),
+        style: TextStyle(
+            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
+      ),
       trailing: Text(
         '${isIncome ? '+' : '-'}${format.format(tx.amount)}',
-        style: TextStyle(fontWeight: FontWeight.bold, color: isIncome ? Colors.green : colorScheme.error),
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: isIncome ? Colors.green : colorScheme.error,
+        ),
       ),
     );
   }

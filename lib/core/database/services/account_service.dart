@@ -5,10 +5,15 @@ import '../repositories/account_repository.dart';
 class AccountService {
   final Isar isar;
   final AccountRepository accountRepository;
-  
+
   AccountService({required this.isar, required this.accountRepository});
 
-  Future<void> addAccount({required String name, required String icon, required String color, required double balance, required AccountType type}) async {
+  Future<void> addAccount(
+      {required String name,
+      required String icon,
+      required String color,
+      required double balance,
+      required AccountType type}) async {
     final acc = Account()
       ..name = name
       ..icon = icon

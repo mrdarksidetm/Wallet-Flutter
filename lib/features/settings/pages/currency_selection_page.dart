@@ -37,6 +37,28 @@ class CurrencySelectionPage extends ConsumerWidget {
     {'code': 'THB', 'name': 'Thai Baht', 'symbol': '฿'},
     {'code': 'VND', 'name': 'Vietnamese Dong', 'symbol': '₫'},
     {'code': 'PHP', 'name': 'Philippine Peso', 'symbol': '₱'},
+    {'code': 'PKR', 'name': 'Pakistani Rupee', 'symbol': '₨'},
+    {'code': 'EGP', 'name': 'Egyptian Pound', 'symbol': 'E£'},
+    {'code': 'VND', 'name': 'Vietnamese Dong', 'symbol': '₫'},
+    {'code': 'NGN', 'name': 'Nigerian Naira', 'symbol': '₦'},
+    {'code': 'COP', 'name': 'Colombian Peso', 'symbol': 'COL\$'},
+    {'code': 'ARS', 'name': 'Argentine Peso', 'symbol': 'AR\$'},
+    {'code': 'CLP', 'name': 'Chilean Peso', 'symbol': 'CLP\$'},
+    {'code': 'PEN', 'name': 'Peruvian Sol', 'symbol': 'S/.'},
+    {'code': 'THB', 'name': 'Thai Baht', 'symbol': '฿'},
+    {'code': 'TWD', 'name': 'New Taiwan Dollar', 'symbol': 'NT\$'},
+    {'code': 'MYR', 'name': 'Malaysian Ringgit', 'symbol': 'RM'},
+    {'code': 'KWD', 'name': 'Kuwaiti Dinar', 'symbol': 'KD'},
+    {'code': 'QAR', 'name': 'Qatari Rial', 'symbol': 'QR'},
+    {'code': 'OMR', 'name': 'Omani Rial', 'symbol': 'OR'},
+    {'code': 'BHD', 'name': 'Bahraini Dinar', 'symbol': 'BD'},
+    {'code': 'ILS', 'name': 'Israeli New Shekel', 'symbol': '₪'},
+    {'code': 'PLN', 'name': 'Polish Zloty', 'symbol': 'zł'},
+    {'code': 'SEK', 'name': 'Swedish Krona', 'symbol': 'kr'},
+    {'code': 'NOK', 'name': 'Norwegian Krone', 'symbol': 'kr'},
+    {'code': 'DKK', 'name': 'Danish Krone', 'symbol': 'kr'},
+    {'code': 'HUF', 'name': 'Hungarian Forint', 'symbol': 'Ft'},
+    {'code': 'CZK', 'name': 'Czech Koruna', 'symbol': 'Kč'},
   ];
 
   @override
@@ -55,16 +77,17 @@ class CurrencySelectionPage extends ConsumerWidget {
           final isSelected = selectedCurrency == currency['code'];
 
           return ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
             leading: CircleAvatar(
-              backgroundColor: isSelected 
-                  ? Theme.of(context).colorScheme.primaryContainer 
+              backgroundColor: isSelected
+                  ? Theme.of(context).colorScheme.primaryContainer
                   : Theme.of(context).colorScheme.surfaceContainerHighest,
               child: Text(
                 currency['symbol']!,
                 style: TextStyle(
-                  color: isSelected 
-                      ? Theme.of(context).colorScheme.onPrimaryContainer 
+                  color: isSelected
+                      ? Theme.of(context).colorScheme.onPrimaryContainer
                       : Theme.of(context).colorScheme.onSurface,
                   fontWeight: FontWeight.bold,
                 ),
@@ -75,12 +98,15 @@ class CurrencySelectionPage extends ConsumerWidget {
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
             subtitle: Text(currency['code']!),
-            trailing: isSelected 
-                ? Icon(Icons.check_circle_rounded, color: Theme.of(context).colorScheme.primary) 
+            trailing: isSelected
+                ? Icon(Icons.check_circle_rounded,
+                    color: Theme.of(context).colorScheme.primary)
                 : null,
             onTap: () async {
               await HapticService.selectionStatic();
-              ref.read(personalizationProvider.notifier).updateCurrency(currency['code']!);
+              ref
+                  .read(personalizationProvider.notifier)
+                  .updateCurrency(currency['code']!);
               if (context.mounted) context.pop();
             },
           );

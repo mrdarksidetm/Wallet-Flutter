@@ -33,13 +33,15 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           decoration: InputDecoration(
             hintText: 'Search anything...',
             prefixIcon: const Icon(Symbols.search),
-            suffixIcon: _query.isNotEmpty ? IconButton(
-              icon: const Icon(Symbols.close),
-              onPressed: () {
-                _searchController.clear();
-                setState(() => _query = '');
-              },
-            ) : null,
+            suffixIcon: _query.isNotEmpty
+                ? IconButton(
+                    icon: const Icon(Symbols.close),
+                    onPressed: () {
+                      _searchController.clear();
+                      setState(() => _query = '');
+                    },
+                  )
+                : null,
             border: InputBorder.none,
           ),
         ),
@@ -105,7 +107,8 @@ class _SearchResults extends ConsumerWidget {
         _SearchSection<Loan>(
           title: 'Loans',
           dataAsync: loansAsync,
-          filter: (l) => (l.note?.toLowerCase() ?? '').contains(query.toLowerCase()),
+          filter: (l) =>
+              (l.note?.toLowerCase() ?? '').contains(query.toLowerCase()),
           builder: (l) => _ResultTile(
             title: l.note ?? 'Loan',
             subtitle: 'Loan: ${currencyFormat.format(l.amount)}',
@@ -116,10 +119,12 @@ class _SearchResults extends ConsumerWidget {
         _SearchSection<TransactionModel>(
           title: 'Transactions',
           dataAsync: transactionsAsync,
-          filter: (t) => (t.note?.toLowerCase() ?? '').contains(query.toLowerCase()),
+          filter: (t) =>
+              (t.note?.toLowerCase() ?? '').contains(query.toLowerCase()),
           builder: (t) => _ResultTile(
             title: t.note ?? 'Transaction',
-            subtitle: '${DateFormat.yMMMd().format(t.date)} • ${currencyFormat.format(t.amount)}',
+            subtitle:
+                '${DateFormat.yMMMd().format(t.date)} • ${currencyFormat.format(t.amount)}',
             icon: Symbols.receipt_long,
             onTap: () {},
           ),
@@ -157,9 +162,9 @@ class _SearchSection<T> extends StatelessWidget {
               child: Text(
                 title,
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.bold,
-                ),
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
             ),
             ...filteredItems.map(builder),
@@ -220,14 +225,15 @@ class _SearchEmptyState extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Symbols.manage_search, size: 64, color: colorScheme.outline.withValues(alpha: 0.5)),
+          Icon(Symbols.manage_search,
+              size: 64, color: colorScheme.outline.withValues(alpha: 0.5)),
           const SizedBox(height: 16),
           Text(
             'The Search Hub',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: colorScheme.onSurface,
-              fontWeight: FontWeight.bold,
-            ),
+                  color: colorScheme.onSurface,
+                  fontWeight: FontWeight.bold,
+                ),
           ),
           const SizedBox(height: 8),
           Padding(
@@ -235,7 +241,8 @@ class _SearchEmptyState extends StatelessWidget {
             child: Text(
               'Search transactions, people, goals, loans, and more in one place.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
+              style: TextStyle(
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
             ),
           ),
         ],

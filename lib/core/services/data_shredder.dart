@@ -25,7 +25,7 @@ class DataShredder {
       if (cacheDir.existsSync()) {
         cacheDir.deleteSync(recursive: true);
       }
-      
+
       // 4. Clear app document directory (backups, csvs)
       final docDir = await getApplicationDocumentsDirectory();
       if (docDir.existsSync()) {

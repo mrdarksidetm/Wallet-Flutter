@@ -51,7 +51,8 @@ class GlobalErrorScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: colorScheme.surface.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: colorScheme.error.withValues(alpha: 0.2)),
+                    border: Border.all(
+                        color: colorScheme.error.withValues(alpha: 0.2)),
                   ),
                   child: SingleChildScrollView(
                     child: SelectableText(
@@ -72,7 +73,9 @@ class GlobalErrorScreen extends StatelessWidget {
                       onPressed: () {
                         // In a real app, we'd send this to a server or log it
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Error copied to clipboard (Mock)')),
+                          const SnackBar(
+                              content:
+                                  Text('Error copied to clipboard (Mock)')),
                         );
                       },
                       icon: const Icon(Icons.copy_rounded),

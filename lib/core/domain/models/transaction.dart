@@ -1,21 +1,17 @@
-enum TransactionType {
-  income,
-  expense,
-  transfer
-}
+enum TransactionType { income, expense, transfer }
 
 /// A robust, scalable Transaction model for personal finance.
-/// 
-/// Why use an Enum for types? 
+///
+/// Why use an Enum for types?
 /// Enums provide compile-time safety, ensuring that a transaction can only
 /// be one of the predefined types (income, expense, transfer). This prevents
 /// typos and invalid states compared to using raw strings, and allows for switch
 /// statement exhaustiveness checking in Dart.
-/// 
+///
 /// Relational IDs (categoryId, accountId):
 /// Storing only the relational IDs (instead of the full Category or Account object)
 /// normalizes the database, keeping the Transaction model lightweight. This is crucial
-/// for scalability when dealing with thousands of transactions. The UI layer or 
+/// for scalability when dealing with thousands of transactions. The UI layer or
 /// repository can perform joins with these IDs when displaying data.
 class Transaction {
   final String id;

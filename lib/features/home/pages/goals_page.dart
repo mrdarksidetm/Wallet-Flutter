@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/widgets/icon_picker.dart';
+import '../../../core/services/haptic_service.dart';
 
 class GoalsPage extends ConsumerWidget {
   const GoalsPage({super.key});
@@ -22,76 +24,175 @@ class GoalsPage extends ConsumerWidget {
       body: goalsAsync.when(
         data: (goals) {
           if (goals.isEmpty) {
-            return const Center(child: Text('No goals set. Create one to start saving!'));
+            return const Center(
+                child: Text('No goals set. Create one to start saving!'));
           }
           return ListView.builder(
             padding: const EdgeInsets.all(16),
             itemCount: goals.length,
             itemBuilder: (context, index) {
               final goal = goals[index];
-              final percent = (goal.currentAmount / goal.targetAmount).clamp(0.0, 1.0);
-              final color = Color(int.parse(goal.color.replaceAll('0x', ''), radix: 16));
+              if (goal.isDeleted) return const SizedBox.shrink();
 
-              return Card(
-                margin: const EdgeInsets.only(bottom: 16),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          CircleAvatar(
-                            backgroundColor: color.withValues(alpha: 0.1),
-                            child: Icon(AppIcons.getIcon(goal.icon), color: color),
+              final percent =
+                  (goal.currentAmount / goal.targetAmount).clamp(0.0, 1.0);
+              final color =
+                  Color(int.parse(goal.color.replaceAll('0x', ''), radix: 16));
+              final isCompleted = goal.isCompleted;
+
+              return Dismissible(
+                key: ValueKey(goal.id),
+                direction: DismissDirection.horizontal,
+                confirmDismiss: (direction) async {
+                  if (direction == DismissDirection.startToEnd) {
+                    await HapticService.successStatic();
+                    goal.isCompleted = !isCompleted;
+                    goal.updatedAt = DateTime.now();
+                    await ref.read(goalRepositoryProvider).save(goal);
+                    return false; // Don't actually dismiss the widget
+                  } else {
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Delete Goal?'),
+                        content: Text(
+                            'Are you sure you want to delete "${goal.name}"?'),
+                        actions: [
+                          TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: const Text('Cancel')),
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            style: TextButton.styleFrom(
+                                foregroundColor: theme.colorScheme.error),
+                            child: const Text('Delete'),
                           ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  goal.name,
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                                ),
-                                Text(
-                                  'Target: ${currencyFormat.format(goal.targetAmount)}',
-                                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                                ),
-                              ],
+                        ],
+                      ),
+                    );
+                    return confirm;
+                  }
+                },
+                onDismissed: (direction) async {
+                  if (direction == DismissDirection.endToStart) {
+                    await HapticService.heavyStatic();
+                    await ref.read(goalRepositoryProvider).delete(goal.id);
+                  }
+                },
+                background: Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: isCompleted ? Colors.orange : Colors.green,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  alignment: Alignment.centerLeft,
+                  padding: const EdgeInsets.only(left: 24),
+                  child: Icon(isCompleted ? Symbols.undo : Symbols.check_circle,
+                      color: Colors.white),
+                ),
+                secondaryBackground: Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.error,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.only(right: 24),
+                  child: const Icon(Symbols.delete, color: Colors.white),
+                ),
+                child: Card(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  elevation: isCompleted ? 0 : 1,
+                  color: isCompleted
+                      ? theme.colorScheme.surfaceContainerHighest
+                          .withValues(alpha: 0.5)
+                      : null,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            CircleAvatar(
+                              backgroundColor: color.withValues(
+                                  alpha: isCompleted ? 0.05 : 0.1),
+                              child: Icon(AppIcons.getIcon(goal.icon),
+                                  color: isCompleted
+                                      ? color.withValues(alpha: 0.5)
+                                      : color),
                             ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    goal.name,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      decoration: isCompleted
+                                          ? TextDecoration.lineThrough
+                                          : null,
+                                      color: isCompleted ? Colors.grey : null,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Target: ${currencyFormat.format(goal.targetAmount)}',
+                                    style: TextStyle(
+                                        color: theme
+                                            .colorScheme.onSurfaceVariant
+                                            .withValues(
+                                                alpha:
+                                                    isCompleted ? 0.5 : 1.0)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (isCompleted)
+                              const Icon(Symbols.check_circle,
+                                  color: Colors.green)
+                            else
+                              IconButton(
+                                icon: const Icon(Icons.edit_rounded),
+                                onPressed: () =>
+                                    context.push('/add_goal', extra: goal),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              currencyFormat.format(goal.currentAmount),
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: isCompleted
+                                      ? color.withValues(alpha: 0.5)
+                                      : color),
+                            ),
+                            Text('${(percent * 100).toStringAsFixed(0)}%'),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        LinearProgressIndicator(
+                          value: percent,
+                          backgroundColor: color.withValues(alpha: 0.1),
+                          color: isCompleted ? Colors.green : color,
+                          minHeight: 10,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Deadline: ${DateFormat('MMM d, yyyy').format(goal.deadline)}',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: isCompleted ? Colors.grey : null,
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.edit_rounded),
-                            onPressed: () => context.push('/add_goal', extra: goal),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            currencyFormat.format(goal.currentAmount),
-                            style: TextStyle(fontWeight: FontWeight.bold, color: color),
-                          ),
-                          Text('${(percent * 100).toStringAsFixed(0)}%'),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      LinearProgressIndicator(
-                        value: percent,
-                        backgroundColor: color.withValues(alpha: 0.1),
-                        color: color,
-                        minHeight: 10,
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Deadline: ${DateFormat('MMM d, yyyy').format(goal.deadline)}',
-                        style: theme.textTheme.bodySmall,
-                      ),
-                    ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );

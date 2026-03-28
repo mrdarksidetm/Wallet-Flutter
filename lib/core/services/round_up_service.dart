@@ -11,14 +11,11 @@ import '../database/models/transaction_model.dart';
 /// round-up transfer are committed together. If either fails, the entire block rolls back.
 class RoundUpService {
   final Isar isar;
-  
+
   RoundUpService(this.isar);
 
-  Future<void> insertExpenseWithRoundUp(
-    TransactionModel expense, 
-    int savingsAccountId, 
-    bool isRoundUpEnabled
-  ) async {
+  Future<void> insertExpenseWithRoundUp(TransactionModel expense,
+      int savingsAccountId, bool isRoundUpEnabled) async {
     await isar.writeTxn(() async {
       // 1. Insert original expense
       await isar.transactionModels.put(expense);
@@ -36,11 +33,11 @@ class RoundUpService {
             ..type = TransactionType.transfer
             ..createdAt = DateTime.now()
             ..updatedAt = DateTime.now();
-            
+
           // Note: In a real implementation, we would set the IsarLinks for category and account here.
           // roundUpTransfer.account.value = savingsAccount;
           // roundUpTransfer.category.value = expense.category.value;
-          
+
           await isar.transactionModels.put(roundUpTransfer);
         }
       }

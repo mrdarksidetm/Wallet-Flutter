@@ -23,7 +23,7 @@ class RecurringService {
   /// Checks and processes due recurring transactions
   Future<void> checkRecurringTransactions() async {
     final now = DateTime.now();
-    
+
     // Find active recurring entries where nextDate is in the past or today
     final dueRecurring = await isar.recurrings
         .filter()
@@ -40,12 +40,12 @@ class RecurringService {
     try {
       final account = recurring.account.value;
       final category = recurring.category.value;
-      
+
       if (account == null || category == null) return;
 
       await transactionService.addTransaction(
         amount: recurring.amount,
-        date: recurring.nextDate, 
+        date: recurring.nextDate,
         type: recurring.type,
         account: account,
         category: category,
@@ -55,15 +55,16 @@ class RecurringService {
 
       // Update next date
       await isar.writeTxn(() async {
-        recurring.nextDate = _calculateNextDate(recurring.nextDate, recurring.frequency);
+        recurring.nextDate =
+            _calculateNextDate(recurring.nextDate, recurring.frequency);
         recurring.updatedAt = DateTime.now();
-        
-        if (recurring.endDate != null && recurring.nextDate.isAfter(recurring.endDate!)) {
+
+        if (recurring.endDate != null &&
+            recurring.nextDate.isAfter(recurring.endDate!)) {
           recurring.isActive = false;
         }
         await isar.recurrings.put(recurring);
       });
-
     } catch (e) {
       // Log error or handle failure
     }

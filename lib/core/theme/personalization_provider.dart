@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:convert';
+import 'dart:async';
 import '../database/providers.dart';
 
 class PersonalizationState {
@@ -116,6 +117,7 @@ class PersonalizationState {
 
 class PersonalizationNotifier extends Notifier<PersonalizationState> {
   static const _key = 'personalization_v1';
+  Timer? _debounceTimer;
 
   @override
   PersonalizationState build() {
@@ -131,12 +133,16 @@ class PersonalizationNotifier extends Notifier<PersonalizationState> {
     return PersonalizationState();
   }
 
-  Future<void> _save() async {
-    final prefs = ref.read(sharedPreferencesProvider);
-    await prefs.setString(_key, json.encode(state.toMap()));
+  void _save() {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
+      final prefs = ref.read(sharedPreferencesProvider);
+      await prefs.setString(_key, json.encode(state.toMap()));
+    });
   }
 
-  void completeOnboarding({required String name, required String currency, String? photo}) {
+  void completeOnboarding(
+      {required String name, required String currency, String? photo}) {
     state = state.copyWith(
       isOnboardingComplete: true,
       userName: name,
@@ -177,7 +183,10 @@ class PersonalizationNotifier extends Notifier<PersonalizationState> {
   }
 
   void updateFontRoundness(double value) {
-    state = state.copyWith(fontRoundness: value);
+    // Combine with general roundness to prevent double state updates
+    state = state.copyWith(
+        fontRoundness: value.clamp(0, 100),
+        roundness: (value * 0.32).clamp(0, 32));
     _save();
   }
 
@@ -212,6 +221,7 @@ class PersonalizationNotifier extends Notifier<PersonalizationState> {
   }
 }
 
-final personalizationProvider = NotifierProvider<PersonalizationNotifier, PersonalizationState>(() {
+final personalizationProvider =
+    NotifierProvider<PersonalizationNotifier, PersonalizationState>(() {
   return PersonalizationNotifier();
 });

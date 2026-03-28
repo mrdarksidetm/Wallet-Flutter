@@ -25,9 +25,9 @@ class BudgetService {
         ..endDate = endDate
         ..createdAt = DateTime.now()
         ..updatedAt = DateTime.now();
-      
+
       budget.category.value = category;
-      
+
       await isar.budgets.put(budget);
       await budget.category.save();
     });
@@ -41,7 +41,7 @@ class BudgetService {
   Future<double> getSpentAmount(Budget budget) async {
     final categoryId = budget.category.value?.id;
     if (categoryId == null) return 0.0;
-    
+
     // Query transactions for the category within the budget period
     final transactions = await isar.transactionModels
         .filter()
@@ -62,7 +62,8 @@ class BudgetService {
   }
 
   // Helper to sync category budgets if needed
-  Future<void> updateCategoryBudgetStatus(Category category, double limit) async {
+  Future<void> updateCategoryBudgetStatus(
+      Category category, double limit) async {
     await isar.writeTxn(() async {
       category.isBudget = limit > 0;
       await isar.categorys.put(category);

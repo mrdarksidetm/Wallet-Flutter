@@ -66,7 +66,8 @@ class TotalBalanceCard extends StatelessWidget {
     );
   }
 
-  Widget _buildMiniStat(BuildContext context, String label, String value, Color color) {
+  Widget _buildMiniStat(
+      BuildContext context, String label, String value, Color color) {
     final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
