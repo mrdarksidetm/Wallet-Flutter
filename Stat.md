@@ -42,14 +42,26 @@
 - **Stability**: Stable
 - **Next Focus**: Integration testing and performance optimization.
 
-## Recent Fixes (v1.2.7)
-- Fixed: Budget stats not updating when transactions were added (StatisticsService now watches both collections).
-- Fixed: Variable Font "Roundness" slider (Changed axis to SOFT for Google Sans Flex).
-- Fixed: Export Data "Permission Denied" (Added explicit permission requests and improved SAF flow).
-- Fixed: Settings navigation (Now hides bottom bar).
-- Fixed: Terms of Use link bug.
-- Added: Onboarding flow for new users.
-- Added: Reports filtering by date range.
-- Added: Full support for Material You dynamic color variants.
-- Added: In-app self-update with download progress.
-- Added: Deletion support for all entities.
+---
+
+## 🚀 v1.2.7 Release Body (Changelog)
+
+### ✨ What's New
+- **Brand New Onboarding:** A beautiful first-launch experience to set up your name, profile photo, and default currency.
+- **The Variable Atelier UI:** A complete visual overhaul of the Accounts page with modern "Atelier" style cards, asymmetric layouts, and a new Grid/List toggle.
+- **Enhanced Reports:** Added powerful filtering capabilities! You can now filter your financial reports by specific date ranges.
+- **All Transactions Hub:** Access your entire financial history in a new dedicated page with sorting options (Newest to Oldest & vice versa).
+- **Dynamic Color Styles:** Expanded Material You support. Choose between Vibrant, Expressive, Monochrome, Neutral, and more.
+- **App Branding:** Fresh new high-resolution app icon and a centered, scalable SVG logo in the README.
+
+### 🛠️ Improvements & Fixes
+- **Reactive Budgets:** Fixed a critical issue where budgets wouldn't update immediately after adding a transaction.
+- **Variable Font Mastery:** Fixed the "Roundness" slider by correctly mapping it to the `SOFT` axis for Google Sans Flex.
+- **Architecture Aware:** The About page now dynamically detects and displays your device architecture (arm64-v8a, armeabi-v7a, etc.).
+- **Self-Update Engine:** Integrated OTA updates directly from GitHub with a real-time download progress bar.
+- **Data Integrity:** Improved CSV export logic with proper Android storage permission handling.
+- **Universal Deletion:** Added full deletion support for transactions, categories, and accounts.
+- **Clean Code:** 100% warning-free codebase. All unused imports and variables removed.
+
+---
+*Built with ❤️ for Android 14*
