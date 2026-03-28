@@ -14,6 +14,10 @@ class PersonalizationState {
   final bool vibrationEnabled;
   final bool vibrateOnTransaction;
   final String colorSchemeVariant;
+  final bool isOnboardingComplete;
+  final String? userName;
+  final String? userPhoto;
+  final String defaultCurrency;
 
   PersonalizationState({
     this.grade = 50,
@@ -27,6 +31,10 @@ class PersonalizationState {
     this.vibrationEnabled = true,
     this.vibrateOnTransaction = true,
     this.colorSchemeVariant = 'tonalSpot',
+    this.isOnboardingComplete = false,
+    this.userName,
+    this.userPhoto,
+    this.defaultCurrency = 'INR',
   });
 
   PersonalizationState copyWith({
@@ -41,6 +49,10 @@ class PersonalizationState {
     bool? vibrationEnabled,
     bool? vibrateOnTransaction,
     String? colorSchemeVariant,
+    bool? isOnboardingComplete,
+    String? userName,
+    String? userPhoto,
+    String? defaultCurrency,
   }) {
     return PersonalizationState(
       grade: grade ?? this.grade,
@@ -54,6 +66,10 @@ class PersonalizationState {
       vibrationEnabled: vibrationEnabled ?? this.vibrationEnabled,
       vibrateOnTransaction: vibrateOnTransaction ?? this.vibrateOnTransaction,
       colorSchemeVariant: colorSchemeVariant ?? this.colorSchemeVariant,
+      isOnboardingComplete: isOnboardingComplete ?? this.isOnboardingComplete,
+      userName: userName ?? this.userName,
+      userPhoto: userPhoto ?? this.userPhoto,
+      defaultCurrency: defaultCurrency ?? this.defaultCurrency,
     );
   }
 
@@ -70,6 +86,10 @@ class PersonalizationState {
       'vibrationEnabled': vibrationEnabled,
       'vibrateOnTransaction': vibrateOnTransaction,
       'colorSchemeVariant': colorSchemeVariant,
+      'isOnboardingComplete': isOnboardingComplete,
+      'userName': userName,
+      'userPhoto': userPhoto,
+      'defaultCurrency': defaultCurrency,
     };
   }
 
@@ -86,6 +106,10 @@ class PersonalizationState {
       vibrationEnabled: map['vibrationEnabled'] as bool? ?? true,
       vibrateOnTransaction: map['vibrateOnTransaction'] as bool? ?? true,
       colorSchemeVariant: map['colorSchemeVariant'] as String? ?? 'tonalSpot',
+      isOnboardingComplete: map['isOnboardingComplete'] as bool? ?? false,
+      userName: map['userName'] as String?,
+      userPhoto: map['userPhoto'] as String?,
+      defaultCurrency: map['defaultCurrency'] as String? ?? 'INR',
     );
   }
 }
@@ -110,6 +134,21 @@ class PersonalizationNotifier extends Notifier<PersonalizationState> {
   Future<void> _save() async {
     final prefs = ref.read(sharedPreferencesProvider);
     await prefs.setString(_key, json.encode(state.toMap()));
+  }
+
+  void completeOnboarding({required String name, required String currency, String? photo}) {
+    state = state.copyWith(
+      isOnboardingComplete: true,
+      userName: name,
+      userPhoto: photo,
+      defaultCurrency: currency,
+    );
+    _save();
+  }
+
+  void updateCurrency(String currency) {
+    state = state.copyWith(defaultCurrency: currency);
+    _save();
   }
 
   void updateGrade(double value) {

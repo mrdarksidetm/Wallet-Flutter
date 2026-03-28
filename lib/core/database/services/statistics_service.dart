@@ -141,12 +141,17 @@ class StatisticsService {
     final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
 
     // Watch both categories and transactions to update when either changes
-    // We combine the streams of categories and transactions
-    return isar.categorys
+    // We combine the streams by watching transactions as the primary trigger
+    return isar.transactionModels
         .filter()
-        .isBudgetEqualTo(true)
+        .dateBetween(startOfMonth, endOfMonth)
         .watch(fireImmediately: true)
-        .asyncMap((categories) async {
+        .asyncMap((_) async {
+      final categories = await isar.categorys
+          .filter()
+          .isBudgetEqualTo(true)
+          .findAll();
+          
       final List<Map<String, dynamic>> budgetStats = [];
       
       for (var category in categories) {

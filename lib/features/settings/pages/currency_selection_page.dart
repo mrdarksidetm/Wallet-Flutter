@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/services/haptic_service.dart';
 import '../../../core/database/providers.dart';
+import '../../../core/theme/personalization_provider.dart';
 
 class CurrencySelectionPage extends ConsumerWidget {
   const CurrencySelectionPage({super.key});
@@ -18,6 +19,24 @@ class CurrencySelectionPage extends ConsumerWidget {
     {'code': 'CAD', 'name': 'Canadian Dollar', 'symbol': 'C\$'},
     {'code': 'BRL', 'name': 'Brazilian Real', 'symbol': 'R\$'},
     {'code': 'RUB', 'name': 'Russian Ruble', 'symbol': '₽'},
+    {'code': 'IDR', 'name': 'Indonesian Rupiah', 'symbol': 'Rp'},
+    {'code': 'KRW', 'name': 'South Korean Won', 'symbol': '₩'},
+    {'code': 'TRY', 'name': 'Turkish Lira', 'symbol': '₺'},
+    {'code': 'ZAR', 'name': 'South African Rand', 'symbol': 'R'},
+    {'code': 'MXN', 'name': 'Mexican Peso', 'symbol': 'MX\$'},
+    {'code': 'SGD', 'name': 'Singapore Dollar', 'symbol': 'S\$'},
+    {'code': 'HKD', 'name': 'Hong Kong Dollar', 'symbol': 'HK\$'},
+    {'code': 'NZD', 'name': 'New Zealand Dollar', 'symbol': 'NZ\$'},
+    {'code': 'CHF', 'name': 'Swiss Franc', 'symbol': 'CHF'},
+    {'code': 'AED', 'name': 'United Arab Emirates Dirham', 'symbol': 'AED'},
+    {'code': 'SAR', 'name': 'Saudi Riyal', 'symbol': 'SR'},
+    {'code': 'PKR', 'name': 'Pakistani Rupee', 'symbol': '₨'},
+    {'code': 'BDT', 'name': 'Bangladeshi Taka', 'symbol': '৳'},
+    {'code': 'LKR', 'name': 'Sri Lankan Rupee', 'symbol': 'Rs'},
+    {'code': 'MYR', 'name': 'Malaysian Ringgit', 'symbol': 'RM'},
+    {'code': 'THB', 'name': 'Thai Baht', 'symbol': '฿'},
+    {'code': 'VND', 'name': 'Vietnamese Dong', 'symbol': '₫'},
+    {'code': 'PHP', 'name': 'Philippine Peso', 'symbol': '₱'},
   ];
 
   @override
@@ -61,7 +80,7 @@ class CurrencySelectionPage extends ConsumerWidget {
                 : null,
             onTap: () async {
               await HapticService.selectionStatic();
-              ref.read(currencyProvider.notifier).state = currency['code']!;
+              ref.read(personalizationProvider.notifier).updateCurrency(currency['code']!);
               if (context.mounted) context.pop();
             },
           );

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:ota_update/ota_update.dart';
 import '../../../core/services/haptic_service.dart';
 import '../../../core/services/update_service.dart';
 import '../../../core/database/providers.dart';
@@ -19,7 +19,22 @@ class SettingsPage extends ConsumerStatefulWidget {
 }
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
-  static const String _currentVersion = '1.25';
+  String _currentVersion = '1.27';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVersion();
+  }
+
+  Future<void> _loadVersion() async {
+    final version = await ref.read(updateServiceProvider).getCurrentVersion();
+    if (mounted) {
+      setState(() {
+        _currentVersion = version;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +65,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           _buildSettingsTile(
             context,
             icon: Symbols.color_lens,
-            title: 'Theme Mode',
+            title: 'Theme & Style',
             subtitle: themeState.themeMode.name.toUpperCase(),
             onTap: () async {
               await HapticService.selectionStatic();
@@ -232,7 +247,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             subtitle: 'Open source usage terms',
             onTap: () async {
               await HapticService.selectionStatic();
-              if (context.mounted) context.push('/privacy_policy'); // Reuse for now
+              if (context.mounted) context.push('/terms_of_use');
             },
           ),
 
@@ -346,8 +361,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 ),
                 FilledButton.icon(
                   onPressed: () {
-                    launchUrl(Uri.parse(update.downloadUrl), mode: LaunchMode.externalApplication);
                     Navigator.pop(context);
+                    _startSelfUpdate(context, update.downloadUrl);
                   },
                   icon: const Icon(Symbols.download, size: 18),
                   label: const Text('Update Now'),
@@ -380,6 +395,55 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         );
       }
     }
+  }
+
+  void _startSelfUpdate(BuildContext context, String url) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StreamBuilder(
+          stream: ref.read(updateServiceProvider).downloadAndInstall(url),
+          builder: (context, snapshot) {
+            double progress = 0;
+            String status = 'Initializing...';
+            
+            if (snapshot.hasData) {
+              final event = snapshot.data as OtaEvent;
+              status = event.status.name.toUpperCase();
+              if (event.value != null) {
+                progress = double.tryParse(event.value!) ?? 0;
+              }
+            }
+
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+              title: const Text('Downloading Update'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(status),
+                  const SizedBox(height: 16),
+                  LinearProgressIndicator(
+                    value: progress / 100,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  const SizedBox(height: 8),
+                  Text('${progress.toInt()}%'),
+                ],
+              ),
+              actions: [
+                if (snapshot.hasError || (snapshot.hasData && (snapshot.data as OtaEvent).status == OtaStatus.INTERNAL_ERROR))
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancel'),
+                  ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   Widget _buildSectionHeader(BuildContext context, String title) {

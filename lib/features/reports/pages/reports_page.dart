@@ -3,28 +3,102 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:material_symbols_icons/symbols.dart';
+import '../../../core/providers/fab_action_provider.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/category.dart';
 import '../../../core/services/haptic_service.dart';
 import '../../../core/widgets/icon_picker.dart';
 
-class ReportsPage extends ConsumerWidget {
+class ReportsPage extends ConsumerStatefulWidget {
   const ReportsPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ReportsPage> createState() => _ReportsPageState();
+}
+
+class _ReportsPageState extends ConsumerState<ReportsPage> {
+  DateTimeRange? _customRange;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(fabActionProvider.notifier).setAction(_showFilterDialog);
+    });
+  }
+
+  void _showFilterDialog() async {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Filter Reports',
+                style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 24),
+              ListTile(
+                leading: Icon(Symbols.calendar_month),
+                title: const Text('Date Range'),
+                subtitle: Text(_customRange == null ? 'This Month' : '${DateFormat.yMMMd().format(_customRange!.start)} - ${DateFormat.yMMMd().format(_customRange!.end)}'),
+                onTap: () async {
+                  final range = await showDateRangePicker(
+                    context: context,
+                    firstDate: DateTime(2020),
+                    lastDate: DateTime.now(),
+                    initialDateRange: _customRange,
+                  );
+                  if (range != null) {
+                    setState(() {
+                      _customRange = range;
+                    });
+                    if (mounted) Navigator.pop(context);
+                  }
+                },
+              ),
+              ListTile(
+                leading: Icon(Symbols.restart_alt),
+                title: const Text('Reset Filter'),
+                onTap: () {
+                  setState(() {
+                    _customRange = null;
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final selectedCurrency = ref.watch(currencyProvider);
     final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
 
     final now = DateTime.now();
     final startOfMonth = DateTime(now.year, now.month, 1);
     final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
-    final monthRange = DateTimeRange(start: startOfMonth, end: endOfMonth);
+    final currentRange = _customRange ?? DateTimeRange(start: startOfMonth, end: endOfMonth);
 
-    final breakdownAsync = ref.watch(categoryBreakdownProvider(monthRange));
-    final dailyStatsAsync = ref.watch(dailyStatsProvider(monthRange));
+    final breakdownAsync = ref.watch(categoryBreakdownProvider(currentRange));
+    final dailyStatsAsync = ref.watch(dailyStatsProvider(currentRange));
 
     return Scaffold(
       appBar: AppBar(
@@ -102,12 +176,12 @@ class ReportsPage extends ConsumerWidget {
                         LineChartBarData(
                           spots: stats.map((e) => FlSpot(e.key.day.toDouble(), e.value)).toList(),
                           isCurved: true,
-                          color: colorScheme.primary,
+                          color: theme.colorScheme.primary,
                           barWidth: 4,
                           dotData: const FlDotData(show: false),
                           belowBarData: BarAreaData(
                             show: true,
-                            color: colorScheme.primary.withValues(alpha: 0.1),
+                            color: theme.colorScheme.primary.withValues(alpha: 0.1),
                           ),
                         ),
                       ],

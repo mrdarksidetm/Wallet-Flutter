@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:ota_update/ota_update.dart';
 
 class AppUpdate {
   final String version;
@@ -22,13 +24,16 @@ class AppUpdate {
     String downloadUrl = json['html_url'];
     
     if (assets.isNotEmpty) {
-      // 1. Try to find APK matching exact architecture (e.g. arm64-v8a)
+      // 1. Try to find APK matching exact architecture
       final archSpecific = assets.where((asset) {
         final name = asset['name'].toString().toLowerCase();
         if (!name.endsWith('.apk')) return false;
         
         if (architecture == 'arm64-v8a') {
           return name.contains('arm64-v8a') || name.contains('arm64-8a');
+        }
+        if (architecture == 'armeabi-v7a') {
+          return name.contains('armeabi-v7a') || name.contains('arm-v7a');
         }
         return name.contains(architecture);
       });
@@ -82,6 +87,11 @@ class UpdateService {
     return 'universal';
   }
 
+  Future<String> getCurrentVersion() async {
+    final packageInfo = await PackageInfo.fromPlatform();
+    return packageInfo.version;
+  }
+
   Future<AppUpdate?> checkForUpdates() async {
     try {
       final architecture = await getDeviceArchitecture();
@@ -110,6 +120,13 @@ class UpdateService {
       return latestVersion != currentVersion;
     }
     return false;
+  }
+
+  Stream<OtaEvent> downloadAndInstall(String url) {
+    return OtaUpdate().execute(
+      url,
+      destinationFilename: 'wallet_update.apk',
+    );
   }
 }
 

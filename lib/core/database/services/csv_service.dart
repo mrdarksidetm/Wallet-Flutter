@@ -3,9 +3,9 @@ import 'package:csv/csv.dart' as csv;
 import 'package:isar/isar.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path/path.dart' as p;
-import '../models/transaction_model.dart';
-
 import 'package:file_picker/file_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
+import '../models/transaction_model.dart';
 import '../models/account.dart';
 import '../models/category.dart';
 
@@ -118,14 +118,22 @@ class CsvService {
   }
 
   Future<void> exportTransactions() async {
-    // 1. Prompt User for Directory (Avoid Permission Denied on newer Android)
+    // 1. Check/Request Permission on Android
+    if (Platform.isAndroid) {
+      if (!await Permission.storage.request().isGranted && 
+          !await Permission.manageExternalStorage.request().isGranted) {
+        // Many newer devices require MANAGE_EXTERNAL_STORAGE for non-media files
+      }
+    }
+
+    // 2. Prompt User for Directory
     final String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
     if (selectedDirectory == null) throw Exception('Export cancelled');
 
-    // 2. Fetch Data
+    // 3. Fetch Data
     final transactions = await isar.transactionModels.where().sortByDateDesc().findAll();
     
-    // 3. Convert to CSV List
+    // 4. Convert to CSV List
     List<List<dynamic>> rows = [];
     rows.add(['Date', 'Time', 'Type', 'Amount', 'Category', 'Account', 'Transfer Account', 'Note', 'Tags']);
 
@@ -143,19 +151,21 @@ class CsvService {
       ]);
     }
 
-    // 4. Generate CSV String
+    // 5. Generate CSV String
     String csvData = const csv.ListToCsvConverter().convert(rows);
 
-    // 5. Save to File in selected directory
-    final path = p.join(selectedDirectory, 'wallet_export_${DateTime.now().millisecondsSinceEpoch}.csv');
-    final file = File(path);
-    await file.writeAsString(csvData);
-    
-    // 6. Open File (Optional)
     try {
-      await OpenFilex.open(path);
-    } catch (_) {
-      // Ignore open errors if platform doesn't support
+      // 6. Save to File in selected directory
+      final path = p.join(selectedDirectory, 'wallet_export_${DateTime.now().millisecondsSinceEpoch}.csv');
+      final file = File(path);
+      await file.writeAsString(csvData);
+      
+      // 7. Open File (Optional)
+      try {
+        await OpenFilex.open(path);
+      } catch (_) {}
+    } catch (e) {
+      throw Exception('Could not write to folder. Please ensure you have given storage permission to Wallet. Error: $e');
     }
   }
 }

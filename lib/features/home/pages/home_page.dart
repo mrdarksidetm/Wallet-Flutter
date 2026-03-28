@@ -28,37 +28,34 @@ class HomePage extends ConsumerWidget {
           _buildSectionHeader('Finances'),
           _HomeFinanceGrid(currencyFormat: currencyFormat),
           const SliverToBoxAdapter(child: SizedBox(height: 32)),
-          _buildSectionHeader(
-            'Recent Transactions',
-            trailing: TextButton(
-              onPressed: () => context.go('/accounts'),
-              child: const Text('View all'),
+          _buildSectionHeader('Recent Transactions'),
+          _HomeRecentTransactions(currencyFormat: currencyFormat),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: OutlinedButton(
+                onPressed: () => context.push('/all_transactions'),
+                child: const Text('View All Transactions'),
+              ),
             ),
           ),
-          _HomeRecentTransactions(currencyFormat: currencyFormat),
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
     );
   }
 
-  Widget _buildSectionHeader(String title, {Widget? trailing}) {
+  Widget _buildSectionHeader(String title) {
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 8, 16, 12),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                fontVariations: [FontVariation('wdth', 120)],
-              ),
-            ),
-            if (trailing != null) trailing,
-          ],
+        child: Text(
+          title,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            fontVariations: [FontVariation('wdth', 120)],
+          ),
         ),
       ),
     );
@@ -193,7 +190,7 @@ class _HomeRecentTransactions extends ConsumerWidget {
       data: (transactions) {
         if (transactions.isEmpty) return const SliverToBoxAdapter(child: Center(child: Text('No transactions yet')));
         
-        final recentTxs = transactions.take(5).toList();
+        final recentTxs = transactions.take(20).toList();
         return SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           sliver: SliverList(

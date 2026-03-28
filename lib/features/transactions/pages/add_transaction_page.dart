@@ -13,7 +13,8 @@ import '../../../core/widgets/icon_picker.dart';
 import '../../../core/widgets/primary_atelier_button.dart';
 
 class AddTransactionPage extends ConsumerStatefulWidget {
-  const AddTransactionPage({super.key});
+  final TransactionModel? transaction;
+  const AddTransactionPage({super.key, this.transaction});
 
   @override
   ConsumerState<AddTransactionPage> createState() => _AddTransactionPageState();
@@ -28,6 +29,22 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
   Category? _selectedCategory;
   Account? _selectedTransferAccount;
   String? _selectedIcon;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.transaction != null) {
+      _transactionType = widget.transaction!.type;
+      _amountController.text = widget.transaction!.amount.toString();
+      _noteController.text = widget.transaction!.note ?? '';
+      _selectedIcon = widget.transaction!.icon;
+      // Note: We need to load links from the transaction object
+      // Since they are IsarLinks, they might not be loaded yet
+      _selectedAccount = widget.transaction!.account.value;
+      _selectedCategory = widget.transaction!.category.value;
+      _selectedTransferAccount = widget.transaction!.transferAccount.value;
+    }
+  }
 
   @override
   void dispose() {
@@ -51,21 +68,67 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
     try {
       final service = ref.read(transactionServiceProvider);
       final personalization = ref.read(personalizationProvider);
-      await service.addTransaction(
-        amount: amount,
-        date: DateTime.now(),
-        type: _transactionType,
-        account: _selectedAccount!,
-        category: _selectedCategory!,
-        note: _noteController.text.isNotEmpty ? _noteController.text : null,
-        transferAccount: _selectedTransferAccount,
-        icon: _selectedIcon,
-      );
+      
+      if (widget.transaction != null) {
+        final updatedTx = TransactionModel()
+          ..id = widget.transaction!.id
+          ..amount = amount
+          ..date = widget.transaction!.date
+          ..type = _transactionType
+          ..note = _noteController.text.isNotEmpty ? _noteController.text : null
+          ..icon = _selectedIcon
+          ..createdAt = widget.transaction!.createdAt
+          ..updatedAt = DateTime.now();
+        
+        updatedTx.account.value = _selectedAccount;
+        updatedTx.category.value = _selectedCategory;
+        updatedTx.transferAccount.value = _selectedTransferAccount;
+
+        await service.updateTransaction(widget.transaction!, updatedTx);
+      } else {
+        await service.addTransaction(
+          amount: amount,
+          date: DateTime.now(),
+          type: _transactionType,
+          account: _selectedAccount!,
+          category: _selectedCategory!,
+          note: _noteController.text.isNotEmpty ? _noteController.text : null,
+          transferAccount: _selectedTransferAccount,
+          icon: _selectedIcon,
+        );
+      }
 
       await ref.read(hapticServiceProvider).transaction(personalization.vibrateOnTransaction);
       if (mounted) context.pop();
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
+
+  Future<void> _delete() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Transaction?'),
+        content: const Text('This action cannot be undone and will revert the account balance.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && widget.transaction != null) {
+      try {
+        await ref.read(transactionServiceProvider).deleteTransaction(widget.transaction!);
+        if (mounted) context.pop();
+      } catch (e) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Delete failed: $e')));
+      }
     }
   }
 
@@ -79,11 +142,19 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add Transaction'),
+        title: Text(widget.transaction != null ? 'Edit Transaction' : 'Add Transaction'),
         leading: IconButton(
           onPressed: () => context.pop(),
           icon: const Icon(Icons.close_rounded),
         ),
+        actions: [
+          if (widget.transaction != null)
+            IconButton(
+              onPressed: _delete,
+              icon: Icon(Symbols.delete, color: colorScheme.error),
+            ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
@@ -121,7 +192,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
               textAlign: TextAlign.center,
               decoration: InputDecoration(
                 hintText: '0.00',
-                prefixText: '₹ ',
+                prefixText: ref.watch(currencyProvider) == 'INR' ? '₹ ' : '\$ ',
                 prefixStyle: theme.textTheme.displaySmall?.copyWith(
                   color: colorScheme.outline,
                 ),
@@ -210,9 +281,9 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
             PrimaryAtelierButton(
               onPressed: _save,
               icon: const Icon(Symbols.save, color: Colors.white),
-              label: const Text(
-                'Save Transaction',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              label: Text(
+                widget.transaction != null ? 'Update Transaction' : 'Save Transaction',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -258,7 +329,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
             final acc = accounts[index];
             return ListTile(
               title: Text(acc.name),
-              subtitle: Text('Balance: ₹${acc.balance.toStringAsFixed(2)}'),
+              subtitle: Text('Balance: ${acc.balance.toStringAsFixed(2)}'),
               onTap: () {
                 setState(() {
                   if (isTransfer) {

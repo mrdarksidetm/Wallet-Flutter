@@ -7,6 +7,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../features/home/pages/home_page.dart';
 import '../features/accounts/pages/accounts_page.dart';
 import '../features/transactions/pages/add_transaction_page.dart';
+import '../features/transactions/pages/all_transactions_page.dart';
 import '../features/reports/pages/reports_page.dart';
 import '../features/auth/pages/unlock_page.dart';
 import '../features/auth/providers/auth_provider.dart';
@@ -32,20 +33,39 @@ import '../features/settings/pages/privacy_policy_page.dart';
 import '../features/settings/pages/feedback_page.dart';
 import '../features/settings/pages/about_page.dart';
 
+import '../core/database/models/transaction_model.dart';
 import '../core/database/models/account.dart';
 import '../core/database/models/category.dart';
 import '../core/database/models/auxiliary_models.dart';
 import '../core/theme/personalization_provider.dart';
 import '../core/providers/fab_action_provider.dart';
 
+import '../features/auth/pages/onboarding_page.dart';
+
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
 final routerProvider = Provider<GoRouter>((ref) {
+  final personalization = ref.watch(personalizationProvider);
+
   return GoRouter(
     initialLocation: '/',
     navigatorKey: _rootNavigatorKey,
+    redirect: (context, state) {
+      final isOnboarding = state.uri.path == '/onboarding';
+      if (!personalization.isOnboardingComplete && !isOnboarding) {
+        return '/onboarding';
+      }
+      if (personalization.isOnboardingComplete && isOnboarding) {
+        return '/';
+      }
+      return null;
+    },
     routes: [
+      GoRoute(
+        path: '/onboarding',
+        builder: (context, state) => const OnboardingPage(),
+      ),
       ShellRoute(
         navigatorKey: _shellNavigatorKey,
         builder: (context, state, child) => AppShell(child: child),
@@ -58,16 +78,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           _shellRoute('/budgets', const BudgetsPage(), type: SharedAxisTransitionType.scaled),
           _shellRoute('/bill_splitter', const BillSplitterPage(), type: SharedAxisTransitionType.scaled),
           _shellRoute('/recurring', const RecurringPage(), type: SharedAxisTransitionType.scaled),
-          _shellRoute('/settings', const SettingsPage(), type: SharedAxisTransitionType.scaled),
-          _shellRoute('/theme_selection', const ThemeSelectionPage(), type: SharedAxisTransitionType.scaled),
-          _shellRoute('/personalization', const PersonalizationPage(), type: SharedAxisTransitionType.scaled),
-          _shellRoute('/categories', const CategoriesPage(), type: SharedAxisTransitionType.scaled),
           _shellRoute('/people', const PeoplePage(), type: SharedAxisTransitionType.scaled),
           _shellRoute('/goals', const GoalsPage(), type: SharedAxisTransitionType.scaled),
-          _shellRoute('/currency_selection', const CurrencySelectionPage(), type: SharedAxisTransitionType.scaled),
-          _shellRoute('/privacy_policy', const PrivacyPolicyPage(), type: SharedAxisTransitionType.scaled),
-          _shellRoute('/feedback', const FeedbackPage(), type: SharedAxisTransitionType.scaled),
-          _shellRoute('/about', const AboutPage(), type: SharedAxisTransitionType.scaled),
           GoRoute(
             path: '/category_details',
             pageBuilder: (context, state) => _buildSharedAxisTransition(
@@ -76,7 +88,16 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ],
       ),
-      _rootRoute('/add_transaction', (_) => const AddTransactionPage()),
+      _rootRoute('/settings', (_) => const SettingsPage()),
+      _rootRoute('/theme_selection', (_) => const ThemeSelectionPage()),
+      _rootRoute('/personalization', (_) => const PersonalizationPage()),
+      _rootRoute('/categories', (_) => const CategoriesPage()),
+      _rootRoute('/currency_selection', (_) => const CurrencySelectionPage()),
+      _rootRoute('/privacy_policy', (_) => const PrivacyPolicyPage()),
+      _rootRoute('/feedback', (_) => const FeedbackPage()),
+      _rootRoute('/about', (_) => const AboutPage()),
+      _rootRoute('/all_transactions', (_) => const AllTransactionsPage()),
+      _rootRoute('/add_transaction', (state) => AddTransactionPage(transaction: state.extra as TransactionModel?)),
       _rootRoute('/add_account', (state) => AddEditAccountPage(account: state.extra as Account?)),
       _rootRoute('/add_loan', (_) => const AddEditLoanPage()),
       _rootRoute('/add_recurring', (state) => AddEditRecurringPage(recurring: state.extra as Recurring?)),
@@ -206,6 +227,7 @@ class _FAB extends ConsumerWidget {
 
   bool _shouldHideFAB(String loc) {
     final hiddenRoutes = [
+      '/search',
       '/settings',
       '/personalization',
       '/categories',
@@ -222,6 +244,7 @@ class _FAB extends ConsumerWidget {
       '/add_recurring',
       '/add_category'
     ];
+    // Don't hide for /reports anymore
     return hiddenRoutes.any((route) => loc == route || loc.startsWith('$route/'));
   }
 
@@ -229,6 +252,7 @@ class _FAB extends ConsumerWidget {
     switch (loc) {
       case '/': return Symbols.add;
       case '/accounts': return Symbols.add_card;
+      case '/reports': return Symbols.filter_alt;
       case '/categories': return Symbols.category;
       case '/people': return Symbols.person_add;
       case '/goals': return Symbols.flag;
@@ -242,6 +266,11 @@ class _FAB extends ConsumerWidget {
     switch (loc) {
       case '/': context.push('/add_transaction'); break;
       case '/accounts': context.push('/add_account'); break;
+      case '/reports': 
+        // Show filter bottom sheet or dialog
+        final action = ref.read(fabActionProvider);
+        if (action != null) action();
+        break;
       case '/categories': context.push('/add_category'); break;
       case '/people': 
         final action = ref.read(fabActionProvider);

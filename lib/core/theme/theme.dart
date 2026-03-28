@@ -37,7 +37,7 @@ class AppTheme {
       FontVariation('wght', state.weight),
       FontVariation('slnt', state.slant),
       FontVariation('wdth', state.width),
-      FontVariation('ROND', state.fontRoundness),
+      FontVariation('SOFT', state.fontRoundness),
       FontVariation('opsz', state.opticalSize),
     ];
 
@@ -51,7 +51,6 @@ class AppTheme {
     final colorScheme = dynamicColorScheme ?? ColorScheme.fromSeed(
       seedColor: seedColor,
       brightness: brightness,
-      // variant: _getVariant(state.colorSchemeVariant), // Enable in modern Flutter 3.22+
       primary: isDark ? AppColors.primaryDark : AppColors.primary,
       surface: isDark ? AppColors.surfaceDark : AppColors.surface,
       onSurface: isDark ? AppColors.onSurfaceDark : AppColors.onSurface,

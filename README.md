@@ -1,12 +1,18 @@
 # Wallet
 
-![Wallet Logo](assets/icon/Original-Colour-readme.svg)
+<p align="center">
+  <img src="assets/icon/Original-Colour.svg" width="160" height="160" alt="Wallet Logo">
+</p>
 
-Offline-first personal finance app built with Flutter.
+<p align="center">
+  Offline-first personal finance app built with Flutter.
+</p>
 
-[![License MIT](https://img.shields.io/badge/License-MIT-black.svg)](LICENSE)
-![Flutter 3.5+](https://img.shields.io/badge/Flutter-3.5%2B-02569B.svg)
-![Android verified](https://img.shields.io/badge/Android-Verified-3DDC84.svg)
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-black.svg" alt="License MIT"></a>
+  <img src="https://img.shields.io/badge/Flutter-3.5%2B-02569B.svg" alt="Flutter 3.5+">
+  <img src="https://img.shields.io/badge/Android-Verified-3DDC84.svg" alt="Android verified">
+</p>
 
 ## 📌 Repository Status
 

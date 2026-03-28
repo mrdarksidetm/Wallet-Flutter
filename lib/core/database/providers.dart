@@ -25,6 +25,7 @@ import 'models/account.dart';
 import 'models/category.dart';
 import 'models/transaction_model.dart';
 import 'models/auxiliary_models.dart';
+import '../theme/personalization_provider.dart';
 
 // --- Storage Providers ---
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
@@ -188,7 +189,10 @@ final totalAssetBalanceProvider = StreamProvider<double>((ref) {
 });
 
 // --- Settings Providers ---
-final currencyProvider = StateProvider<String>((ref) => 'INR');
+final currencyProvider = Provider<String>((ref) {
+  final personalization = ref.watch(personalizationProvider);
+  return personalization.defaultCurrency;
+});
 
 // --- Search Providers ---
 final searchQueryProvider = StateProvider<String>((ref) => '');

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/services/haptic_service.dart';
 import '../../../core/widgets/primary_atelier_button.dart';
 
@@ -89,12 +90,49 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
             
             PrimaryAtelierButton(
               onPressed: () async {
-                await HapticService.successStatic();
-                if (mounted) {
+                final email = _emailController.text;
+                final message = _messageController.text;
+                
+                if (message.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Feedback sent! Thank you.')),
+                    const SnackBar(content: Text('Please enter a message')),
                   );
-                  Navigator.pop(context);
+                  return;
+                }
+                
+                final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                if (email.isNotEmpty && !emailRegex.hasMatch(email)) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please enter a valid email or leave it empty')),
+                  );
+                  return;
+                }
+
+                await HapticService.successStatic();
+                
+                final Uri emailLaunchUri = Uri(
+                  scheme: 'mailto',
+                  path: 'abhi@antigravity.ideas', // Dummy dev email
+                  query: encodeQueryParameters({
+                    'subject': 'Wallet App Feedback',
+                    'body': 'Name: ${_nameController.text}\nEmail: $email\n\n$message',
+                  }),
+                );
+
+                try {
+                  await launchUrl(emailLaunchUri);
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Feedback prepared! Please send via your email app.')),
+                    );
+                    Navigator.pop(context);
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Could not open email app: $e')),
+                    );
+                  }
                 }
               },
               icon: const Icon(Symbols.send, color: Colors.white),
@@ -104,5 +142,12 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
         ),
       ),
     );
+  }
+
+  String? encodeQueryParameters(Map<String, String> params) {
+    return params.entries
+        .map((MapEntry<String, String> e) =>
+            '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+        .join('&');
   }
 }
