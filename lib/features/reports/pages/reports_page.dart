@@ -50,7 +50,13 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
               ),
               const SizedBox(height: 24),
               ListTile(
-                leading: Icon(Symbols.calendar_month),
+                // ------------------------------------------------------------------
+                // FIX: Added the 'const' keyword to the Icon constructor below.
+                // Since 'Symbols.calendar_month' is an immutable static constant,
+                // making the Icon itself 'const' allows Dart to allocate it once at 
+                // compile-time rather than recreating it on every single UI rebuild.
+                // ------------------------------------------------------------------
+                leading: const Icon(Symbols.calendar_month),
                 title: const Text('Date Range'),
                 subtitle: Text(_customRange == null ? 'This Month' : '${DateFormat.yMMMd().format(_customRange!.start)} - ${DateFormat.yMMMd().format(_customRange!.end)}'),
                 onTap: () async {
@@ -69,7 +75,12 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                 },
               ),
               ListTile(
-                leading: Icon(Symbols.restart_alt),
+                // ------------------------------------------------------------------
+                // FIX: Added the 'const' keyword to this Icon constructor as well.
+                // This resolves the second 'prefer_const_constructors' warning 
+                // and follows Flutter's best practices for memory optimization.
+                // ------------------------------------------------------------------
+                leading: const Icon(Symbols.restart_alt),
                 title: const Text('Reset Filter'),
                 onTap: () {
                   setState(() {
