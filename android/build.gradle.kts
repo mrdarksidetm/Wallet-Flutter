@@ -1,11 +1,4 @@
 import com.android.build.gradle.BaseExtension
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-    }
-}
-
 subprojects {
     afterEvaluate {
         if ((project.plugins.hasPlugin("com.android.application") || project.plugins.hasPlugin("com.android.library"))) {    
