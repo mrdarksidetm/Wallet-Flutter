@@ -14,6 +14,16 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
+// THE CODEMAGIC BYPASS
+// Direct injection avoids Java string escaping issues entirely.
+val cmKeystorePassword = System.getenv("F_KEYSTORE_PASSWORD")
+if (cmKeystorePassword != null) {
+    keystoreProperties["storePassword"] = cmKeystorePassword
+    keystoreProperties["keyPassword"]   = System.getenv("F_KEY_PASSWORD")
+    keystoreProperties["keyAlias"]      = System.getenv("F_KEY_ALIAS")
+    keystoreProperties["storeFile"]     = file("upload-keystore.jks").absolutePath
+}
+
 android {
     namespace = "com.mrdarksidetm.wallet"
     compileSdk = 36
@@ -44,10 +54,10 @@ android {
 
     signingConfigs {
         create("release") {
-            keyAlias = keystoreProperties["keyAlias"] as String?
-            keyPassword = keystoreProperties["keyPassword"] as String?
-            storeFile = keystoreProperties["storeFile"]?.let { file(it) }
-            storePassword = keystoreProperties["storePassword"] as String?
+            storeFile = file(keystoreProperties["storeFile"] as String? ?: "")
+            storePassword = keystoreProperties["storePassword"] as String? ?: ""
+            keyAlias = keystoreProperties["keyAlias"] as String? ?: ""
+            keyPassword = keystoreProperties["keyPassword"] as String? ?: ""
         }
     }
 

@@ -22,17 +22,8 @@ workflows:
 
     # 3. BUILD SCRIPTS
     scripts:
-      - name: Set up key.properties
+      - name: Set up Keystore
         script: |
-          # Creates the key.properties file that Android/Flutter uses to sign the app.
-          # The single '>' creates/overwrites the file. The '>>' appends to the file.
-          echo "keyAlias=$F_KEY_ALIAS" > android/key.properties
-          echo "keyPassword=$F_KEY_PASSWORD" >> android/key.properties
-          echo "storeFile=upload-keystore.jks" >> android/key.properties
-          
-          # FIXED: Now correctly using the F_KEYSTORE_PASSWORD variable from the UI
-          echo "storePassword=$F_KEYSTORE_PASSWORD" >> android/key.properties
-          
           # Decodes the Base64 text string back into a binary .jks file 
           # Quotes are added around "$F_KEYSTORE" to safely handle the massive string
           echo "$F_KEYSTORE" | base64 --decode > android/app/upload-keystore.jks
