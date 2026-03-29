@@ -13,8 +13,9 @@ class GreetingService {
     final month = now.month;
 
     // 1. Festivals & Holidays (Fixed Dates for simplicity, can be dynamic later)
-    if (month == 1 && dayOfMonth == 1)
+    if (month == 1 && dayOfMonth == 1) {
       return "Happy New Year! 🎉 Start strong.";
+    }
     if (month == 1 && dayOfMonth == 26) return "Happy Republic Day! 🇮🇳";
     if (month == 8 && dayOfMonth == 15) return "Happy Independence Day! 🇮🇳";
     if (month == 10 && dayOfMonth == 2) return "Gandhi Jayanti 🙏";

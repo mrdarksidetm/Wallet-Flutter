@@ -7,10 +7,10 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/database/providers.dart';
-import '../../../core/database/models/transaction_model.dart';
 import '../../../core/services/haptic_service.dart';
 import '../../../core/services/greeting_service.dart';
 import '../../../core/theme/personalization_provider.dart';
+import '../../../core/widgets/transaction_list_tile.dart';
 import '../widgets/total_balance_card.dart';
 import '../widgets/overview_card.dart';
 
@@ -22,8 +22,6 @@ class HomePage extends ConsumerWidget {
     final greeting = ref.watch(greetingServiceProvider).getGreeting();
     final userName =
         ref.watch(personalizationProvider.select((p) => p.userName)) ?? 'User';
-    final selectedCurrency = ref.watch(currencyProvider);
-    final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
 
     return AnimationLimiter(
       child: CustomScrollView(
@@ -31,10 +29,10 @@ class HomePage extends ConsumerWidget {
           _HomeAppBar(greeting: greeting, userName: userName),
           const SliverToBoxAdapter(child: _HomeBalanceSection()),
           const _SectionHeader(title: 'Finances'),
-          _HomeFinanceGrid(currencyFormat: currencyFormat),
+          const _HomeFinanceGrid(),
           const SliverToBoxAdapter(child: SizedBox(height: 32)),
           const _SectionHeader(title: 'Recent Transactions'),
-          _HomeRecentTransactions(currencyFormat: currencyFormat),
+          const _HomeRecentTransactions(),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
@@ -130,6 +128,8 @@ class _HomeBalanceSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final totalBalanceAsync = ref.watch(totalBalanceProvider);
     final monthlyStatsAsync = ref.watch(monthlyStatsProvider);
+    final selectedCurrency = ref.watch(currencyProvider);
+    final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -139,31 +139,34 @@ class _HomeBalanceSection extends ConsumerWidget {
             totalBalance: total,
             monthlyIncome: stats['income'] ?? 0.0,
             monthlyExpense: stats['expense'] ?? 0.0,
+            format: currencyFormat,
           ),
-          loading: () => const _LoadingBalance(),
-          error: (_, __) => const _LoadingBalance(),
+          loading: () => _LoadingBalance(format: currencyFormat),
+          error: (_, __) => _LoadingBalance(format: currencyFormat),
         ),
-        loading: () => const _LoadingBalance(),
-        error: (_, __) => const _LoadingBalance(),
+        loading: () => _LoadingBalance(format: currencyFormat),
+        error: (_, __) => _LoadingBalance(format: currencyFormat),
       ),
     );
   }
 }
 
 class _LoadingBalance extends StatelessWidget {
-  const _LoadingBalance();
+  final NumberFormat format;
+  const _LoadingBalance({required this.format});
   @override
-  Widget build(BuildContext context) => const TotalBalanceCard(
-      totalBalance: 0, monthlyIncome: 0, monthlyExpense: 0);
+  Widget build(BuildContext context) => TotalBalanceCard(
+      totalBalance: 0, monthlyIncome: 0, monthlyExpense: 0, format: format);
 }
 
 class _HomeFinanceGrid extends ConsumerWidget {
-  final NumberFormat currencyFormat;
-  const _HomeFinanceGrid({required this.currencyFormat});
+  const _HomeFinanceGrid();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final totalAssetBalanceAsync = ref.watch(totalAssetBalanceProvider);
+    final selectedCurrency = ref.watch(currencyProvider);
+    final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
 
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -222,8 +225,7 @@ class _HomeFinanceGrid extends ConsumerWidget {
 }
 
 class _HomeRecentTransactions extends ConsumerWidget {
-  final NumberFormat currencyFormat;
-  const _HomeRecentTransactions({required this.currencyFormat});
+  const _HomeRecentTransactions();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -253,8 +255,14 @@ class _HomeRecentTransactions extends ConsumerWidget {
                 child: SlideAnimation(
                   verticalOffset: 50.0,
                   child: FadeInAnimation(
-                    child: _TransactionTile(
-                        tx: recentTxs[index], format: currencyFormat),
+                    child: TransactionListTile(
+                      tx: recentTxs[index],
+                      onTap: () {
+                        HapticService.selectionStatic();
+                        context.push('/add_transaction',
+                            extra: recentTxs[index]);
+                      },
+                    ),
                   ),
                 ),
               ),
@@ -267,48 +275,6 @@ class _HomeRecentTransactions extends ConsumerWidget {
           child: Center(child: CircularProgressIndicator())),
       error: (err, _) =>
           SliverToBoxAdapter(child: Center(child: Text('Error: $err'))),
-    );
-  }
-}
-
-class _TransactionTile extends StatelessWidget {
-  final TransactionModel tx;
-  final NumberFormat format;
-  const _TransactionTile({required this.tx, required this.format});
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isIncome = tx.type == TransactionType.income;
-
-    return ListTile(
-      onTap: () {
-        HapticService.selectionStatic();
-        // Add navigation to edit if needed
-      },
-      contentPadding: EdgeInsets.zero,
-      leading: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: const BoxDecoration(
-          color: Colors.black12,
-          shape: BoxShape.circle,
-        ),
-        child: const Icon(Symbols.receipt_long, size: 20),
-      ),
-      title: Text(tx.note ?? 'Transaction',
-          style: const TextStyle(fontWeight: FontWeight.w600)),
-      subtitle: Text(
-        DateFormat.yMMMd().format(tx.date),
-        style: TextStyle(
-            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
-      ),
-      trailing: Text(
-        '${isIncome ? '+' : '-'}${format.format(tx.amount)}',
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          color: isIncome ? Colors.green : colorScheme.error,
-        ),
-      ),
     );
   }
 }

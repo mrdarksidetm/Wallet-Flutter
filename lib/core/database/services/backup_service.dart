@@ -20,7 +20,8 @@ class BackupService {
     }
 
     // 2. Prompt User for Directory (SAF)
-    String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
+    final String? selectedDirectory =
+        await FilePicker.platform.getDirectoryPath();
 
     if (selectedDirectory == null) {
       throw Exception('Operation cancelled by user');

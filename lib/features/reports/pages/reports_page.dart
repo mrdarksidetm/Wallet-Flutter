@@ -28,6 +28,12 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
     });
   }
 
+  @override
+  void dispose() {
+    ref.read(fabActionProvider.notifier).setAction(null);
+    super.dispose();
+  }
+
   void _showFilterDialog() async {
     final theme = Theme.of(context);
 

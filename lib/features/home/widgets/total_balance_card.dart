@@ -5,19 +5,20 @@ class TotalBalanceCard extends StatelessWidget {
   final double totalBalance;
   final double monthlyIncome;
   final double monthlyExpense;
+  final NumberFormat format;
 
   const TotalBalanceCard({
     super.key,
     required this.totalBalance,
     required this.monthlyIncome,
     required this.monthlyExpense,
+    required this.format,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final currencyFormat = NumberFormat.simpleCurrency(locale: 'en_IN');
 
     return Card(
       color: colorScheme.primaryContainer.withValues(alpha: 0.4),
@@ -36,7 +37,7 @@ class TotalBalanceCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              currencyFormat.format(totalBalance),
+              format.format(totalBalance),
               style: theme.textTheme.displayMedium?.copyWith(
                 fontWeight: FontWeight.w900,
                 color: colorScheme.onPrimaryContainer,
@@ -49,13 +50,13 @@ class TotalBalanceCard extends StatelessWidget {
                 _buildMiniStat(
                   context,
                   'Income',
-                  currencyFormat.format(monthlyIncome),
+                  format.format(monthlyIncome),
                   Colors.green,
                 ),
                 _buildMiniStat(
                   context,
                   'Expense',
-                  currencyFormat.format(monthlyExpense),
+                  format.format(monthlyExpense),
                   Colors.red,
                 ),
               ],

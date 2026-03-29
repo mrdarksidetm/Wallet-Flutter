@@ -106,9 +106,10 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
           .transaction(personalization.vibrateOnTransaction);
       if (mounted) context.pop();
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
     }
   }
 
@@ -140,9 +141,10 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
             .deleteTransaction(widget.transaction!);
         if (mounted) context.pop();
       } catch (e) {
-        if (mounted)
+        if (mounted) {
           ScaffoldMessenger.of(context)
               .showSnackBar(SnackBar(content: Text('Delete failed: $e')));
+        }
       }
     }
   }
@@ -337,8 +339,9 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
       context: context,
       builder: (context) {
         final filtered = categories.where((c) {
-          if (_transactionType == TransactionType.transfer)
+          if (_transactionType == TransactionType.transfer) {
             return c.type == CategoryType.transfer;
+          }
           return c.type.name == _transactionType.name;
         }).toList();
 

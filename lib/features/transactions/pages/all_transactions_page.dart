@@ -3,9 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/database/providers.dart';
-import '../../../core/database/models/transaction_model.dart';
 import '../../../core/services/haptic_service.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../../core/widgets/transaction_list_tile.dart';
 
 class AllTransactionsPage extends ConsumerStatefulWidget {
   const AllTransactionsPage({super.key});
@@ -63,7 +64,6 @@ class _AllTransactionsPageState extends ConsumerState<AllTransactionsPage> {
             itemCount: sortedTxs.length,
             itemBuilder: (context, index) {
               final tx = sortedTxs[index];
-              final isIncome = tx.type == TransactionType.income;
 
               return Dismissible(
                 key: ValueKey(tx.id),
@@ -113,33 +113,12 @@ class _AllTransactionsPageState extends ConsumerState<AllTransactionsPage> {
                   padding: const EdgeInsets.only(right: 24),
                   child: const Icon(Symbols.delete, color: Colors.white),
                 ),
-                child: ListTile(
+                child: TransactionListTile(
+                  tx: tx,
                   onTap: () async {
                     await HapticService.selectionStatic();
                     context.push('/add_transaction', extra: tx);
                   },
-                  contentPadding: const EdgeInsets.symmetric(vertical: 4),
-                  leading: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: const BoxDecoration(
-                      color: Colors.black12,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Symbols.receipt_long, size: 20),
-                  ),
-                  title: Text(tx.note ?? 'Transaction',
-                      style: const TextStyle(fontWeight: FontWeight.w600)),
-                  subtitle: Text(DateFormat.yMMMd().add_jm().format(tx.date),
-                      style: TextStyle(
-                          color: colorScheme.onSurfaceVariant
-                              .withValues(alpha: 0.7),
-                          fontSize: 12)),
-                  trailing: Text(
-                    '${isIncome ? '+' : '-'}${currencyFormat.format(tx.amount)}',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: isIncome ? Colors.green : colorScheme.error),
-                  ),
                 ),
               );
             },

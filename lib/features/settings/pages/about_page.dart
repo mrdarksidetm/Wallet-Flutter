@@ -1,10 +1,8 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import '../../../core/theme/personalization_provider.dart';
 
 class AboutPage extends ConsumerWidget {

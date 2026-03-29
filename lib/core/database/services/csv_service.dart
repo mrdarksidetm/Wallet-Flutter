@@ -100,7 +100,7 @@ class CsvService {
 
           if (type == TransactionType.transfer &&
               transferAccountName.isNotEmpty) {
-            var tAccount = await isar.accounts
+            final tAccount = await isar.accounts
                 .filter()
                 .nameEqualTo(transferAccountName)
                 .findFirst();
@@ -148,7 +148,7 @@ class CsvService {
         await isar.transactionModels.where().sortByDateDesc().findAll();
 
     // 4. Convert to CSV List
-    List<List<dynamic>> rows = [];
+    final List<List<dynamic>> rows = [];
     rows.add([
       'Date',
       'Time',
@@ -176,7 +176,7 @@ class CsvService {
     }
 
     // 5. Generate CSV String
-    String csvData = const csv.ListToCsvConverter().convert(rows);
+    final String csvData = const csv.ListToCsvConverter().convert(rows);
 
     try {
       // 6. Save to File in selected directory

@@ -59,9 +59,10 @@ class _AddEditLoanPageState extends ConsumerState<AddEditLoanPage> {
       await HapticService.successStatic();
       if (mounted) context.pop();
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
     }
   }
 

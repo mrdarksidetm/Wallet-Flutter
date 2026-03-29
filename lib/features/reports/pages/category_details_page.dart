@@ -47,8 +47,9 @@ class CategoryDetailsPage extends ConsumerWidget {
                     aspectRatio: 1.7,
                     child: statsAsync.when(
                       data: (stats) {
-                        if (stats.isEmpty)
+                        if (stats.isEmpty) {
                           return const Center(child: Text('No data available'));
+                        }
 
                         final maxY = stats.isEmpty
                             ? 100.0
@@ -68,8 +69,9 @@ class CategoryDetailsPage extends ConsumerWidget {
                                   showTitles: true,
                                   getTitlesWidget: (value, meta) {
                                     final index = value.toInt();
-                                    if (index < 0 || index >= stats.length)
+                                    if (index < 0 || index >= stats.length) {
                                       return const SizedBox.shrink();
+                                    }
                                     return Padding(
                                       padding: const EdgeInsets.only(top: 8.0),
                                       child: Text(

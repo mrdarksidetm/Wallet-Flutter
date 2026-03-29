@@ -2,88 +2,71 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../database/providers.dart';
+import '../database/models/transaction_model.dart';
+import 'icon_picker.dart';
 
 class TransactionListTile extends ConsumerWidget {
-  final IconData categoryIcon;
-  final Color categoryColor;
-  final String title;
-  final String subtitle;
-  final DateTime date;
-  final double amount;
-  final bool isExpense;
+  final TransactionModel tx;
+  final VoidCallback? onTap;
 
   const TransactionListTile({
     super.key,
-    required this.categoryIcon,
-    required this.categoryColor,
-    required this.title,
-    required this.subtitle,
-    required this.date,
-    required this.amount,
-    this.isExpense = true,
+    required this.tx,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedCurrency = ref.watch(currencyProvider);
     final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isIncome = tx.type == TransactionType.income;
+
+    // Use transaction icon/color if available, otherwise fall back to category
+    final category = tx.category.value;
+    final iconName = tx.icon ?? category?.icon;
+    final icon = AppIcons.getIcon(iconName);
+
+    final String colorStr = category?.color ?? '0xFF9E9E9E';
+    final Color categoryColor =
+        Color(int.parse(colorStr.replaceFirst('0x', ''), radix: 16));
 
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading: Container(
-        width: 48,
-        height: 48,
+        width: 44,
+        height: 44,
         decoration: BoxDecoration(
-          color: categoryColor.withValues(alpha: 0.2),
+          color: categoryColor.withValues(alpha: 0.15),
           shape: BoxShape.circle,
         ),
         child: Icon(
-          categoryIcon,
+          icon,
           color: categoryColor,
-          size: 24,
+          size: 20,
         ),
       ),
       title: Text(
-        title,
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface,
-              fontWeight: FontWeight.w600,
-            ),
+        tx.note ?? 'Transaction',
+        style: theme.textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+        ),
       ),
-      subtitle: Padding(
-        padding: const EdgeInsets.only(top: 4),
-        child: Row(
-          children: [
-            Text(
-              subtitle,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(width: 8),
-            Container(
-              width: 4,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurfaceVariant
-                    .withValues(alpha: 0.5),
-                shape: BoxShape.circle,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              DateFormat('MMM d').format(date),
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ],
+      subtitle: Text(
+        DateFormat.yMMMd().format(tx.date),
+        style: TextStyle(
+          color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+          fontSize: 12,
         ),
       ),
       trailing: Text(
-        '${isExpense ? '-' : '+'}${currencyFormat.format(amount)}',
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: isExpense ? Colors.red.shade400 : Colors.green.shade600,
-              fontWeight: FontWeight.w700,
-            ),
+        '${isIncome ? '+' : '-'}${currencyFormat.format(tx.amount)}',
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: isIncome ? Colors.green : colorScheme.error,
+        ),
       ),
     );
   }

@@ -46,3 +46,8 @@
 - **Updater**: Migrated GitHub API fetching to `dio` with robust architecture matching.
 - **Feedback**: Implemented local email Regex validation for offline resilience.
 - **Currencies**: Added over 20 new global currencies to the selection engine.
+- **Static Analysis**: Resolved all `curly_braces_in_flow_control_structures` and `unused_import` issues across the codebase to ensure 100% clean `flutter analyze`.
+- **Optimization**: Enabled strict `prefer_const_constructors` and `prefer_final_locals` lints.
+- **Refactoring**: Consolidated transaction list UI into a shared `TransactionListTile` (DRY Law).
+- **UI Consistency**: Ensured FAB actions are properly cleared in `Reports` and `People` pages via `dispose`.
+- **Currency Sync**: Refactored `TotalBalanceCard` to respect user-selected currency, eliminating hardcoded locales.

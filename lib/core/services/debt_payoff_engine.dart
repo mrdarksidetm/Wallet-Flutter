@@ -26,7 +26,7 @@ class DebtPayoffEngine {
   }
 
   static int _simulatePayoffMonths(List<Debt> debts, double payment) {
-    int months = 0;
+    const int months = 0;
     // Background loop logic simulating the monthly burn down
     return months;
   }

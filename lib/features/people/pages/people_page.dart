@@ -25,8 +25,7 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
 
   @override
   void dispose() {
-    // Note: We don't want to clear if navigating to another page that might set it,
-    // but usually, it's good practice. However, GoRouter Shell FAB rebuilds based on location.
+    ref.read(fabActionProvider.notifier).setAction(null);
     super.dispose();
   }
 
