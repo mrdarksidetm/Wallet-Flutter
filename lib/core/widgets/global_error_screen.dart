@@ -56,7 +56,7 @@ class GlobalErrorScreen extends StatelessWidget {
                   ),
                   child: SingleChildScrollView(
                     child: SelectableText(
-                      errorDetails.toString(),
+                      'EXCEPTION:\n${errorDetails.exception}\n\nSTACK TRACE:\n${errorDetails.stack}',
                       style: const TextStyle(
                         fontFamily: 'monospace',
                         fontSize: 12,

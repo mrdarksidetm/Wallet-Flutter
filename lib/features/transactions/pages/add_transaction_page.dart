@@ -364,6 +364,9 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
   }
 
   void _showAccountPicker(List<Account> accounts, {bool isTransfer = false}) {
+    final selectedCurrency = ref.read(currencyProvider);
+    final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
+
     showModalBottomSheet(
       context: context,
       builder: (context) {
@@ -373,7 +376,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
             final acc = accounts[index];
             return ListTile(
               title: Text(acc.name),
-              subtitle: Text('Balance: ${acc.balance.toStringAsFixed(2)}'),
+              subtitle: Text('Balance: ${currencyFormat.format(acc.balance)}'),
               onTap: () {
                 setState(() {
                   if (isTransfer) {

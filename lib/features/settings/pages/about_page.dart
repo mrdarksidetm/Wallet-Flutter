@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../../../core/theme/personalization_provider.dart';
+import 'package:go_router/go_router.dart';
+import '../../../core/services/haptic_service.dart';
+import '../../../core/services/update_service.dart';
 
 class AboutPage extends ConsumerWidget {
   const AboutPage({super.key});
@@ -12,8 +14,6 @@ class AboutPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final userName =
-        ref.watch(personalizationProvider.select((p) => p.userName)) ?? 'Abhi';
 
     return Scaffold(
       appBar: AppBar(
@@ -43,7 +43,7 @@ class AboutPage extends ConsumerWidget {
             ),
             const SizedBox(height: 32),
             Text(
-              'Rebuild from ground up to support Android Community using modern....',
+              'Rebuild from ground up to support Android Community using modern Flutter Support',
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyLarge?.copyWith(
                 color: colorScheme.onSurface.withValues(alpha: 0.7),
@@ -51,28 +51,40 @@ class AboutPage extends ConsumerWidget {
             ),
             const SizedBox(height: 48),
             _AboutTile(
-              icon: Symbols.code,
+              leading: Container(
+                clipBehavior: Clip.antiAlias,
+                decoration: const BoxDecoration(shape: BoxShape.circle),
+                child: Image.asset(
+                  'assets/images/developer.png',
+                  width: 40,
+                  height: 40,
+                  fit: BoxFit.cover,
+                ),
+              ),
               title: 'Developer',
-              subtitle: 'Built with ❤️ by $userName',
+              subtitle: 'Built with ❤️ by Abhijeet Yadav',
             ),
             const SizedBox(height: 16),
             _AboutTile(
-              icon: Symbols.source_notes,
+              leading: Icon(Symbols.source_notes, color: colorScheme.primary),
               title: 'Open Source',
               subtitle: 'View source code on GitHub',
-              onTap: () => _launchUrl('https://github.com/h4h13/paisa-app'),
+              onTap: () =>
+                  _launchUrl('https://github.com/mrdarksidetm/wallet-flutter'),
             ),
             const SizedBox(height: 16),
             _AboutTile(
-              icon: Symbols.policy,
+              leading: Icon(Symbols.policy, color: colorScheme.primary),
               title: 'Privacy Policy',
               subtitle: 'How we handle your data',
-              onTap: () => _launchUrl(
-                  'https://github.com/h4h13/paisa-app/blob/main/PRIVACY_POLICY.md'),
+              onTap: () async {
+                await HapticService.selectionStatic();
+                if (context.mounted) context.push('/privacy_policy');
+              },
             ),
             const SizedBox(height: 16),
             _AboutTile(
-              icon: Symbols.gavel,
+              leading: Icon(Symbols.gavel, color: colorScheme.primary),
               title: 'Licenses',
               subtitle: 'Third-party software libraries',
               onTap: () => showLicensePage(
@@ -82,11 +94,47 @@ class AboutPage extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 64),
-            Text(
-              '© 2026 Antigravity Ideas',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurface.withValues(alpha: 0.5),
-              ),
+                        FutureBuilder<String>(
+              future: ref.read(updateServiceProvider).getDeviceArchitecture(),
+              builder: (context, snapshot) {
+                final arch = snapshot.data ?? '...';
+                return Opacity(
+                  opacity: 0.5,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Symbols.android, size: 14),
+                      Text(
+                        ' Android X ',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const FlutterLogo(size: 14),
+                      Text(
+                        ' Flutter | ',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const Icon(Symbols.memory, size: 14),
+                      Text(
+                        ' Architecture: ',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        arch.toUpperCase(),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
           ],
         ),
@@ -103,8 +151,8 @@ class AboutPage extends ConsumerWidget {
       ),
       child: SvgPicture.asset(
         'assets/images/logo.svg',
-        height: 64,
-        width: 64,
+        height: 92,
+        width: 92,
       ),
     );
   }
@@ -118,13 +166,13 @@ class AboutPage extends ConsumerWidget {
 }
 
 class _AboutTile extends StatelessWidget {
-  final IconData icon;
+  final Widget leading;
   final String title;
   final String subtitle;
   final VoidCallback? onTap;
 
   const _AboutTile({
-    required this.icon,
+    required this.leading,
     required this.title,
     required this.subtitle,
     this.onTap,
@@ -132,12 +180,9 @@ class _AboutTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
     return ListTile(
       onTap: onTap,
-      leading: Icon(icon, color: colorScheme.primary),
+      leading: leading,
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
       subtitle: Text(subtitle),
       trailing: onTap != null ? const Icon(Icons.chevron_right_rounded) : null,

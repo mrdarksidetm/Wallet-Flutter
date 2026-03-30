@@ -51,3 +51,15 @@
 - **Refactoring**: Consolidated transaction list UI into a shared `TransactionListTile` (DRY Law).
 - **UI Consistency**: Ensured FAB actions are properly cleared in `Reports` and `People` pages via `dispose`.
 - **Currency Sync**: Refactored `TotalBalanceCard` to respect user-selected currency, eliminating hardcoded locales.
+- **Privacy Policy**: Linked the `Privacy Policy` tile in the `About` page to the internal `PrivacyPolicyPage` with haptic feedback.
+- **Developer Profile**: Replaced the generic developer icon with a circular `developer.png` asset in the `About` page for a more personal touch.
+- **Dynamic Branding**: Implemented a dynamic footer in the `About` page showing Android/Flutter logos and the device's specific CPU architecture (armeabi/arm64) via `UpdateService`.
+- **Personalization Fix**: Resolved app crashes in `PersonalizationPage` by switching font axis `ROND` to `SOFT`, removing the unsupported `slnt` axis, and throttling haptic feedback callers to prevent platform channel flooding.
+- **Font Consolidation**: Deleted `ProductSans` and `SFPro` fonts. Enforced `GoogleSansFlex` as the universal font across all UI components, with `AppleColorEmoji` and `Noto Color Emoji` as system-wide fallbacks for maximum consistency.
+- **Image Cropping Fix**: Added `UCropActivity` to `AndroidManifest.xml` and implemented `try-catch` error handling in the Onboarding image picker to prevent crashes during the cropping process.
+- **Accounts Page Stability**: Added robust null checks and safety logic to the `AccountsPage` UI to prevent "Something went wrong" crashes caused by malformed data or empty fields.
+- **Global Error Handling**: Enhanced `GlobalErrorScreen` to display detailed Exception and Stack Trace information, making it easier to diagnose future issues.
+- **Onboarding UI Redesign**: Implemented a modern, animated onboarding screen with dynamic gradients, improved visual hierarchy, and polished Material 3 inputs to enhance the user's first-time experience.
+- **Dynamic Currency Fix**: Removed all remaining hardcoded currency symbols (₹, \$) and fallback strings from the Flutter UI. All currency displays now dynamically use the `currencyProvider` and `NumberFormat.simpleCurrency` to respect the user's selection from onboarding.
+
+

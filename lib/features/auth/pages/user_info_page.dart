@@ -16,7 +16,8 @@ class UserInfoPage extends ConsumerWidget {
     final name =
         ref.watch(personalizationProvider.select((p) => p.userName)) ?? 'User';
     final currency =
-        ref.watch(personalizationProvider.select((p) => p.defaultCurrency));
+        ref.watch(personalizationProvider.select((p) => p.defaultCurrency)) ??
+            'Not Selected';
 
     return Scaffold(
       appBar: AppBar(

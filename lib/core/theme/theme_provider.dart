@@ -59,7 +59,7 @@ class ThemeController extends Notifier<ThemeState> {
     final useMaterialYou = prefs.getBool(_keyUseMaterialYou) ?? true;
     final customColorVal = prefs.getInt(_keyCustomColor);
     final isLiquid = prefs.getBool(_keyIsLiquid) ?? false;
-    final fontFamily = prefs.getString(_keyFontFamily) ?? 'ProductSans';
+    final fontFamily = prefs.getString(_keyFontFamily) ?? 'GoogleSansFlex';
     final currencySymbol = prefs.getString(_keyCurrencySymbol) ?? '\$';
     final currencyCode = prefs.getString(_keyCurrencyCode) ?? 'USD';
 

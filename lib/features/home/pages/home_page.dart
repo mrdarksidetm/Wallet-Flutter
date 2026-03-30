@@ -19,31 +19,120 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    
+    // Aesthetic specific color as per prompt
+    final backgroundColor = isDark ? colorScheme.surface : const Color(0xFFF7F7F9);
+
     final greeting = ref.watch(greetingServiceProvider).getGreeting();
     final userName =
         ref.watch(personalizationProvider.select((p) => p.userName)) ?? 'User';
+    final photo = ref.watch(personalizationProvider).userPhoto;
 
-    return AnimationLimiter(
-      child: CustomScrollView(
-        slivers: [
-          _HomeAppBar(greeting: greeting, userName: userName),
-          const SliverToBoxAdapter(child: _HomeBalanceSection()),
-          const _SectionHeader(title: 'Finances'),
-          const _HomeFinanceGrid(),
-          const SliverToBoxAdapter(child: SizedBox(height: 32)),
-          const _SectionHeader(title: 'Recent Transactions'),
-          const _HomeRecentTransactions(),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-              child: FilledButton.tonal(
-                onPressed: () => context.push('/all_transactions'),
-                child: const Text('View All Transactions'),
+    return Scaffold(
+      backgroundColor: backgroundColor,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: false,
+        leadingWidth: 48,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16),
+          child: SvgPicture.asset(
+            'assets/images/logo.svg',
+            height: 32,
+            width: 32,
+          ),
+        ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              greeting,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: colorScheme.onSurface.withValues(alpha: 0.5),
+                fontWeight: FontWeight.bold,
               ),
             ),
+            Text(
+              userName,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w900,
+                letterSpacing: -0.5,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          IconButton(
+            onPressed: () {
+              HapticService.selectionStatic();
+              context.push('/search');
+            },
+            icon: const Icon(Symbols.search),
           ),
-          const SliverToBoxAdapter(child: SizedBox(height: 100)),
+          const SizedBox(width: 4),
+          GestureDetector(
+            onTap: () {
+              HapticService.selectionStatic();
+              context.push('/user_info');
+            },
+            child: CircleAvatar(
+              radius: 18,
+              backgroundColor: colorScheme.surfaceContainerHighest,
+              backgroundImage:
+                  photo != null ? FileImage(File(photo)) : null,
+              child: photo == null
+                  ? Icon(
+                      Symbols.person,
+                      size: 20,
+                      color: colorScheme.onSurfaceVariant,
+                    )
+                  : null,
+            ),
+          ),
+          const SizedBox(width: 16),
         ],
+      ),
+      body: AnimationLimiter(
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            const SliverToBoxAdapter(child: SizedBox(height: 16)),
+            const SliverToBoxAdapter(child: _HomeBalanceSection()),
+            const _SectionHeader(title: 'Overview'),
+            const _HomeFinanceGrid(),
+            const SliverToBoxAdapter(child: SizedBox(height: 32)),
+            const _SectionHeader(title: 'Recent Transactions'),
+            const _HomeRecentTransactions(),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+                child: OutlinedButton(
+                  onPressed: () => context.push('/all_transactions'),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(56),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  child: const Text('View All Activity'),
+                ),
+              ),
+            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 100)),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton.large(
+        onPressed: () {
+          HapticService.selectionStatic();
+          context.push('/add_transaction');
+        },
+        backgroundColor: colorScheme.primary,
+        foregroundColor: colorScheme.onPrimary,
+        child: const Icon(Symbols.add, size: 32),
       ),
     );
   }
@@ -57,66 +146,15 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 8, 16, 12),
+        padding: const EdgeInsets.fromLTRB(24, 32, 24, 16),
         child: Text(
           title,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            fontVariations: [FontVariation('wdth', 120)],
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w900,
+            letterSpacing: -0.5,
           ),
         ),
       ),
-    );
-  }
-}
-
-class _HomeAppBar extends ConsumerWidget {
-  final String greeting;
-  final String userName;
-  const _HomeAppBar({required this.greeting, required this.userName});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final photo = ref.watch(personalizationProvider).userPhoto;
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return SliverAppBar.large(
-      leading: Padding(
-        padding: const EdgeInsets.only(left: 16),
-        child: SvgPicture.asset(
-          'assets/images/logo.svg',
-          height: 32,
-          width: 32,
-        ),
-      ),
-      leadingWidth: 48,
-      title: Text('$greeting, $userName'),
-      actions: [
-        GestureDetector(
-          onTap: () => context.push('/user_info'),
-          child: Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: colorScheme.surfaceContainerHighest,
-              image: photo != null
-                  ? DecorationImage(
-                      image: FileImage(File(photo)),
-                      fit: BoxFit.cover,
-                    )
-                  : null,
-            ),
-            child: photo == null ? const Icon(Symbols.person, size: 20) : null,
-          ),
-        ),
-        IconButton(
-          onPressed: () => context.push('/settings'),
-          icon: const Icon(Symbols.settings),
-        ),
-        const SizedBox(width: 8),
-      ],
     );
   }
 }
@@ -175,7 +213,7 @@ class _HomeFinanceGrid extends ConsumerWidget {
           crossAxisCount: 2,
           mainAxisSpacing: 12,
           crossAxisSpacing: 12,
-          childAspectRatio: 1.4,
+          childAspectRatio: 1.3,
         ),
         delegate: SliverChildListDelegate([
           OverviewCard(
@@ -206,18 +244,6 @@ class _HomeFinanceGrid extends ConsumerWidget {
             subtitle: 'Debts & lending',
             onTap: () => context.push('/loans'),
           ),
-          OverviewCard(
-            icon: Symbols.group,
-            title: 'People',
-            subtitle: 'Contacts',
-            onTap: () => context.push('/people'),
-          ),
-          OverviewCard(
-            icon: Symbols.event_repeat,
-            title: 'Recurring',
-            subtitle: 'Bills & subs',
-            onTap: () => context.push('/recurring'),
-          ),
         ]),
       ),
     );
@@ -238,13 +264,13 @@ class _HomeRecentTransactions extends ConsumerWidget {
             child: Center(
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 32),
-                child: Text('No transactions yet'),
+                child: Text('No activity found'),
               ),
             ),
           );
         }
 
-        final recentTxs = transactions.take(20).toList();
+        final recentTxs = transactions.take(10).toList();
         return SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           sliver: SliverList(
@@ -255,13 +281,16 @@ class _HomeRecentTransactions extends ConsumerWidget {
                 child: SlideAnimation(
                   verticalOffset: 50.0,
                   child: FadeInAnimation(
-                    child: TransactionListTile(
-                      tx: recentTxs[index],
-                      onTap: () {
-                        HapticService.selectionStatic();
-                        context.push('/add_transaction',
-                            extra: recentTxs[index]);
-                      },
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: TransactionListTile(
+                        tx: recentTxs[index],
+                        onTap: () {
+                          HapticService.selectionStatic();
+                          context.push('/add_transaction',
+                              extra: recentTxs[index]);
+                        },
+                      ),
                     ),
                   ),
                 ),

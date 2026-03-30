@@ -21,7 +21,9 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
   Widget build(BuildContext context) {
     final accountsAsync = ref.watch(accountsStreamProvider);
     final selectedCurrency = ref.watch(currencyProvider);
-    final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
+    final currencyFormat = NumberFormat.simpleCurrency(
+      name: selectedCurrency,
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -57,8 +59,14 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
               itemCount: accounts.length,
               itemBuilder: (context, index) {
                 final account = accounts[index];
-                final color = Color(
-                    int.parse(account.color.replaceAll('0x', ''), radix: 16));
+                Color color;
+                try {
+                  color = Color(int.parse(
+                      account.color.replaceAll('0x', '').replaceAll('#', ''),
+                      radix: 16));
+                } catch (_) {
+                  color = Theme.of(context).colorScheme.primary;
+                }
 
                 return _buildAccountCard(
                     context, account, currencyFormat, color,
@@ -72,8 +80,14 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
             itemCount: accounts.length,
             itemBuilder: (context, index) {
               final account = accounts[index];
-              final color = Color(
-                  int.parse(account.color.replaceAll('0x', ''), radix: 16));
+              Color color;
+              try {
+                color = Color(int.parse(
+                    account.color.replaceAll('0x', '').replaceAll('#', ''),
+                    radix: 16));
+              } catch (_) {
+                color = Theme.of(context).colorScheme.primary;
+              }
 
               return _buildAccountCard(context, account, currencyFormat, color,
                   isGrid: false);
@@ -81,7 +95,19 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('Error: $err')),
+        error: (err, stack) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Symbols.error_outline, size: 48, color: Colors.red),
+                const SizedBox(height: 16),
+                Text('Error: $err', textAlign: TextAlign.center),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -91,6 +117,9 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
       {required bool isGrid}) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final accountName = account.name ?? 'Unnamed Account';
+    final accountBalance = account.balance ?? 0.0;
+    final accountType = account.type?.name?.toUpperCase() ?? 'CASH';
 
     return Dismissible(
       key: ValueKey(account.id),
@@ -102,7 +131,7 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
           builder: (context) => AlertDialog(
             title: const Text('Delete Account'),
             content: Text(
-                'Are you sure you want to delete "${account.name}"? This will also delete all associated transactions.'),
+                'Are you sure you want to delete "$accountName"? This will also delete all associated transactions.'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
@@ -125,7 +154,7 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
         await ref.read(accountServiceProvider).deleteAccount(account.id);
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Account "${account.name}" deleted')),
+            SnackBar(content: Text('Account "$accountName" deleted')),
           );
         }
       },
@@ -170,7 +199,7 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          account.name,
+                          accountName,
                           style: theme.textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.bold),
                           maxLines: 1,
@@ -178,7 +207,7 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          format.format(account.balance),
+                          format.format(accountBalance),
                           style: theme.textTheme.headlineSmall
                               ?.copyWith(fontWeight: FontWeight.w900),
                         ),
@@ -203,12 +232,12 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            account.name,
+                            accountName,
                             style: theme.textTheme.titleMedium
                                 ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           Text(
-                            account.type.name.toUpperCase(),
+                            accountType,
                             style: theme.textTheme.labelSmall?.copyWith(
                               color: color.withValues(alpha: 0.7),
                               fontWeight: FontWeight.bold,
@@ -219,7 +248,7 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
                       ),
                     ),
                     Text(
-                      format.format(account.balance),
+                      format.format(accountBalance),
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w900,
                         color: colorScheme.onSurface,

@@ -18,7 +18,7 @@ class PersonalizationState {
   final bool isOnboardingComplete;
   final String? userName;
   final String? userPhoto;
-  final String defaultCurrency;
+  final String? defaultCurrency;
 
   PersonalizationState({
     this.grade = 50,
@@ -35,7 +35,7 @@ class PersonalizationState {
     this.isOnboardingComplete = false,
     this.userName,
     this.userPhoto,
-    this.defaultCurrency = 'INR',
+    this.defaultCurrency,
   });
 
   PersonalizationState copyWith({
@@ -110,7 +110,7 @@ class PersonalizationState {
       isOnboardingComplete: map['isOnboardingComplete'] as bool? ?? false,
       userName: map['userName'] as String?,
       userPhoto: map['userPhoto'] as String?,
-      defaultCurrency: map['defaultCurrency'] as String? ?? 'INR',
+      defaultCurrency: map['defaultCurrency'] as String?,
     );
   }
 }

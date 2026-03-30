@@ -27,21 +27,22 @@ D:\Ideas\Antigravity\Wallet-Flutter\
 │   │   │   ├───typography.dart (Google Sans Flex configuration)
 │   │   │   └───personalization_provider.dart (Stateful UI Controller)
 │   │   └───widgets\ (Atelier Buttons, IconPicker, Bouncy Widgets)
-│   └───presentation\
-│       ├───home\
-│       │   ├───pages\ (HomePage, BudgetsPage, BillSplitterPage, SearchPage)
-│       │   └───widgets\ (TotalBalanceCard, OverviewCard)
-│       ├───accounts\
-│       │   └───pages\ (AccountsPage, AddEditAccountPage with Color Picker)
-│       ├───transactions\
-│       │   └───pages\ (AddTransactionPage)
-│       ├───reports\
-│       │   └───pages\ (ReportsPage, CategoryDetailsPage)
-│       ├───auth\
-│       │   ├───pages\ (UnlockPage)
-│       │   └───providers\ (AuthNotifier with Auto-Authenticate)
-│       └───settings\
-│           └───pages\ (SettingsPage, PersonalizationPage, PrivacyPolicyPage, FeedbackPage, AboutPage)
+│   ├───features\
+│   │   ├───home\
+│   │   │   ├───pages\ (HomePage, BudgetsPage, BillSplitterPage, SearchPage)
+│   │   │   └───widgets\ (TotalBalanceCard, OverviewCard)
+│   │   ├───accounts\
+│   │   │   └───pages\ (AccountsPage, AddEditAccountPage with Color Picker)
+│   │   ├───transactions\
+│   │   │   └───pages\ (AddTransactionPage)
+│   │   ├───reports\
+│   │   │   └───pages\ (ReportsPage, CategoryDetailsPage)
+│   │   ├───auth\
+│   │   │   ├───pages\ (UnlockPage)
+│   │   │   └───providers\ (AuthNotifier with Auto-Authenticate)
+│   │   └───settings\
+│   │       └───pages\ (SettingsPage, PersonalizationPage, PrivacyPolicyPage, FeedbackPage, AboutPage)
+│   └───data\
 └───test\
 
 ## Architecture Key Patterns

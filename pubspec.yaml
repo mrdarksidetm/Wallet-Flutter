@@ -95,34 +95,6 @@ flutter:
     - family: GoogleSansFlex
       fonts:
         - asset: assets/fonts/GoogleSansFlex/google_sans_flex.ttf
-    - family: ProductSans
-      fonts:
-        - asset: assets/fonts/ProductSans/Product Sans Regular.ttf
-        - asset: assets/fonts/ProductSans/Product Sans Bold.ttf
-          weight: 700
-        - asset: assets/fonts/ProductSans/Product Sans Italic.ttf
-          style: italic
-        - asset: assets/fonts/ProductSans/Product Sans Bold Italic.ttf
-          weight: 700
-          style: italic
-
-    - family: SFProDisplay
-      fonts:
-        - asset: assets/fonts/SFPro/SFUIDisplay-Regular.otf
-        - asset: assets/fonts/SFPro/SFUIDisplay-Bold.ttf
-          weight: 700
-        - asset: assets/fonts/SFPro/SFUIDisplay-Semibold.otf
-          weight: 600
-        - asset: assets/fonts/SFPro/SFUIDisplay-Light.ttf
-          weight: 300
-        - asset: assets/fonts/SFPro/SFUIDisplay-Thin.otf
-          weight: 100
-        - asset: assets/fonts/SFPro/SFUIDisplay-Ultralight.otf
-          weight: 200
-        - asset: assets/fonts/SFPro/SFUIDisplay-Heavy.otf
-          weight: 800
-        - asset: assets/fonts/SFPro/SFUIDisplay-Black.otf
-          weight: 900
 
     - family: AppleColorEmoji
       fonts:

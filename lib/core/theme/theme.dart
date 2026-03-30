@@ -59,7 +59,7 @@ class AppTheme {
     final baseTextStyle = TextStyle(
       fontFamily: 'GoogleSansFlex',
       fontVariations: variations,
-      fontFamilyFallback: const ['AppleColorEmoji'],
+      fontFamilyFallback: const ['AppleColorEmoji', 'Noto Color Emoji'],
       color: colorScheme.onSurface,
     );
 
@@ -71,7 +71,7 @@ class AppTheme {
       brightness: brightness,
       colorScheme: colorScheme,
       fontFamily: 'GoogleSansFlex',
-      fontFamilyFallback: const ['AppleColorEmoji'],
+      fontFamilyFallback: const ['AppleColorEmoji', 'Noto Color Emoji'],
       textTheme: TextTheme(
         displayLarge:
             baseTextStyle.copyWith(fontSize: 57, fontWeight: FontWeight.normal),

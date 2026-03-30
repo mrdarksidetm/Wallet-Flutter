@@ -193,7 +193,12 @@ final totalAssetBalanceProvider = StreamProvider<double>((ref) {
 // --- Settings Providers ---
 final currencyProvider = Provider<String>((ref) {
   final personalization = ref.watch(personalizationProvider);
-  return personalization.defaultCurrency;
+  final currency = personalization.defaultCurrency;
+  if (currency == null) {
+    // This should never happen if onboarding is completed
+    throw UnimplementedError('Default currency not selected during onboarding');
+  }
+  return currency;
 });
 
 // --- Search Providers ---

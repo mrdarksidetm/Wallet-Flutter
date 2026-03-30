@@ -160,7 +160,7 @@ class PersonalizationPage extends ConsumerWidget {
           onChanged: (v) => notifier.updateWidth(v),
         ),
         _AtelierSlider(
-          label: 'Roundness (ROND)',
+          label: 'Roughness (SOFT)',
           value: state.fontRoundness,
           min: 0,
           max: 100,
@@ -381,9 +381,8 @@ class _TypeTester extends StatelessWidget {
               fontVariations: [
                 FontVariation('GRAD', state.grade),
                 FontVariation('wght', state.weight),
-                FontVariation('slnt', state.slant),
                 FontVariation('wdth', state.width),
-                FontVariation('ROND', state.fontRoundness),
+                FontVariation('SOFT', state.fontRoundness),
                 FontVariation('opsz', state.opticalSize),
               ],
             ),
@@ -441,7 +440,9 @@ class _AtelierSlider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // We extract the color scheme from the context to maintain consistent theming
     final colorScheme = Theme.of(context).colorScheme;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 32),
       child: Column(
@@ -459,6 +460,7 @@ class _AtelierSlider extends StatelessWidget {
                     ),
               ),
               Text(
+                // Formats the double to a clean whole number for the UI display
                 value.toStringAsFixed(0),
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
                       fontWeight: FontWeight.w900,
@@ -480,13 +482,36 @@ class _AtelierSlider extends StatelessWidget {
               trackShape: const RoundedRectSliderTrackShape(),
             ),
             child: Slider(
+              // clamp ensures our value never mathematically exceeds the min/max bounds
               value: value.clamp(min, max),
               min: min,
               max: max,
+
+              // onChanged fires continuously (60+ times a second) as the slider is dragged.
               onChanged: (v) {
+                // 1. First, we immediately pass the new precise decimal value back to the
+                //    parent's provider so the UI updates smoothly without stuttering.
                 onChanged(v);
+
+                // 2. THROTTLED HAPTICS (Approach 2)
+                // We compare the rounded integer of the new value (v.round()) against
+                // the rounded integer of the old value (value.round()).
+                // This ensures the haptic motor only fires when crossing a whole number,
+                // preventing the 60fps platform channel flood that caused the crash.
+                if (v.round() != value.round()) {
+                  HapticService.lightStatic();
+                }
+              },
+
+              // ALTERNATIVE: SAFE END-DRAG HAPTICS (Approach 1)
+              // If you ever want to switch to vibrating only when the user lets go,
+              // remove the haptics from onChanged and uncomment the block below:
+              /*
+              onChangeEnd: (v) {
+                // Fires exactly once when the interaction is complete
                 HapticService.lightStatic();
               },
+              */
             ),
           ),
         ],
