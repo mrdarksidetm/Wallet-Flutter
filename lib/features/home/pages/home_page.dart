@@ -1,11 +1,9 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/services/haptic_service.dart';
 import '../../../core/services/greeting_service.dart';
@@ -13,6 +11,7 @@ import '../../../core/theme/personalization_provider.dart';
 import '../../../core/widgets/transaction_list_tile.dart';
 import '../widgets/total_balance_card.dart';
 import '../widgets/overview_card.dart';
+import '../widgets/home_header.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -23,7 +22,6 @@ class HomePage extends ConsumerWidget {
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
     
-    // Aesthetic specific color as per prompt
     final backgroundColor = isDark ? colorScheme.surface : const Color(0xFFF7F7F9);
 
     final greeting = ref.watch(greetingServiceProvider).getGreeting();
@@ -33,95 +31,71 @@ class HomePage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: backgroundColor,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: false,
-        leadingWidth: 48,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 16),
-          child: SvgPicture.asset(
-            'assets/images/logo.svg',
-            height: 32,
-            width: 32,
-          ),
-        ),
-        title: Column(
+      body: SafeArea(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              greeting,
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: colorScheme.onSurface.withValues(alpha: 0.5),
-                fontWeight: FontWeight.bold,
-              ),
+            // Optimized Header with Dynamic Shadow Logo
+            HomeHeader(
+              userPhoto: photo,
+              userName: userName,
+              greeting: greeting,
             ),
-            Text(
-              userName,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w900,
-                letterSpacing: -0.5,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            onPressed: () {
-              HapticService.selectionStatic();
-              context.push('/search');
-            },
-            icon: const Icon(Symbols.search),
-          ),
-          const SizedBox(width: 4),
-          GestureDetector(
-            onTap: () {
-              HapticService.selectionStatic();
-              context.push('/user_info');
-            },
-            child: CircleAvatar(
-              radius: 18,
-              backgroundColor: colorScheme.surfaceContainerHighest,
-              backgroundImage:
-                  photo != null ? FileImage(File(photo)) : null,
-              child: photo == null
-                  ? Icon(
-                      Symbols.person,
-                      size: 20,
-                      color: colorScheme.onSurfaceVariant,
-                    )
-                  : null,
-            ),
-          ),
-          const SizedBox(width: 16),
-        ],
-      ),
-      body: AnimationLimiter(
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            const SliverToBoxAdapter(child: SizedBox(height: 16)),
-            const SliverToBoxAdapter(child: _HomeBalanceSection()),
-            const _SectionHeader(title: 'Overview'),
-            const _HomeFinanceGrid(),
-            const SliverToBoxAdapter(child: SizedBox(height: 32)),
-            const _SectionHeader(title: 'Recent Transactions'),
-            const _HomeRecentTransactions(),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-                child: OutlinedButton(
-                  onPressed: () => context.push('/all_transactions'),
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(56),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+
+            // FIXED GREETING
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24.0, 8.0, 24.0, 16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    greeting,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: colorScheme.onSurface.withOpacity(0.5),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  child: const Text('View All Activity'),
+                  Text(
+                    userName,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // SCROLLABLE CONTENT
+            Expanded(
+              child: AnimationLimiter(
+                child: CustomScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  slivers: [
+                    const SliverToBoxAdapter(child: _HomeBalanceSection()),
+                    const _SectionHeader(title: 'Overview'),
+                    const _HomeFinanceGrid(),
+                    const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                    const _SectionHeader(title: 'Recent Transactions'),
+                    const _HomeRecentTransactions(),
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+                        child: OutlinedButton(
+                          onPressed: () => context.push('/all_transactions'),
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size.fromHeight(56),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          ),
+                          child: const Text('View All Activity'),
+                        ),
+                      ),
+                    ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                  ],
                 ),
               ),
             ),
-            const SliverToBoxAdapter(child: SizedBox(height: 100)),
           ],
         ),
       ),

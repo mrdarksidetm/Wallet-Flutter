@@ -5,7 +5,7 @@
 D:\Ideas\Antigravity\Wallet-Flutter\
 ├───android\ (MainActivity with FlutterFragmentActivity, VIBRATE permission)
 ├───assets\
-│   ├───fonts\ (GoogleSansFlex, ProductSans, SFPro, AppleColorEmoji)
+│   ├───fonts\ (GoogleSansFlex, AppleColorEmoji)
 │   ├───images\
 │   └───icon\
 ├───lib\
@@ -26,11 +26,11 @@ D:\Ideas\Antigravity\Wallet-Flutter\
 │   │   │   ├───theme.dart (M3 Dynamic + Variable Font Axes)
 │   │   │   ├───typography.dart (Google Sans Flex configuration)
 │   │   │   └───personalization_provider.dart (Stateful UI Controller)
-│   │   └───widgets\ (Atelier Buttons, IconPicker, Bouncy Widgets)
+│   │   └───widgets\ (Atelier Buttons, IconPicker, AnimatedCounter, TransactionListTile)
 │   ├───features\
 │   │   ├───home\
 │   │   │   ├───pages\ (HomePage, BudgetsPage, BillSplitterPage, SearchPage)
-│   │   │   └───widgets\ (TotalBalanceCard, OverviewCard)
+│   │   │   └───widgets\ (TotalBalanceCard, OverviewCard, HomeHeader)
 │   │   ├───accounts\
 │   │   │   └───pages\ (AccountsPage, AddEditAccountPage with Color Picker)
 │   │   ├───transactions\
@@ -38,7 +38,7 @@ D:\Ideas\Antigravity\Wallet-Flutter\
 │   │   ├───reports\
 │   │   │   └───pages\ (ReportsPage, CategoryDetailsPage)
 │   │   ├───auth\
-│   │   │   ├───pages\ (UnlockPage)
+│   │   │   ├───pages\ (OnboardingPage, UnlockPage, UserInfoPage)
 │   │   │   └───providers\ (AuthNotifier with Auto-Authenticate)
 │   │   └───settings\
 │   │       └───pages\ (SettingsPage, PersonalizationPage, PrivacyPolicyPage, FeedbackPage, AboutPage)

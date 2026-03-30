@@ -28,7 +28,7 @@
 - 🧠 Smart local insights: spending trends generated on-device
 - ⚡ Fast local storage: Isar-backed data with generated adapters
 - 📊 Complete money toolkit: transactions, budgets, goals, recurring, loans, labels
-- 🎨 Polished UI: Material 3 styling with expressive animations
+- 🎨 Premium UI: Material 3 Redesign with dynamic shadow logos and expressive animations
 
 ## 📱 Platform Status
 

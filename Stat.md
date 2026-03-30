@@ -60,6 +60,8 @@
 - **Accounts Page Stability**: Added robust null checks and safety logic to the `AccountsPage` UI to prevent "Something went wrong" crashes caused by malformed data or empty fields.
 - **Global Error Handling**: Enhanced `GlobalErrorScreen` to display detailed Exception and Stack Trace information, making it easier to diagnose future issues.
 - **Onboarding UI Redesign**: Implemented a modern, animated onboarding screen with dynamic gradients, improved visual hierarchy, and polished Material 3 inputs to enhance the user's first-time experience.
-- **Dynamic Currency Fix**: Removed all remaining hardcoded currency symbols (₹, \$) and fallback strings from the Flutter UI. All currency displays now dynamically use the `currencyProvider` and `NumberFormat.simpleCurrency` to respect the user's selection from onboarding.
+- **Dynamic Currency Fix**: Removed all remaining hardcoded currency symbols (₹, $) and fallback strings from the Flutter UI. All currency displays now dynamically use the `currencyProvider` and `NumberFormat.simpleCurrency` to respect the user's selection from onboarding.
+- **Premium UI Enhancements**: Implemented a dynamic shadow effect for the app logo using blurred SVG stacking. Optimized the dashboard header to include a "PREMIUM" badge, haptic-enabled settings, and dynamic user profile avatars that sync with onboarding data.
+
 
 
