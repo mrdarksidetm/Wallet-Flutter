@@ -63,6 +63,7 @@ class AboutPage extends ConsumerWidget {
               ),
               title: 'Developer',
               subtitle: 'Built with ❤️ by Abhijeet Yadav',
+              onTap: () => _launchUrl('https://github.com/mrdarksidetm'),
             ),
             const SizedBox(height: 16),
             _AboutTile(
