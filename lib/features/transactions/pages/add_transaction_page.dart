@@ -14,6 +14,9 @@ import '../../../core/database/models/category.dart';
 import '../../../core/widgets/icon_picker.dart';
 import '../../../core/widgets/primary_atelier_button.dart';
 
+import '../../../core/database/models/auxiliary_models.dart';
+import '../../../core/widgets/expressive_bottom_sheet.dart';
+
 class AddTransactionPage extends ConsumerStatefulWidget {
   final TransactionModel? transaction;
   const AddTransactionPage({super.key, this.transaction});
@@ -33,18 +36,42 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
   String? _selectedIcon;
   String? _selectedColor;
 
+  // Loan Integration
+  Person? _selectedPerson;
+  bool _isLoan = false;
+  bool _isLoading = false;
+
   @override
   void initState() {
     super.initState();
     if (widget.transaction != null) {
-      _transactionType = widget.transaction!.type;
-      _amountController.text = widget.transaction!.amount.toString();
-      _noteController.text = widget.transaction!.note ?? '';
-      _selectedIcon = widget.transaction!.icon;
-      _selectedColor = widget.transaction!.color;
-      _selectedAccount = widget.transaction!.account.value;
-      _selectedCategory = widget.transaction!.category.value;
-      _selectedTransferAccount = widget.transaction!.transferAccount.value;
+      _isLoading = true;
+      _initializeData();
+    }
+  }
+
+  Future<void> _initializeData() async {
+    final tx = widget.transaction!;
+    
+    // Ensure links are loaded
+    await tx.account.load();
+    await tx.category.load();
+    await tx.transferAccount.load();
+    await tx.person.load();
+
+    if (mounted) {
+      setState(() {
+        _transactionType = tx.type;
+        _amountController.text = tx.amount.toString();
+        _noteController.text = tx.note ?? '';
+        _selectedIcon = tx.icon;
+        _selectedColor = tx.color;
+        _selectedAccount = tx.account.value;
+        _selectedCategory = tx.category.value;
+        _selectedTransferAccount = tx.transferAccount.value;
+        _selectedPerson = tx.person.value;
+        _isLoading = false;
+      });
     }
   }
 
@@ -88,6 +115,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
         updatedTx.account.value = _selectedAccount;
         updatedTx.category.value = _selectedCategory;
         updatedTx.transferAccount.value = _selectedTransferAccount;
+        updatedTx.person.value = _selectedPerson;
 
         await service.updateTransaction(widget.transaction!, updatedTx);
       } else {
@@ -101,7 +129,21 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
           transferAccount: _selectedTransferAccount,
           icon: _selectedIcon,
           color: _selectedColor,
+          person: _selectedPerson,
         );
+
+        // If it's marked as a loan, create the loan entry
+        if (_isLoan && _selectedPerson != null) {
+          final loanService = ref.read(loanServiceProvider);
+          final loan = Loan()
+            ..amount = amount
+            ..type = _transactionType == TransactionType.income ? LoanType.borrowed : LoanType.lent
+            ..note = _noteController.text
+            ..createdAt = DateTime.now()
+            ..updatedAt = DateTime.now();
+          loan.person.value = _selectedPerson;
+          await loanService.saveLoan(loan);
+        }
       }
 
       await ref
@@ -159,14 +201,21 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
 
     final accountsAsync = ref.watch(accountsStreamProvider);
     final categoriesAsync = ref.watch(categoriesStreamProvider);
+    final peopleAsync = ref.watch(personsStreamProvider);
 
     final effectiveColor = _selectedColor != null
-        ? Color(int.parse(_selectedColor!.replaceAll('0x', ''), radix: 16))
+        ? Color(int.parse(_selectedColor!.replaceAll('0x', '0xFF').replaceAll('0xFFFF', '0xFF'), radix: 16))
         : (_selectedCategory != null
-            ? Color(int.parse(_selectedCategory!.color.replaceAll('0x', ''), radix: 16))
+            ? Color(int.parse(_selectedCategory!.color.replaceAll('0x', '0xFF').replaceAll('0xFFFF', '0xFF'), radix: 16))
             : colorScheme.primary);
 
     final effectiveIcon = _selectedIcon ?? _selectedCategory?.icon ?? 'category';
+
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -331,8 +380,47 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
 
+            // Person and Loan Section
+            Text(
+              'People & Loans',
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: colorScheme.primary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ListTile(
+              onTap: () => _showPersonPicker(peopleAsync.value ?? []),
+              leading: const Icon(Symbols.person),
+              title: const Text('With Person'),
+              subtitle: Text(_selectedPerson?.name ?? 'None'),
+              trailing: _selectedPerson != null 
+                ? IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => setState(() {
+                      _selectedPerson = null;
+                      _isLoan = false;
+                    }),
+                  )
+                : const Icon(Icons.chevron_right_rounded),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              tileColor: colorScheme.surfaceContainerLow,
+            ),
+            if (_selectedPerson != null && widget.transaction == null) ...[
+              const SizedBox(height: 8),
+              SwitchListTile(
+                title: const Text('Add to Loans'),
+                subtitle: const Text('Create a debt entry for this person'),
+                value: _isLoan,
+                onChanged: (val) => setState(() => _isLoan = val),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                tileColor: colorScheme.surfaceContainerLow,
+              ),
+            ],
+
+            const SizedBox(height: 24),
             // Account Selector
             ListTile(
               onTap: () => _showAccountPicker(accountsAsync.value ?? []),
@@ -381,6 +469,51 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
     );
   }
 
+  void _showPersonPicker(List<Person> people) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => ExpressiveBottomSheet(
+        title: 'Select Person',
+        child: Column(
+          children: [
+            if (people.isEmpty)
+              Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Column(
+                  children: [
+                    const Icon(Symbols.person_off, size: 48, color: Colors.grey),
+                    const SizedBox(height: 16),
+                    const Text('No people found. Add them in the People tab.'),
+                    const SizedBox(height: 16),
+                    TextButton.icon(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        context.push('/people');
+                      },
+                      icon: const Icon(Symbols.add),
+                      label: const Text('Go to People'),
+                    )
+                  ],
+                ),
+              ),
+            ...people.map((p) => ListTile(
+              leading: CircleAvatar(
+                backgroundColor: Color(int.parse(p.color.replaceAll('0x', '0xFF'), radix: 16)),
+                child: Text(p.name[0].toUpperCase(), style: const TextStyle(color: Colors.white)),
+              ),
+              title: Text(p.name),
+              onTap: () {
+                setState(() => _selectedPerson = p);
+                Navigator.pop(context);
+              },
+            )),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _showCategoryPicker(List<Category> categories) {
     showModalBottomSheet(
       context: context,
@@ -403,7 +536,14 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
               ),
               title: Text(cat.name),
               onTap: () {
-                setState(() => _selectedCategory = cat);
+                setState(() {
+                  if (_selectedCategory?.id != cat.id) {
+                    _selectedCategory = cat;
+                    // Reset overrides only when selecting a DIFFERENT category
+                    _selectedIcon = null;
+                    _selectedColor = null;
+                  }
+                });
                 Navigator.pop(context);
               },
             );

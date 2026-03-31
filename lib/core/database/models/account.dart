@@ -32,6 +32,8 @@ class Account {
 
   DateTime updatedAt = DateTime.now();
 
+  int order = 0;
+
   @Index()
   @Enumerated(EnumType.name)
   AccountType type = AccountType.cash;

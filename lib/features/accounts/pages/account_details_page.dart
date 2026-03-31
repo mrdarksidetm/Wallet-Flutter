@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/account.dart';
 import '../../../core/database/models/transaction_model.dart';
@@ -15,8 +16,9 @@ class AccountDetailsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final color =
-        Color(int.parse(account.color.replaceAll('0x', ''), radix: 16));
+    final color = Color(int.parse(
+        account.color.replaceAll('0x', '0xFF').replaceAll('0xFFFF', '0xFF'),
+        radix: 16));
 
     final selectedCurrency = ref.watch(currencyProvider);
     final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
@@ -30,10 +32,7 @@ class AccountDetailsPage extends ConsumerWidget {
         title: Text(account.name),
         actions: [
           IconButton(
-            onPressed: () async {
-              
-              // Edit functionality can be added here
-            },
+            onPressed: () => context.push('/add_account', extra: account),
             icon: const Icon(Symbols.edit),
           ),
           const SizedBox(width: 8),

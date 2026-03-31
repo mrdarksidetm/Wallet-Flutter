@@ -70,8 +70,9 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final Color currentColor =
-        Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16));
+    final Color currentColor = Color(int.parse(
+        _selectedColor.replaceAll('0x', '0xFF').replaceAll('0xFFFF', '0xFF'),
+        radix: 16));
 
     return Scaffold(
       appBar: AppBar(

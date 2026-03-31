@@ -67,19 +67,24 @@ const AccountSchema = CollectionSchema(
       name: r'number',
       type: IsarType.string,
     ),
-    r'type': PropertySchema(
+    r'order': PropertySchema(
       id: 10,
+      name: r'order',
+      type: IsarType.long,
+    ),
+    r'type': PropertySchema(
+      id: 11,
       name: r'type',
       type: IsarType.string,
       enumMap: _AccounttypeEnumValueMap,
     ),
     r'updatedAt': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'validThru': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'validThru',
       type: IsarType.dateTime,
     )
@@ -169,9 +174,10 @@ void _accountSerialize(
   writer.writeBool(offsets[7], object.isPredefined);
   writer.writeString(offsets[8], object.name);
   writer.writeString(offsets[9], object.number);
-  writer.writeString(offsets[10], object.type.name);
-  writer.writeDateTime(offsets[11], object.updatedAt);
-  writer.writeDateTime(offsets[12], object.validThru);
+  writer.writeLong(offsets[10], object.order);
+  writer.writeString(offsets[11], object.type.name);
+  writer.writeDateTime(offsets[12], object.updatedAt);
+  writer.writeDateTime(offsets[13], object.validThru);
 }
 
 Account _accountDeserialize(
@@ -192,11 +198,12 @@ Account _accountDeserialize(
   object.isPredefined = reader.readBool(offsets[7]);
   object.name = reader.readString(offsets[8]);
   object.number = reader.readString(offsets[9]);
+  object.order = reader.readLong(offsets[10]);
   object.type =
-      _AccounttypeValueEnumMap[reader.readStringOrNull(offsets[10])] ??
+      _AccounttypeValueEnumMap[reader.readStringOrNull(offsets[11])] ??
           AccountType.cash;
-  object.updatedAt = reader.readDateTime(offsets[11]);
-  object.validThru = reader.readDateTime(offsets[12]);
+  object.updatedAt = reader.readDateTime(offsets[12]);
+  object.validThru = reader.readDateTime(offsets[13]);
   return object;
 }
 
@@ -228,11 +235,13 @@ P _accountDeserializeProp<P>(
     case 9:
       return (reader.readString(offset)) as P;
     case 10:
+      return (reader.readLong(offset)) as P;
+    case 11:
       return (_AccounttypeValueEnumMap[reader.readStringOrNull(offset)] ??
           AccountType.cash) as P;
-    case 11:
-      return (reader.readDateTime(offset)) as P;
     case 12:
+      return (reader.readDateTime(offset)) as P;
+    case 13:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1381,6 +1390,59 @@ extension AccountQueryFilter
     });
   }
 
+  QueryBuilder<Account, Account, QAfterFilterCondition> orderEqualTo(
+      int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'order',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Account, Account, QAfterFilterCondition> orderGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'order',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Account, Account, QAfterFilterCondition> orderLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'order',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Account, Account, QAfterFilterCondition> orderBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'order',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<Account, Account, QAfterFilterCondition> typeEqualTo(
     AccountType value, {
     bool caseSensitive = true,
@@ -1745,6 +1807,18 @@ extension AccountQuerySortBy on QueryBuilder<Account, Account, QSortBy> {
     });
   }
 
+  QueryBuilder<Account, Account, QAfterSortBy> sortByOrder() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'order', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Account, Account, QAfterSortBy> sortByOrderDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'order', Sort.desc);
+    });
+  }
+
   QueryBuilder<Account, Account, QAfterSortBy> sortByType() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'type', Sort.asc);
@@ -1916,6 +1990,18 @@ extension AccountQuerySortThenBy
     });
   }
 
+  QueryBuilder<Account, Account, QAfterSortBy> thenByOrder() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'order', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Account, Account, QAfterSortBy> thenByOrderDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'order', Sort.desc);
+    });
+  }
+
   QueryBuilder<Account, Account, QAfterSortBy> thenByType() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'type', Sort.asc);
@@ -2020,6 +2106,12 @@ extension AccountQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Account, Account, QDistinct> distinctByOrder() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'order');
+    });
+  }
+
   QueryBuilder<Account, Account, QDistinct> distinctByType(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -2105,6 +2197,12 @@ extension AccountQueryProperty
   QueryBuilder<Account, String, QQueryOperations> numberProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'number');
+    });
+  }
+
+  QueryBuilder<Account, int, QQueryOperations> orderProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'order');
     });
   }
 

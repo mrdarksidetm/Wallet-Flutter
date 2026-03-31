@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 
 class ExpressiveBottomSheet extends StatelessWidget {
   final Widget child;
+  final String? title;
 
   const ExpressiveBottomSheet({
     super.key,
     required this.child,
+    this.title,
   });
 
   static Future<T?> show<T>({
@@ -52,6 +54,15 @@ class ExpressiveBottomSheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
+          if (title != null) ...[
+            Text(
+              title!,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 16),
+          ],
           // Content
           Flexible(
             child: SingleChildScrollView(

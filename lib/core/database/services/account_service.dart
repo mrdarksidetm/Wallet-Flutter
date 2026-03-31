@@ -36,4 +36,13 @@ class AccountService {
   Future<void> deleteAccount(Id id) async {
     await accountRepository.delete(id);
   }
+
+  Future<void> updateAccountsOrder(List<Account> accounts) async {
+    for (int i = 0; i < accounts.length; i++) {
+      accounts[i].order = i;
+    }
+    await isar.writeTxn(() async {
+      await isar.accounts.putAll(accounts);
+    });
+  }
 }

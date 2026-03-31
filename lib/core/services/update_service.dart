@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -24,6 +25,22 @@ class AppUpdate {
       String downloadUrl = json['html_url'];
 
       if (assets.isNotEmpty) {
+        // If the current build is universal, we prefer the universal APK
+        if (architecture == 'universal') {
+          final universal = assets.where((asset) {
+            final name = asset['name'].toString().toLowerCase();
+            return name.endsWith('.apk') && name.contains('universal');
+          });
+          if (universal.isNotEmpty) {
+            return AppUpdate(
+              version: json['tag_name'].toString().replaceAll('v', ''),
+              changelog: json['body'] ?? 'No changelog provided.',
+              downloadUrl: universal.first['browser_download_url'],
+              publishedAt: DateTime.parse(json['published_at']),
+            );
+          }
+        }
+
         // 1. Try to find APK matching exact architecture
         final archSpecific = assets.where((asset) {
           final name = asset['name'].toString().toLowerCase();
@@ -82,11 +99,16 @@ class UpdateService {
   final String repoUrl =
       'https://api.github.com/repos/mrdarksidetm/Wallet-Flutter/releases/latest';
   final Dio _dio = Dio();
+  static const _platform = MethodChannel('com.mrdarksidetm.wallet/app_info');
 
   Future<String> getDeviceArchitecture() async {
     if (!Platform.isAndroid) return 'universal';
 
     try {
+      // First, check if the app was installed as a universal (fat) APK
+      final bool isUniversal = await _platform.invokeMethod('isUniversalBuild') ?? false;
+      if (isUniversal) return 'universal';
+
       final deviceInfo = DeviceInfoPlugin();
       final androidInfo = await deviceInfo.androidInfo;
       final abis = androidInfo.supportedAbis;

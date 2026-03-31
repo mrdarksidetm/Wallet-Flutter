@@ -6,7 +6,7 @@ class AccountRepository extends BaseRepository<Account> {
   AccountRepository(super.isar);
 
   Stream<List<Account>> watchAll() {
-    return isar.accounts.where().sortByName().watch(fireImmediately: true);
+    return isar.accounts.where().sortByOrder().watch(fireImmediately: true);
   }
 
   // Custom queries can go here (e.g., Get by Type)

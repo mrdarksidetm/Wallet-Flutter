@@ -6,7 +6,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/widgets/transaction_list_tile.dart';
-import '../widgets/total_balance_card.dart';
+import '../widgets/animated_balance_hero.dart';
 import '../widgets/overview_card.dart';
 
 class HomePage extends ConsumerWidget {
@@ -95,35 +95,31 @@ class _HomeBalanceSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final totalBalanceAsync = ref.watch(totalBalanceProvider);
     final monthlyStatsAsync = ref.watch(monthlyStatsProvider);
-    final selectedCurrency = ref.watch(currencyProvider);
-    final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: totalBalanceAsync.when(
         data: (total) => monthlyStatsAsync.when(
-          data: (stats) => TotalBalanceCard(
+          data: (stats) => AnimatedBalanceHero(
             totalBalance: total,
             monthlyIncome: stats['income'] ?? 0.0,
             monthlyExpense: stats['expense'] ?? 0.0,
-            format: currencyFormat,
           ),
-          loading: () => _LoadingBalance(format: currencyFormat),
-          error: (_, __) => _LoadingBalance(format: currencyFormat),
+          loading: () => const _LoadingBalance(),
+          error: (_, __) => const _LoadingBalance(),
         ),
-        loading: () => _LoadingBalance(format: currencyFormat),
-        error: (_, __) => _LoadingBalance(format: currencyFormat),
+        loading: () => const _LoadingBalance(),
+        error: (_, __) => const _LoadingBalance(),
       ),
     );
   }
 }
 
 class _LoadingBalance extends StatelessWidget {
-  final NumberFormat format;
-  const _LoadingBalance({required this.format});
+  const _LoadingBalance();
   @override
-  Widget build(BuildContext context) => TotalBalanceCard(
-      totalBalance: 0, monthlyIncome: 0, monthlyExpense: 0, format: format);
+  Widget build(BuildContext context) => const AnimatedBalanceHero(
+      totalBalance: 0, monthlyIncome: 0, monthlyExpense: 0);
 }
 
 class _HomeFinanceGrid extends ConsumerWidget {

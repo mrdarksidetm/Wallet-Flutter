@@ -22,7 +22,9 @@ import '../features/home/pages/add_edit_recurring_page.dart';
 import '../features/settings/pages/categories_page.dart';
 import '../features/settings/pages/add_edit_category_page.dart';
 import '../features/people/pages/people_page.dart';
+import '../features/people/pages/person_details_page.dart';
 import '../features/settings/pages/currency_selection_page.dart';
+import '../features/settings/pages/edit_profile_page.dart';
 import '../features/reports/pages/category_details_page.dart';
 import '../features/home/pages/goals_page.dart';
 import '../features/home/pages/add_edit_goal_page.dart';
@@ -115,6 +117,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       _rootRoute('/feedback', (_) => const FeedbackPage()),
       _rootRoute('/about', (_) => const AboutPage()),
       _rootRoute('/user_info', (_) => const UserInfoPage()),
+      _rootRoute('/edit_profile', (_) => const EditProfilePage()),
+      _rootRoute('/person_details',
+          (state) => PersonDetailsPage(person: state.extra as Person)),
       _rootRoute('/all_transactions', (_) => const AllTransactionsPage()),
       _rootRoute('/account_details',
           (state) => AccountDetailsPage(account: state.extra as Account)),
@@ -316,7 +321,8 @@ class _FAB extends ConsumerWidget {
       '/add_goal',
       '/add_loan',
       '/add_recurring',
-      '/add_category'
+      '/add_category',
+      '/budgets',
     ];
     // Don't hide for /reports anymore
     return hiddenRoutes
