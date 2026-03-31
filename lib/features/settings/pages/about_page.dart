@@ -105,14 +105,14 @@ class AboutPage extends ConsumerWidget {
                     children: [
                       const Icon(Symbols.android, size: 14),
                       Text(
-                        ' Android X ',
+                        ' X ',
                         style: theme.textTheme.labelSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const FlutterLogo(size: 14),
                       Text(
-                        ' Flutter | ',
+                        ' | ',
                         style: theme.textTheme.labelSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
