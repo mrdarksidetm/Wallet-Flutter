@@ -23,7 +23,8 @@ class MainActivity: FlutterFragmentActivity() {
     private fun isUniversalBuild(): Boolean {
         return try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                val splitDirs = context.applicationInfo.splitSourceDirs
+                // We removed "context." here because MainActivity is already a Context!
+                val splitDirs = applicationInfo.splitSourceDirs
                 splitDirs == null || splitDirs.isEmpty()
             } else {
                 true
