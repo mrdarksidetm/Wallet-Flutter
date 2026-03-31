@@ -1,147 +1,96 @@
-# Wallet
+# 🏦 Project Wallet (Paisa Clone)
 
-<p align="center">
-  <img src="assets/icon/Original-Colour.svg" width="160" height="160" alt="Wallet Logo">
-</p>
+[![Flutter Version](https://img.shields.io/badge/Flutter-3.5.0-blue.svg?logo=flutter)](https://flutter.dev)
+[![Material 3](https://img.shields.io/badge/Design-Material_3-green.svg)](https://m3.material.io)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-brightgreen.svg)](https://github.com/mrdarksidetm/Wallet-Flutter/graphs/commit-activity)
 
-<p align="center">
-  Offline-first personal finance app built with Flutter.
-</p>
+**Project Wallet** is a premium, offline-first personal finance dashboard built with **Flutter 2026 Standards**. It empowers users to monitor their financial health, track transactions, manage multiple wallets, and visualize spending with high-performance, native aesthetics. ✨
 
-<p align="center">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-black.svg" alt="License MIT"></a>
-  <img src="https://img.shields.io/badge/Flutter-3.5%2B-02569B.svg" alt="Flutter 3.5+">
-  <img src="https://img.shields.io/badge/Android-Verified-3DDC84.svg" alt="Android verified">
-</p>
+---
 
-## 📌 Repository Status
+## 🚀 Key Features
 
-| Area | Status | Quick Link |
-| ---- | ------ | ---------- |
-| Release | Android release pipeline configured | [codemagic.yaml](codemagic.yaml) |
-| Tests | Baseline suite available and expanding | [test](test) |
-| Docs | Setup, contribution, and security docs available | [README.md](README.md), [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md) |
+*   **💳 Multi-Account Management**: Track Cash, Bank, Credit Cards, and Savings in one place.
+*   **📊 Expressive Analytics**: Native Canvas-driven charts for income vs. expense breakdown.
+*   **📈 Real-time Statistics**: Live-updating trends for budgets, assets, and loans.
+*   **🔄 Automated Workflows**: Recurring transactions, subscriptions, and bill splitting.
+*   **🎯 Financial Goals**: Set and track savings targets with beautiful progress indicators.
+*   **🔒 Privacy First**: 100% offline, local storage with optional Biometric Auth.
+*   **🎨 Dynamic Personalization**: Full Material 3 support with Dynamic Color (Monet) and custom typography.
 
-## ✨ Highlights
+---
 
-- 🔒 Privacy-first: core finance workflows work without cloud sync
-- 🧠 Smart local insights: spending trends generated on-device
-- ⚡ Fast local storage: Isar-backed data with generated adapters
-- 📊 Complete money toolkit: transactions, budgets, goals, recurring, loans, labels
-- 🎨 Premium UI: Material 3 Redesign with dynamic shadow logos and expressive animations
+## 🛠️ Technical Stack
 
-## 📱 Platform Status
+*   **Framework**: [Flutter](https://flutter.dev) (Dart)
+*   **State Management**: [Riverpod 2.0](https://riverpod.dev) (with code generation)
+*   **Database**: [Isar](https://isar.dev) (High-performance NoSQL)
+*   **Navigation**: [GoRouter](https://pub.dev/packages/go_router)
+*   **UI Components**: [Material 3](https://m3.material.io) (Expressive Geometry)
+*   **Icons**: [Material Symbols](https://fonts.google.com/icons) (Variable)
 
-- ✅ Verified: Android
-- 🧪 Present in repository but not claimed as verified in this document: iOS, Windows, Linux, macOS
+---
 
-## 🚀 Quick Start
+## 📥 Getting Started
 
-### Requirements
+### Prerequisites
+*   Flutter SDK `>=3.5.0`
+*   Android Studio / VS Code
+*   A physical device or emulator (Android 14+ recommended)
 
-- Flutter SDK 3.5.0+
-- Dart SDK 3.5.0+ (bundled with Flutter)
-- Java 17 (Android toolchain)
-- Android SDK
-- VS Code or Android Studio
+### Installation 💻
+1.  **Clone the repository**:
+    ```bash
+    git clone --recursive https://github.com/mrdarksidetm/Wallet-Flutter.git
+    cd Wallet-Flutter
+    ```
+2.  **Install dependencies**:
+    ```bash
+    flutter pub get
+    ```
+3.  **Generate data models**:
+    ```bash
+    dart run build_runner build --delete-conflicting-outputs
+    ```
+4.  **Run the application**:
+    ```bash
+    flutter run
+    ```
 
-Environment check:
+---
 
-```bash
-flutter doctor -v
-```
+## 🗺️ Roadmap & Progress
 
-### Setup
+| Phase | Description | Status |
+| :--- | :--- | :--- |
+| **Phase 1** | The Engine (Isar DB & Models) | ✅ Complete |
+| **Phase 2** | The Skeleton (Navigation & AppShell) | ✅ Complete |
+| **Phase 3** | The Dashboard (Home & Stats) | ✅ Complete |
+| **Phase 4** | The Ledger (Account History) | ✅ Complete |
+| **Phase 5** | The Input Pipeline (Transactions) | ✅ Complete |
+| **Phase 6** | Visualizations (Canvas Charts) | ✅ Complete |
+| **Phase 7** | Refinement (UX & Reordering) | 🚀 In Progress |
 
-1. Clone with submodules (required for local Isar generator dependency).
+---
 
-```bash
-git clone --recursive https://github.com/mrdarksidetm/Wallet.git
-cd Wallet
-```
+## 🤝 Contributing
 
-1. Install dependencies.
+Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**. 💖
 
-```bash
-flutter pub get
-```
+Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
 
-1. Generate code.
+---
 
-```bash
-dart run build_runner build --delete-conflicting-outputs
-```
+## 📜 License
 
-1. Run the app.
+Distributed under the MIT License. See `LICENSE` for more information. ⚖️
 
-```bash
-flutter run
-```
+## 📧 Contact
 
-## 🛠️ Development
+**Abhijeet Yadav** - [@mrdarksidetm](https://github.com/mrdarksidetm) 👨‍💻
 
-```bash
-# Static analysis
-flutter analyze
+Project Link: [https://github.com/mrdarksidetm/Wallet-Flutter](https://github.com/mrdarksidetm/Wallet-Flutter) 🔗
 
-# All tests
-flutter test
-
-# Focused insights tests
-flutter test test/features/insights/financial_insight_service_test.dart
-
-# Re-generate code after model/provider changes
-dart run build_runner build --delete-conflicting-outputs
-
-# Release APKs
-flutter build apk --release --split-per-abi
-
-# Release App Bundle
-flutter build appbundle --release
-```
-
-Repository release helper:
-
-```bash
-./build_release.sh
-```
-
-## 🧱 Architecture
-
-Hybrid clean architecture plus feature modules:
-
-```text
-lib/
-    app/           routing and app shell
-    core/          database, services, theme, utilities
-    data/          data abstractions and support models
-    domain/        entities and business contracts
-    features/      feature modules (accounts, budgets, insights, transactions, ...)
-    presentation/  legacy presentation layer
-    shared/        reusable UI and common helpers
-```
-
-Technical stack:
-
-- Riverpod for state management and dependency injection
-- GoRouter for navigation
-- Isar for local persistence
-- Local auth and privacy controls for device-only protection
-
-## 📚 Project Docs
-
-- Full feature and model specification: [SPEC.md](SPEC.md)
-- Contribution guide: [CONTRIBUTING.md](CONTRIBUTING.md)
-- Android CI workflow: [codemagic.yaml](codemagic.yaml)
-- Security policy: [SECURITY.md](SECURITY.md)
-
-## 🧰 Troubleshooting
-
-- Build fails after pulling updates: run `flutter pub get` then code generation.
-- Generated file or Isar errors: run build_runner with `--delete-conflicting-outputs`.
-- Android Gradle issues: confirm Java 17 with `java -version`.
-- Tests are currently growing: run existing suites before opening a PR.
-
-## 📄 License
-
-MIT © [Abhi](LICENSE)
+---
+*Built with ❤️ for the Flutter Community.*

@@ -1,54 +1,61 @@
-# Project Wallet Structure (Flutter)
+# 🏗️ Project Structure & Architecture
 
-## Folder Tree
+A bird's eye view of the **Project Wallet** (Flutter) technical blueprint. 🗺️🏦
 
-D:\Ideas\Antigravity\Wallet-Flutter\
-├───android\ (MainActivity with FlutterFragmentActivity, VIBRATE permission)
-├───assets\
-│   ├───fonts\ (GoogleSansFlex, AppleColorEmoji)
-│   ├───images\
-│   └───icon\
-├───lib\
-│   ├───main.dart (DynamicColorBuilder with Variant support)
-│   ├───app\
-│   │   └───router.dart (GoRouter, AppShell with Lock Logic)
-│   ├───core\
-│   │   ├───database\
-│   │   │   ├───models\ (Account, Category, Transaction, Budget, etc.)
-│   │   │   ├───repositories\ (Isar CRUD)
-│   │   │   └───services\ (Backup, CSV, Statistics, Recurring, Seed)
-│   │   ├───services\
-│   │   │   ├───haptic_service.dart (Static API with Toggle support)
-│   │   │   ├───greeting_service.dart
-│   │   │   └───exchange_rate_service.dart
-│   │   ├───theme\
-│   │   │   ├───colors.dart (Atelier & Dark Teal/Sage Tokens)
-│   │   │   ├───theme.dart (M3 Dynamic + Variable Font Axes)
-│   │   │   ├───typography.dart (Google Sans Flex configuration)
-│   │   │   └───personalization_provider.dart (Stateful UI Controller)
-│   │   └───widgets\ (Atelier Buttons, IconPicker, AnimatedCounter, TransactionListTile)
-│   ├───features\
-│   │   ├───home\
-│   │   │   ├───pages\ (HomePage, BudgetsPage, BillSplitterPage, SearchPage)
-│   │   │   └───widgets\ (TotalBalanceCard, OverviewCard, HomeHeader)
-│   │   ├───accounts\
-│   │   │   └───pages\ (AccountsPage, AddEditAccountPage with Color Picker)
-│   │   ├───transactions\
-│   │   │   └───pages\ (AddTransactionPage)
-│   │   ├───reports\
-│   │   │   └───pages\ (ReportsPage, CategoryDetailsPage)
-│   │   ├───auth\
-│   │   │   ├───pages\ (OnboardingPage, UnlockPage, UserInfoPage)
-│   │   │   └───providers\ (AuthNotifier with Auto-Authenticate)
-│   │   └───settings\
-│   │       └───pages\ (SettingsPage, PersonalizationPage, PrivacyPolicyPage, FeedbackPage, AboutPage)
-│   └───data\
-└───test\
+---
 
-## Architecture Key Patterns
-- **MVVM + Riverpod**: Using new `Notifier` and `AsyncValue` for reactive state.
-- **Clean Database Layer**: Isar models separated from UI. Repositories handle Isar query logic.
-- **Service Layer**: Business logic (CSV, Backup, Stats) encapsulated in dedicated services.
-- **Atelier Design System**: Centralized `personalizationProvider` controls typography (Weight, Width, SOFT, opsz axes) and geometry (roundness) globally.
-- **Dynamic Color (M3)**: Supports 9 variants (Monochrome, Tonal spot, etc.) and Material You harmonization.
-- **Security**: Local authentication with PIN fallback and auto-trigger on app start.
+## 📂 Directory Map
+
+```text
+lib/
+├── 📱 app/                # Root configuration (Router, Theme, AppShell)
+├── 🏛️ core/               # Shared logic & infrastructure
+│   ├── 💾 database/       # Isar Models, Repositories, Services & Providers
+│   ├── 🛠️ providers/      # Global state providers (FAB, Navigation)
+│   ├── 📡 services/       # Platform services (Haptics, Updates, Backup)
+│   ├── 🎨 theme/          # Material 3 Personalization logic
+│   └── 🧩 widgets/        # Reusable Atomic & Molecular UI components
+├── 🚀 features/           # Domain-specific modules (MVVM pattern)
+│   ├── 🏦 accounts/       # Wallet & Account management
+│   ├── 📊 reports/        # Analytics & Canvas-based charts
+│   ├── 💸 transactions/   # CRUD for income/expense/transfers
+│   ├── 🎯 goals/          # Savings targets
+│   ├── ⚖️ loans/          # Debt & lending tracking
+│   ├── 🔄 recurring/      # Subscriptions & bills
+│   ├── 👥 people/         # Contact management for transactions
+│   ├── 🏡 home/           # Dashboard & overview grid
+│   └── ⚙️ settings/       # App preferences & profile
+└── 🏁 main.dart           # Application entry point
+```
+
+---
+
+## 🏛️ Architectural Principles
+
+### **1. MVVM + Service Layer** 🏗️
+- **Model**: Isar collections representing the data schema.
+- **View**: Flutter Pages/Widgets reflecting the state.
+- **ViewModel**: Managed via **Riverpod Providers**.
+- **Service**: Centralized business logic (e.g., `TransactionService` handles balance math).
+
+### **2. Reactive Data Flow** ⚡
+- Data flows from **Isar Streams** ➡️ **Riverpod StreamProviders** ➡️ **UI**.
+- UI automatically rebuilds only when specific watched data changes.
+
+### **3. Material 3 Expressive Design** 🎨
+- **Geometry**: High border radii (24-32px).
+- **Motion**: `flutter_animate` for smooth transitions.
+- **Color**: Monet-based dynamic schemes.
+
+---
+
+## 🛠️ Key Technologies
+
+- **💾 Persistence**: [Isar](https://isar.dev) (Local-first NoSQL).
+- **⚡ State**: [Riverpod 2.0](https://riverpod.dev).
+- **🚦 Routing**: [GoRouter](https://pub.dev/packages/go_router).
+- **📏 UI**: [Material 3](https://m3.material.io).
+- **🎨 Icons**: [Material Symbols](https://fonts.google.com/icons).
+
+---
+*Architecture maintained for Scalability & Performance.* 🚀💼

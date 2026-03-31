@@ -1,48 +1,64 @@
-# Development Notes & Error Log (Wallet-Flutter)
+# 🛠️ Wallet-Flutter DEVELOPMENT NOTES
 
-This file tracks recurring errors, architectural "gotchas," and lessons learned during the porting of logic from the original Paisa app. **Reference this file before implementing new features or debugging crashes.**
+Internal technical documentation for maintaining the **Project Wallet** ecosystem. 🏗️
 
 ---
 
-## 1. Database & Persistence (Isar)
+## 💾 1. Database & Persistence (Isar)
 
-### **Critical: Avoid `late` in Data Models**
-- **Error**: `LateInitializationError: Field '...' has not been initialized`.
-- **Context**: Occurs when Isar tries to save or read a record where a `late` field hasn't been explicitly assigned. This is highly common during initial seeding or when importing data (CSV/Restore).
-- **Mandate**: **NEVER** use the `late` keyword for `@collection` fields in Isar models. Always provide a safe default value.
-  - **Bad**: `late String description;`
-  - **Good**: `String description = '';`
-  - **Bad**: `late DateTime createdAt;`
-  - **Good**: `DateTime createdAt = DateTime.now();`
+### **🚫 Critical: Avoid `late` in Data Models**
+- **Error**: `LateInitializationError: Field '...' has not been initialized`. 🧨
+- **Context**: Occurs when Isar tries to save or read a record where a `late` field hasn't been explicitly assigned (common during initial seeding or CSV/Restore).
+- **Mandate**: **NEVER** use the `late` keyword for `@collection` fields. Always provide safe default values.
+  - **❌ Bad**: `late String description;`
+  - **✅ Good**: `String description = '';`
+  - **❌ Bad**: `late DateTime createdAt;`
+  - **✅ Good**: `DateTime createdAt = DateTime.now();`
 
-### **Schema Synchronization**
-- **Issue**: Strange runtime behavior, missing fields, or crashes after modifying models.
-- **Mandate**: After any change to files in `lib/core/database/models/`, you MUST run:
+### **🔄 Schema Synchronization**
+- **Issue**: Strange runtime behavior, missing fields, or crashes after model changes. 🔧
+- **Mandate**: After modifying anything in `lib/core/database/models/`, you MUST run:
   ```bash
   dart run build_runner build --delete-conflicting-outputs
   ```
 
 ---
 
-## 2. UI & Design (Material 3)
+## 🎨 2. UI & Design Standards (Material 3)
 
-### **Dynamic Content over Hardcoded Strings**
-- **Issue**: Hardcoded UI text (e.g., "Good late night") that doesn't reflect real-world state or time.
-- **Mandate**: Use dedicated services (like `GreetingService`) and Riverpod providers for all environmental or time-based UI strings.
+### **📐 Expressive Geometry**
+- **Radius**: Standardize on **24px - 32px** for large cards and **16px** for small containers. 📏
+- **Elevation**: Favor **Tonal Elevation** over heavy shadows. Use `SurfaceContainerLow` for background layering. 🌈
+- **Scrolling**: Mandate `BouncingScrollPhysics()` for all scrollable views to maintain tactile fluidity. ⛸️
 
-### **Linting & Performance (Const Constructors)**
-- **Issue**: Performance warnings (`prefer_const_constructors`) or `unnecessary_const` errors.
-- **Common Gotchas**:
-  - **Charts**: `AxisTitles` often cannot be `const` if they contain dynamic `SideTitles` builders that reference `Theme` or `stats`.
-  - **Slivers**: `SliverToBoxAdapter` should have `const` applied to its **child** (e.g., `SliverToBoxAdapter(child: const SizedBox(...))`) rather than the adapter itself to maximize compiler optimization.
+### **🔤 Typography & Symbols**
+- **Primary Font**: `Google Sans Flex` (Variable). ✒️
+- **Icons**: Use `material_symbols_icons` (Variable Symbols). Always check the latest [Variable Symbols](https://fonts.google.com/icons) for optimal weight/fill. 🎭
+- **Emoji Support**: Primary support via `AppleColorEmoji` font to ensure cross-platform visual parity. 🍎
 
 ---
 
-## 3. Porting Logic from Paisa
+## 🏗️ 3. Architecture & State (Riverpod)
 
-### **Performance Audit**
-- **Mandate**: Before declaring a port "Complete," run the **Performance Audit** tool (Settings -> Data Management).
-- **Target**: Ensure 10,000 transactions can be inserted and queried without UI jank or database timeouts. This verifies that your Isar `@Index()` annotations are functioning correctly.
+### **⚡ Efficient Rebuilds**
+- **Strategy**: Always use `ref.watch(provider.select((s) => s.value))` to surgically target only necessary state slices. 🎯
+- **Context**: Prevents entire page rebuilds when only a single property (like `userName`) changes.
 
-### **Haptic Feedback**
-- **Mandate**: Every primary user action (Save, Delete, Select) must trigger `HapticService`. Reference the `paisa-app` UX, but ensure we use our centralized service for consistency.
+### **📦 Service Layer**
+- **Mandate**: Business logic belongs in **Services**, not ViewModels or Pages. 🏦
+- **Providers**: Use `Provider` for stateless services and `NotifierProvider` for stateful logic (like Personalization).
+
+---
+
+## 🧩 4. Feature Implementation Protocol
+
+1.  **🔍 Research**: Check `SPEC.md` and `paisa-reference` for logic origins.
+2.  **🏗️ Data Model**: Update Isar entities and run `build_runner`.
+3.  **🏢 UI Scaffold**: Implement using M3 components (Expressive style).
+4.  **🧪 Verification**:
+    - `flutter analyze` 🧹
+    - Check for data persistence on app restart. 🔒
+    - Verify haptic feedback (only on saves/primary actions). 📳
+
+---
+*Maintained by the Wallet Development Team.* 💼

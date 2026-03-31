@@ -237,7 +237,15 @@ class PersonalizationNotifier extends Notifier<PersonalizationState> {
   }
 
   void reset() {
-    state = PersonalizationState();
+    state = state.copyWith(
+      grade: 50,
+      weight: 400,
+      slant: 0,
+      width: 100,
+      roundness: 28,
+      fontRoundness: 0,
+      opticalSize: 12,
+    );
     _save();
   }
 }

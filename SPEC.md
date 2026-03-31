@@ -1,83 +1,106 @@
-# SPEC.md — Wallet App Design Specification
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# This file is IDENTICAL in both the Compose and Flutter repos.
-# It is the single source of truth for feature parity between both versions.
-# When you update a feature, update THIS SPEC first, then implement in both codebases.
-#
-# Last synced: 2026-03-21 (Post-Expansion Build)
+# 📜 Wallet App Design Specification (SPEC.md)
 
-## 1. App Identity
-
-| Field          | Value                                   |
-|----------------|------------------------------------------|
-| Name           | Wallet                                  |
-| Package (Android) | `com.mrdarksidetm.wallet`            |
-| Design System  | Material 3 (BOM 2024.10+) + Stitch DNA  |
-| Iconography    | Adaptive Icons (Android)                |
-| Architecture   | MVVM + Unidirectional Data Flow         |
-| Network        | **Offline-first. Zero network calls.**  |
+This is the **Single Source of Truth** for the Project Wallet ecosystem. 🏦
 
 ---
 
-## 2. Data Model
+## 💎 1. App Identity
 
-### 2.3 Budget
-| Field      | Type     | Kotlin (Room)     | Notes                           |
-|------------|----------|-------------------|---------------------------------|
-| id         | String   | `String` (UUID)   | Primary key                     |
-| amount     | Decimal  | `Double`          | Limit amount                    |
-| category   | String   | `String`          | Budgeted category               |
-| period     | String   | `String`          | Weekly, Monthly, Yearly         |
-
-### 2.4 Goal (New)
-| Field        | Type     | Kotlin (Room)     | Notes                           |
-|--------------|----------|-------------------|---------------------------------|
-| id           | String   | `String` (UUID)   | Primary key                     |
-| name         | String   | `String`          | Goal name (e.g. "New Car")      |
-| targetAmount | Decimal  | `Double`          | How much to save                |
-| savedAmount  | Decimal  | `Double`          | Current progress                |
-| deadline     | Datetime | `Long`            | Target date                     |
-
-### 2.5 Recurring Transaction (New)
-| Field          | Type     | Kotlin (Room)     | Notes                           |
-|----------------|----------|-------------------|---------------------------------|
-| id             | String   | `String` (UUID)   | Primary key                     |
-| amount         | Decimal  | `Double`          | Amount                          |
-| frequency      | String   | `String`          | Daily, Weekly, Monthly          |
-| nextOccurrence | Datetime | `Long`            | When to process next            |
-
-### 2.6 Label (New)
-| Field | Type   | Kotlin (Room)     | Notes                    |
-|-------|--------|-------------------|--------------------------|
-| id    | String | `String` (UUID)   | Primary key              |
-| name  | String | `String`          | Label name               |
-| color | String | `String` (Hex)    | UI display color         |
+*   **Project Name**: Project Wallet (Paisa Clone) 🏦
+*   **Version**: 1.3.0 ("The Reactive Atelier") 💎
+*   **Target SDK**: Android 14+ (API 34) 🤖
+*   **Design Language**: Material 3 Expressive (Editorial Style) 🎨
+*   **Core Mandate**: Offline-first, Privacy-centric, High-Performance (60-120 FPS). ⚡
 
 ---
 
-## 6. Feature Parity Checklist
+## 📊 2. Data Model (Isar Collections)
 
-| Feature                       | Compose | Flutter | Notes                         |
-|-------------------------------|---------|---------|-------------------------------|
-| Room/Isar database            | ✅      | ✅      | Version 7 (Room)              |
-| Budgets                       | ✅      | ✅      | Full CRUD implemented         |
-| Goals (Savings)               | ✅      | ✅      | Progress tracking & UI        |
-| Recurring Transactions        | ✅      | ✅      | Entity & UI built             |
-| Labels / Tags                 | ✅      | ✅      | Basic system added            |
-| Categories Management         | ✅      | ✅      | Full CRUD UI implemented      |
-| Donut Chart (Canvas)          | ✅      | ✅      | Native implementation         |
-| Loans (Lent/Borrowed/People)  | ✅      | ✅      | Synced to Flutter             |
-| Dark/Light Mode Consistency   | ✅      | ✅      | Stitch custom palette         |
+### **🏦 2.1 Account**
+- **Id**: autoIncrement 🔢
+- **Name**: String (Index) 📝
+- **Balance**: double (Initial + Current) 💵
+- **Type**: enum (Cash, Bank, CreditCard, Investment, etc.) 💳
+- **Icon**: String (Material Symbol name) 🎭
+- **Color**: String (Hex code) 🎨
+- **Order**: int (Display sequence) 🔢
+- **Lifecycle**: createdAt, updatedAt, isArchived, isDeleted ⏳
+
+### **💸 2.2 Transaction**
+- **Id**: autoIncrement 🔢
+- **Amount**: double 💵
+- **Type**: enum (Income, Expense, Transfer) 🔄
+- **Note**: String? (Optional) 📝
+- **Date**: DateTime 📅
+- **Links**: Account, Category, Person, TransferAccount 🔗
+
+### **💹 2.3 Budget**
+- **Id**: autoIncrement 🔢
+- **Amount**: double (Limit) 💵
+- **Category**: Link (The group it applies to) 📂
+- **Cycle**: enum (Daily, Weekly, Monthly) 🔄
+
+### **🎯 2.4 Goal**
+- **TargetAmount**: double 🥅
+- **CurrentAmount**: double 💰
+- **Deadline**: DateTime? 📅
+- **IsCompleted**: bool ✅
+
+### **🏷️ 2.5 Category**
+- **Name**: String (e.g., Food, Salary) 📂
+- **Icon**: String 🎭
+- **Color**: String 🎨
+- **Type**: enum (Income, Expense) 🔄
 
 ---
 
-## 10. Debug History & Known Issues
+## 🎨 3. Design System (Material 3)
 
-### 2026-03-21: Core Feature Expansion
-- **Database:** Bumped Room schema to Version 7. Integrated `GoalEntity`, `RecurringTransactionEntity`, and `LabelEntity`.
-- **ViewModel:** Massive refactor of `WalletViewModel` to support 9 different DAOs with clean Reactive Streams (StateFlow).
-- **UI:** Built `GoalsScreen.kt`, `RecurringScreen.kt`, `LabelsScreen.kt`, and `CategoriesScreen.kt`.
-- **Navigation:** Fully wired all 15 home grid items to their respective (new or placeholder) screens in `MainAppScreen.kt`.
-- **Analytics:** Verified Native Canvas Donut chart performance with `animateFloatAsState`.
+### **📐 Layout Geometry**
+- **Border Radius**: 32px (Bottom Sheets), 24px (Large Cards), 16px (Dialogs). 📏
+- **Padding**: 24px (Standard Outer Margin), 16px (Internal Spacing). 📏
+
+### **🎭 Typography & Icons**
+- **Font**: `Google Sans Flex` (Variable weight). ✒️
+- **Icons**: `Material Symbols` (Weight: 400, Fill: 0-1). 🎭
+- **Scrolling**: `BouncingScrollPhysics()` across all views. ⛸️
 
 ---
+
+## ✅ 4. Feature Parity Checklist
+
+### **Core**
+- [x] Multi-account support (Isar links). ✅
+- [x] Transaction CRUD with Account balance updates. ✅
+- [x] Category-based grouping and filtering. ✅
+- [x] **New**: Account display reordering. ✅
+
+### **Home & Dashboard**
+- [x] Total Balance Hero Card (Carousel). ✅
+- [x] Income/Expense breakdown (Monthly stats). ✅
+- [x] Interactive Overview Grid. ✅
+- [x] **New**: Smooth page indicators. ✅
+
+### **Advanced Features**
+- [x] Bill Splitter with local Person links. ✅
+- [x] Financial Goals tracking. ✅
+- [x] Monthly Budgets with real-time reactive streams. ✅
+- [x] Recurring transactions & subscriptions. ✅
+- [x] In-app GitHub Updater. ✅
+
+---
+
+## 🛠️ 5. Debug History & Known Issues
+
+### **Current Build Status (v1.3.0)**
+- **Status**: 🟢 **Healthy**
+- **Analysis**: `flutter analyze` report: **No issues found**. 🧹
+- **Generation**: Isar and Riverpod generated files are up-to-date. ⚙️
+
+### **Recent Fixes**
+- **2026-03-31**: Resolved data loss during transaction edit. 📝
+- **2026-03-31**: Implemented `personsStreamProvider` fix. 🏷️
+- **2026-03-31**: Added manual account reordering support. 🔄
+
+---
+*SPEC maintained by the Wallet Core Team.* 💼

@@ -1,64 +1,82 @@
-# Contributing to Wallet
+# 🤝 Contributing to Project Wallet
 
-Thank you for your interest in contributing to Wallet! We welcome contributions from the community to help make this project better.
+Thank you for your interest in contributing to **Project Wallet**! We welcome contributions that help make this personal finance dashboard even better. 🏦✨
+
+---
 
 ## ✨ Contribution Flow
 
-1. **Fork the repository** on GitHub.
-2. **Clone** your fork locally.
-3. **Create a branch** for your feature or bugfix (`git checkout -b feature/amazing-feature`).
-4. **Make your changes**.
-5. **Run analysis and tests** to ensure no regressions.
-   - `flutter analyze`
-   - `flutter test`
-6. **Commit** your changes (`git commit -m 'Add some amazing feature'`).
-7. **Push** to your branch (`git push origin feature/amazing-feature`).
-8. **Open a Pull Request**.
+1.  **🍴 Fork the repository** on GitHub.
+2.  **📥 Clone** your fork locally.
+3.  **🌿 Create a branch** for your feature or bugfix:
+    ```bash
+    git checkout -b feature/amazing-feature
+    ```
+4.  **💻 Make your changes**.
+5.  **🧹 Run analysis and tests** to ensure no regressions:
+    ```bash
+    flutter analyze
+    flutter test
+    ```
+6.  **💾 Commit** your changes with a clear message:
+    ```bash
+    git commit -m 'feat: add amazing feature'
+    ```
+7.  **🚀 Push** to your branch:
+    ```bash
+    git push origin feature/amazing-feature
+    ```
+8.  **Pull Request**: Open a PR on the main repository! 📩
+
+---
 
 ## 🛠️ Development Setup
 
-1. Ensure Flutter is installed and environment is healthy.
-   - `flutter doctor -v`
-2. Clone the repo with submodules.
-   - `git clone --recursive https://github.com/mrdarksidetm/Wallet.git`
-   - `cd Wallet`
-3. Install dependencies.
-   - `flutter pub get`
-4. Run code generation (required for Isar and Riverpod generated files).
-   - `dart run build_runner build --delete-conflicting-outputs`
-5. Run static analysis.
-   - `flutter analyze`
-6. Run tests.
-   - `flutter test`
-7. Run the app.
-   - `flutter run`
+1.  **🩺 Health Check**: Ensure Flutter is installed and healthy.
+    ```bash
+    flutter doctor -v
+    ```
+2.  **🏗️ Dependencies**: Install necessary packages.
+    ```bash
+    flutter pub get
+    ```
+3.  **⚙️ Code Generation**: Run this for Isar and Riverpod files.
+    ```bash
+    dart run build_runner build --delete-conflicting-outputs
+    ```
+4.  **🧪 Verify**: Ensure the codebase is clean.
+    ```bash
+    flutter analyze
+    ```
+5.  **▶️ Run**: Start the application.
+    ```bash
+    flutter run
+    ```
+
+---
 
 ## ✅ Pull Request Checklist
 
-- [ ] Code is formatted and lint-clean (`flutter analyze`)
-- [ ] Existing tests pass (`flutter test`)
-- [ ] New logic includes tests where practical
-- [ ] Documentation is updated if behavior changed
+- [ ] Code is formatted and lint-clean (`flutter analyze`). 🧹
+- [ ] Existing tests pass (`flutter test`). 🧪
+- [ ] New logic includes unit tests where practical. 🧩
+- [ ] Documentation (`SPEC.md` or `CHANGELOG.md`) is updated. 📜
+- [ ] UI changes follow Material 3 Expressive guidelines. 🎨
 
-## 🧪 Testing Notes
-
-- Current automated coverage is still growing.
-- A focused test suite is available at `test/features/insights/financial_insight_service_test.dart`.
-- `test/widget_test.dart` is currently a placeholder smoke test because app-level integration requires additional mocking around storage and startup dependencies.
-- If your change touches business logic, add or extend unit tests in the related feature module.
+---
 
 ## 🎯 Code Style
 
-- Follow standard Flutter linting rules.
-- Keep code clean and documented where necessary.
-- Use `flutter optimize_imports` if available, or just standard IDE formatting.
+- **Strict M3**: Only use Material 3 components (`useMaterial3: true`).
+- **Clean Architecture**: Business logic in Services, UI in Pages/Widgets. 🏛️
+- **Surgical Rebuilds**: Use Riverpod `.select()` for performance. ⚡
+- **Immutability**: Prefer `const` widgets and immutable state. 🔒
+
+---
 
 ## 🐞 Issue Reporting
 
-If you find a bug or have a feature request, please open an issue in the repository. Provide as much detail as possible.
+If you find a bug or have a feature request, please open an issue in the repository. Provide as much detail as possible, including device info and screenshots if applicable. 📸
 
-## 📚 Related Docs
-
-- Project overview and setup quickstart: [README.md](README.md)
-- Full feature and model specification: [SPEC.md](SPEC.md)
-- Security policy: [SECURITY.md](SECURITY.md)
+---
+*Built with ❤️ for the Flutter Community.* 💼

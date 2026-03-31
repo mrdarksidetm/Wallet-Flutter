@@ -1,27 +1,46 @@
-# Security Policy
+# 🛡️ Security Policy
 
-## Supported Versions
+We take the security of **Project Wallet** and its users' financial data very seriously. 🔒🏦
 
-Security updates are currently applied to the latest default branch.
+---
 
-## Reporting a Vulnerability
+## 🔒 Offline-First Guarantee
 
-If you discover a security issue, please report it privately:
+Project Wallet is built with an **Offline-First** philosophy.
+- **Local Storage**: All your transaction data, account details, and personal info are stored locally on your device using the [Isar NoSQL Database](https://isar.dev). 📲
+- **No Cloud Sync**: By default, no data is ever transmitted to a central server or cloud provider. Your data stays where it belongs: with you. 🙅‍♂️☁️
 
-- Open a GitHub issue only for non-sensitive security discussions.
-- For sensitive reports, contact the maintainer directly before public disclosure.
+---
 
-Please include:
+## 🛡️ Supported Versions
 
-- Clear description of the issue
-- Reproduction steps
-- Potential impact
-- Suggested mitigation (if known)
+We provide security updates for the following versions of Project Wallet:
 
-## Response Process
+| Version | Supported |
+| :--- | :--- |
+| **1.3.x** | ✅ Active |
+| 1.2.x | ⚠️ End of Life |
+| < 1.2.0 | ❌ Not Supported |
 
-- Acknowledgement target: within 5 business days
-- Initial assessment and triage: as soon as possible
-- Patch and disclosure timeline: based on severity and complexity
+---
 
-Thank you for helping keep Wallet secure.
+## 🚨 Reporting a Vulnerability
+
+If you discover a security vulnerability, please report it responsibly. 📧
+
+1.  **Do not** open a public issue.
+2.  Email us directly at `security@mrdarksidetm.com` (Placeholder).
+3.  Provide a detailed description of the issue and steps to reproduce.
+
+We will acknowledge your report within **48 hours** and provide a timeline for a fix. ⏳
+
+---
+
+## 🔑 Security Features
+
+- **Biometric Authentication**: Support for Fingerprint and Face Unlock via `local_auth`. 🤳
+- **Encrypted Backups**: (Planned) AES-256 encryption for manual database exports. 🔐
+- **Secure Storage**: Sensitive preferences are stored using `flutter_secure_storage`. 🏗️
+
+---
+*Stay safe, stay private.* 🛡️✨

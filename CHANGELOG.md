@@ -1,47 +1,66 @@
-# Changelog
+# 📜 Wallet-Flutter CHANGELOG
 
-All notable changes to this project will be documented in this file.
+All notable changes to the **Project Wallet** will be documented in this file. 🚀
 
-## [1.2.8] - 2026-03-30
+---
+
+## [1.3.0] - 2026-03-31 💎
+
+### ✨ Added
+- **🔄 Account Reordering**: Integrated `int order` into the `Account` model with a new **Reorder Accounts** bottom sheet using `ReorderableListView`.
+- **🏦 Polished Account Editing**: Replaced traditional page navigation with high-performance, interactive **Bottom Sheets** featuring:
+  - Editorial-style Tabs (Card, Cash, Savings). 🗂️
+  - Dynamic Color & Icon selection. 🎨
+- **⏺️ Smooth Page Indicators**: Integrated `smooth_page_indicator` for the account balance hero carousel. 🎠
+- **⏳ Loading States**: Added specialized loading indicators for transaction initialization to prevent link-loading races.
+
+### 🛠️ Changed
+- **🏛️ Architecture Refinement**: Migrated account management logic from separate pages to modular bottom sheet components for better UX consistency.
+- **🏗️ Database Schema**: Updated `Account` collection to support manual display ordering.
+- **🧩 Link Resilience**: Explicitly awaiting `IsarLink` loads in edit screens to ensure zero data loss. 🔒
+
+### ✅ Fixed
+- **🚿 Static Analysis Sweep**: Achieved a 100% clean `flutter analyze` across the entire project (Zero errors, warnings, or infos). 🧹
+- **📝 Edit Persistence**: Fixed critical bug where editing a transaction would lose its linked Account or Category.
+- **🔄 Category Reset Bug**: Fixed logic that reset custom icons/colors when re-selecting the same category.
+- **🏷️ Provider Rename**: Resolved `peopleStreamProvider` undefined error by correctly mapping to `personsStreamProvider`.
+- **📏 UI Linting**: Added missing curly braces to flow control structures in the People feature.
+- **🗑️ Cleanup**: Removed unused variables and imports across Home, People, and Settings modules.
+
+---
+
+## [1.2.8] - 2026-03-30 🎨
 
 ### Added
-- **Modern Onboarding**: Redesigned the onboarding flow with an animated gradient background and a clear visual hierarchy.
-- **Dynamic SVG Shadow**: Implemented a blurred SVG stacking technique for the app logo to create a premium, dynamic shadow effect.
-- **Premium Dashboard Header**: Optimized the home header with a "PREMIUM" badge, haptic-enabled settings, and dynamic user profile avatars.
-- **Developer-Focused About Page**: Replaced the generic about page with a dedicated section for the developer (Abhijeet Yadav), featuring a personal photo and direct GitHub links.
+- **🌅 Modern Onboarding**: Redesigned the onboarding flow with an animated gradient background.
+- **✨ Dynamic SVG Shadow**: Premium blurred shadow effect for the app logo.
+- **🛡️ Premium Dashboard Header**: Added "PREMIUM" badge and haptic-enabled settings.
+- **👨‍💻 Developer Section**: New "About" section featuring the developer's profile and GitHub links.
 
 ### Changed
-- **Strict Dynamic Currency**: Removed all hardcoded currency fallback strings. The app now mandates a currency selection during onboarding and uses it globally via `currencyProvider`.
-- **Global Fluidity**: Enforced `BouncingScrollPhysics()` across all scrollable views for a more tactile, premium feel.
-- **Improved Hierarchy**: Upgraded `TotalBalanceCard` and `OverviewCard` with Material 3 expressive geometry and animated counters.
+- **💵 Strict Currency**: Mandated currency selection during onboarding; removed hardcoded fallbacks.
+- **⛸️ Global Fluidity**: Enforced `BouncingScrollPhysics()` across all views.
+- **🏢 Design Upgrade**: Upgraded `TotalBalanceCard` with M3 expressive geometry.
 
 ### Fixed
-- **Static Analysis**: Resolved all remaining warnings and info messages to ensure a 100% clean `flutter analyze` across 5 consecutive passes.
-- **Input UX**: Switched to modern, filled `TextFormFields` with high border radii for better touch targets and visual consistency.
+- **🧹 Static Analysis**: 100% clean analysis passes.
+- **⌨️ Input UX**: Modernized all `TextFormFields` with high border radii.
 
-## [1.2.7] - 2026-03-29
+---
+
+## [1.2.7] - 2026-03-29 📦
 
 ### Added
-- **Account Details**: New page for viewing specific account balances and transaction history.
-- **User Info Screen**: Dedicated profile view accessible from the Home header.
-- **Onboarding Cropper**: Integrated `image_cropper` for 1:1 profile photo square cropping.
-- **Dynamic Color Variants**: Implemented all 9 M3 Dynamic Scheme Variants (Fruit Salad, Vibrant, etc.).
-- **Entity Lifecycle Actions**: Added swipe-to-complete/delete for Goals, Loans, and Recurring transactions.
-- **Material 3 Redesign**: Home header now features an official logo and dynamic user avatar.
-
-### Changed
-- **Optimization**: Switched to Riverpod `.select()` for surgically efficient UI rebuilds.
-- **DB Performance**: Migrated account history to database-level Isar indexed queries.
-- **About Section**: Updated text to support modern Android Community standards.
-- **Branding**: Replaced all hardcoded identity ("Abhi") and currency (₹) with dynamic logic.
+- **📑 Account Details**: Specific history view for individual wallets.
+- **👤 User Info**: Profile view accessible from header.
+- **✂️ Image Cropping**: Integrated `image_cropper` for 1:1 user photos.
+- **🌈 Dynamic Schemes**: Full support for all 9 Material 3 color variants.
+- **🛠️ Lifecycle Actions**: Swipe-to-delete for Goals and Loans.
 
 ### Fixed
-- **Stability**: Resolved high-frequency write crash in Personalization by debouncing SharedPreferences saves.
-- **Personalization Crash**: Fixed the "roundness" axis crash by consolidating state updates.
-- **Budget Reactivity**: Fixed 0% budget bug by syncing `accountId` and `categoryId` in `TransactionService`.
-- **Routing**: Resolved `GoException` for `/terms_of_use` and established proper navigation hierarchies.
-- **Static Analysis**: Achieved 100% "No issues found" status across the entire repository.
+- **🔥 Persistence Crash**: Debounced `SharedPreferences` saves in Personalization.
+- **🧩 Budget Reactivity**: Fixed 0% budget sync bug in `TransactionService`.
+- **🚦 Routing**: Resolved `GoException` for legacy paths.
 
-### Removed
-- Redundant in-memory filtering for transaction history.
-- Hardcoded INR symbols and legacy placeholder strings.
+---
+*Follow our progress on GitHub!* 🐙
