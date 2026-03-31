@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import '../../../core/theme/color_extension.dart';
 
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/account.dart';
@@ -89,7 +90,7 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
                       effect: ExpandingDotsEffect(
                         dotHeight: 8,
                         dotWidth: 8,
-                        activeDotColor: Color(int.parse(currentAccount.color.replaceAll('0x', '0xFF'), radix: 16)),
+                        activeDotColor: currentAccount.color.parseHexColor(),
                         dotColor: colorScheme.outlineVariant,
                       ),
                     ),
@@ -181,7 +182,7 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
     final segments = categoryExpenses.entries.map((e) {
       final cat = categoryMap[e.key]!;
       return CategorySegmentData(
-        color: Color(int.parse(cat.color.replaceAll('0x', '0xFF'), radix: 16)),
+        color: cat.color.parseHexColor(),
         percentage: totalExpense > 0 ? e.value / totalExpense : 0,
         name: cat.name,
       );
@@ -259,7 +260,7 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
 
   Widget _buildTransactionItem(BuildContext context, TransactionModel tx, NumberFormat format) {
     final cat = tx.category.value;
-    final color = Color(int.parse((tx.color ?? cat?.color ?? '0xFF9E9E9E').replaceAll('0x', '0xFF'), radix: 16));
+    final color = (tx.color ?? cat?.color ?? '0xFF9E9E9E').parseHexColor();
     final isIncome = tx.type == TransactionType.income;
 
     return Padding(
@@ -358,7 +359,7 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
                         },
                         itemBuilder: (context, index) {
                           final acc = accounts[index];
-                          final color = Color(int.parse(acc.color.replaceAll('0x', '0xFF'), radix: 16));
+                          final color = acc.color.parseHexColor();
                           return ListTile(
                             key: ValueKey('reorder-${acc.id}'),
                             leading: Container(

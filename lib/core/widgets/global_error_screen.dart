@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 
 class GlobalErrorScreen extends StatelessWidget {
   final FlutterErrorDetails errorDetails;
@@ -12,6 +14,7 @@ class GlobalErrorScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final errorText = 'EXCEPTION:\n${errorDetails.exception}\n\nSTACK TRACE:\n${errorDetails.stack}';
 
     return Scaffold(
       backgroundColor: colorScheme.errorContainer,
@@ -56,7 +59,7 @@ class GlobalErrorScreen extends StatelessWidget {
                   ),
                   child: SingleChildScrollView(
                     child: SelectableText(
-                      'EXCEPTION:\n${errorDetails.exception}\n\nSTACK TRACE:\n${errorDetails.stack}',
+                      errorText,
                       style: const TextStyle(
                         fontFamily: 'monospace',
                         fontSize: 12,
@@ -71,11 +74,11 @@ class GlobalErrorScreen extends StatelessWidget {
                   Expanded(
                     child: FilledButton.icon(
                       onPressed: () {
-                        // In a real app, we'd send this to a server or log it
+                        Clipboard.setData(ClipboardData(text: errorText));
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                               content:
-                                  Text('Error copied to clipboard (Mock)')),
+                                  Text('Error copied to clipboard')),
                         );
                       },
                       icon: const Icon(Icons.copy_rounded),
@@ -86,7 +89,7 @@ class GlobalErrorScreen extends StatelessWidget {
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: () {
-                        // Implementation for restarting the app would go here
+                        context.go('/');
                       },
                       icon: const Icon(Icons.refresh_rounded),
                       label: const Text('Restart App'),
