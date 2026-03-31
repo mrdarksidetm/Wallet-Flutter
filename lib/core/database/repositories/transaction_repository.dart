@@ -8,7 +8,9 @@ class TransactionRepository extends BaseRepository<TransactionModel> {
 
   Stream<List<TransactionModel>> watchLatest({int limit = 50}) {
     return isar.transactionModels
-        .where()
+        .filter()
+        .isDeletedEqualTo(false)
+        .isArchivedEqualTo(false)
         .sortByDateDesc()
         .limit(limit)
         .watch(fireImmediately: true);
@@ -18,8 +20,46 @@ class TransactionRepository extends BaseRepository<TransactionModel> {
     return isar.transactionModels
         .filter()
         .accountIdEqualTo(accountId)
+        .isDeletedEqualTo(false)
+        .isArchivedEqualTo(false)
         .sortByDateDesc()
         .watch(fireImmediately: true);
+  }
+
+  Stream<List<TransactionModel>> watchArchived() {
+    return isar.transactionModels
+        .filter()
+        .isDeletedEqualTo(false)
+        .isArchivedEqualTo(true)
+        .sortByDateDesc()
+        .watch(fireImmediately: true);
+  }
+
+  Future<void> archive(Id id) async {
+    final tx = await isar.transactionModels.get(id);
+    if (tx != null) {
+      tx.isArchived = true;
+      tx.updatedAt = DateTime.now();
+      await isar.writeTxn(() => isar.transactionModels.put(tx));
+    }
+  }
+
+  Future<void> unarchive(Id id) async {
+    final tx = await isar.transactionModels.get(id);
+    if (tx != null) {
+      tx.isArchived = false;
+      tx.updatedAt = DateTime.now();
+      await isar.writeTxn(() => isar.transactionModels.put(tx));
+    }
+  }
+
+  Future<void> softDelete(Id id) async {
+    final tx = await isar.transactionModels.get(id);
+    if (tx != null) {
+      tx.isDeleted = true;
+      tx.updatedAt = DateTime.now();
+      await isar.writeTxn(() => isar.transactionModels.put(tx));
+    }
   }
 
   Future<Map<DateTime, int>> getTransactionHeatmapData() async {

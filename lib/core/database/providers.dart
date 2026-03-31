@@ -265,6 +265,12 @@ final transactionsStreamProvider =
   return repo.watchLatest();
 });
 
+final archivedTransactionsStreamProvider =
+    StreamProvider<List<TransactionModel>>((ref) {
+  final repo = ref.watch(transactionRepositoryProvider);
+  return repo.watchArchived();
+});
+
 final accountTransactionsProvider =
     StreamProvider.family<List<TransactionModel>, Id>((ref, accountId) {
   final repo = ref.watch(transactionRepositoryProvider);

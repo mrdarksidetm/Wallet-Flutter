@@ -49,6 +49,8 @@ class StatisticsService {
 
     return await isar.transactionModels
         .filter()
+        .isDeletedEqualTo(false)
+        .isArchivedEqualTo(false)
         .typeEqualTo(TransactionType.income)
         .dateBetween(start, end)
         .amountProperty()
@@ -61,6 +63,8 @@ class StatisticsService {
 
     return await isar.transactionModels
         .filter()
+        .isDeletedEqualTo(false)
+        .isArchivedEqualTo(false)
         .typeEqualTo(TransactionType.expense)
         .dateBetween(start, end)
         .amountProperty()
@@ -70,6 +74,8 @@ class StatisticsService {
   Future<double> getPeriodExpense(DateTime start, DateTime end) async {
     return await isar.transactionModels
         .filter()
+        .isDeletedEqualTo(false)
+        .isArchivedEqualTo(false)
         .typeEqualTo(TransactionType.expense)
         .dateBetween(start, end)
         .amountProperty()
@@ -80,6 +86,8 @@ class StatisticsService {
       DateTime start, DateTime end) async {
     final transactions = await isar.transactionModels
         .filter()
+        .isDeletedEqualTo(false)
+        .isArchivedEqualTo(false)
         .typeEqualTo(TransactionType.expense)
         .dateBetween(start, end)
         .findAll();
@@ -98,6 +106,8 @@ class StatisticsService {
       DateTime start, DateTime end) async {
     final transactions = await isar.transactionModels
         .filter()
+        .isDeletedEqualTo(false)
+        .isArchivedEqualTo(false)
         .typeEqualTo(TransactionType.expense)
         .dateBetween(start, end)
         .findAll();
@@ -121,6 +131,8 @@ class StatisticsService {
 
     return isar.transactionModels
         .filter()
+        .isDeletedEqualTo(false)
+        .isArchivedEqualTo(false)
         .dateGreaterThan(thirtyDaysAgo)
         .watch(fireImmediately: true)
         .map((transactions) {
@@ -165,6 +177,7 @@ class StatisticsService {
             .dateBetween(startOfMonth, endOfMonth)
             .typeEqualTo(TransactionType.expense)
             .isDeletedEqualTo(false)
+            .isArchivedEqualTo(false)
             .amountProperty()
             .sum();
 
@@ -197,6 +210,8 @@ class StatisticsService {
           .categoryIdEqualTo(categoryId)
           .dateBetween(start, end)
           .typeEqualTo(TransactionType.expense)
+          .isDeletedEqualTo(false)
+          .isArchivedEqualTo(false)
           .amountProperty()
           .sum();
 
@@ -212,6 +227,8 @@ class StatisticsService {
 
     return isar.transactionModels
         .filter()
+        .isDeletedEqualTo(false)
+        .isArchivedEqualTo(false)
         .dateBetween(start, end)
         .watch(fireImmediately: true)
         .map((transactions) {
@@ -232,6 +249,8 @@ class StatisticsService {
 
     final transactions = await isar.transactionModels
         .filter()
+        .isDeletedEqualTo(false)
+        .isArchivedEqualTo(false)
         .dateBetween(startOfMonth, endOfMonth)
         .findAll();
 
@@ -264,6 +283,8 @@ class StatisticsService {
 
     final transactions = await isar.transactionModels
         .filter()
+        .isDeletedEqualTo(false)
+        .isArchivedEqualTo(false)
         .dateBetween(thirtyDaysAgo, now)
         .typeEqualTo(TransactionType.expense)
         .findAll();

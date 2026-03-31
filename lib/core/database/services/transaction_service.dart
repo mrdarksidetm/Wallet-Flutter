@@ -137,7 +137,7 @@ class TransactionService {
     });
   }
 
-  /// Deletes a transaction and restores account balances.
+  /// Deletes a transaction (soft delete) and restores account balances.
   Future<void> deleteTransaction(TransactionModel transaction) async {
     await isar.writeTxn(() async {
       final account = transaction.account.value;
@@ -157,9 +157,11 @@ class TransactionService {
         await isar.accounts.put(transferAccount);
       }
 
-      // 2. Save Account & Delete Transaction
+      // 2. Mark as deleted and save
+      transaction.isDeleted = true;
+      transaction.updatedAt = DateTime.now();
       await isar.accounts.put(account);
-      await isar.transactionModels.delete(transaction.id);
+      await isar.transactionModels.put(transaction);
     });
   }
 

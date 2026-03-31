@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import '../../../core/database/providers.dart';
 import 'package:go_router/go_router.dart';
-
+import '../../../core/database/providers.dart';
+import '../../../core/database/models/transaction_model.dart';
 import '../../../core/widgets/transaction_list_tile.dart';
 
 class AllTransactionsPage extends ConsumerStatefulWidget {
@@ -17,103 +16,81 @@ class AllTransactionsPage extends ConsumerStatefulWidget {
 
 class _AllTransactionsPageState extends ConsumerState<AllTransactionsPage> {
   bool _ascending = false;
+  bool _showArchived = false;
 
   @override
   Widget build(BuildContext context) {
-    final transactionsAsync = ref.watch(transactionsStreamProvider);
-    final selectedCurrency = ref.watch(currencyProvider);
-    final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final transactionsAsync = _showArchived 
+        ? ref.watch(archivedTransactionsStreamProvider)
+        : ref.watch(transactionsStreamProvider);
+    
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('All Transactions'),
+        title: Text(_showArchived ? 'Archived Transactions' : 'All Transactions'),
         actions: [
           IconButton(
-            onPressed: () {
-              setState(() {
-                _ascending = !_ascending;
-              });
-            },
-            icon: Icon(_ascending
-                ? Symbols.keyboard_double_arrow_up
-                : Symbols.keyboard_double_arrow_down),
-            tooltip: _ascending ? 'Oldest to Newest' : 'Newest to Oldest',
+            onPressed: () => setState(() => _showArchived = !_showArchived),
+            icon: Icon(_showArchived ? Symbols.inbox : Symbols.archive),
+            tooltip: _showArchived ? 'Show Active' : 'Show Archived',
           ),
-          const SizedBox(width: 8),
+          IconButton(
+            onPressed: () => setState(() => _ascending = !_ascending),
+            icon: Icon(_ascending ? Symbols.arrow_upward : Symbols.arrow_downward),
+            tooltip: 'Sort by Date',
+          ),
         ],
       ),
       body: transactionsAsync.when(
         data: (transactions) {
           if (transactions.isEmpty) {
-            return const Center(child: Text('No transactions found'));
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Symbols.receipt_long, size: 64, color: colorScheme.outline),
+                  const SizedBox(height: 16),
+                  Text('No transactions found', style: Theme.of(context).textTheme.titleMedium),
+                ],
+              ),
+            );
           }
 
           final sortedTxs = [...transactions];
-          if (_ascending) {
-            sortedTxs.sort((a, b) => a.date.compareTo(b.date));
-          } else {
-            sortedTxs.sort((a, b) => b.date.compareTo(a.date));
-          }
+          sortedTxs.sort((a, b) => _ascending 
+              ? a.date.compareTo(b.date) 
+              : b.date.compareTo(a.date));
 
           return ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.all(16),
             itemCount: sortedTxs.length,
             itemBuilder: (context, index) {
               final tx = sortedTxs[index];
 
-              return Dismissible(
-                key: ValueKey(tx.id),
-                direction: DismissDirection.endToStart,
-                confirmDismiss: (direction) async {
-                  return await showDialog<bool>(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('Delete Transaction'),
-                      content: Text(
-                          'Are you sure you want to delete this ${tx.type.name} for ${currencyFormat.format(tx.amount)}?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, false),
-                          child: const Text('Cancel'),
-                        ),
-                        FilledButton(
-                          style: FilledButton.styleFrom(
-                            backgroundColor: colorScheme.error,
-                            foregroundColor: colorScheme.onError,
-                          ),
-                          onPressed: () => Navigator.pop(context, true),
-                          child: const Text('Delete'),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-                onDismissed: (direction) async {
-                  await ref
-                      .read(transactionServiceProvider)
-                      .deleteTransaction(tx);
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Transaction deleted')),
-                    );
-                  }
-                },
-                background: Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.redAccent,
-                    borderRadius: BorderRadius.all(Radius.circular(16)),
-                  ),
-                  alignment: Alignment.centerRight,
-                  padding: const EdgeInsets.only(right: 24),
-                  child: const Icon(Symbols.delete, color: Colors.white),
-                ),
-                child: TransactionListTile(
-                  tx: tx,
-                  onTap: () {
-                    context.push('/add_transaction', extra: tx);
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Dismissible(
+                  key: ValueKey('tx-${tx.id}-${tx.updatedAt.millisecondsSinceEpoch}'),
+                  secondaryBackground: _buildArchiveBackground(context),
+                  background: _buildDeleteBackground(context),
+                  confirmDismiss: (direction) async {
+                    if (direction == DismissDirection.startToEnd) {
+                      return await _confirmDelete(context, tx);
+                    } else {
+                      await _handleArchive(tx);
+                      return false; // Don't remove from list manually, stream will handle it
+                    }
                   },
+                  onDismissed: (direction) {
+                    if (direction == DismissDirection.startToEnd) {
+                      _handleDelete(tx);
+                    }
+                  },
+                  child: TransactionListTile(
+                    tx: tx,
+                    onTap: () => context.push('/add_transaction', extra: tx),
+                  ),
                 ),
               );
             },
@@ -123,5 +100,84 @@ class _AllTransactionsPageState extends ConsumerState<AllTransactionsPage> {
         error: (err, _) => Center(child: Text('Error: $err')),
       ),
     );
+  }
+
+  Widget _buildDeleteBackground(BuildContext context) {
+    return Container(
+      alignment: Alignment.centerLeft,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      decoration: BoxDecoration(
+        color: Colors.redAccent,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: const Row(
+        children: [
+          Icon(Symbols.delete_forever, color: Colors.white),
+          SizedBox(width: 8),
+          Text('Delete', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildArchiveBackground(BuildContext context) {
+    return Container(
+      alignment: Alignment.centerRight,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      decoration: BoxDecoration(
+        color: Colors.amber,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Text(_showArchived ? 'Unarchive' : 'Archive', 
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          const SizedBox(width: 8),
+          Icon(_showArchived ? Symbols.unarchive : Symbols.archive, color: Colors.white),
+        ],
+      ),
+    );
+  }
+
+  Future<bool> _confirmDelete(BuildContext context, TransactionModel tx) async {
+    return await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Transaction?'),
+        content: const Text('This will permanently delete this transaction and update your balance.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    ) ?? false;
+  }
+
+  Future<void> _handleDelete(TransactionModel tx) async {
+    await ref.read(transactionServiceProvider).deleteTransaction(tx);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Transaction deleted')),
+      );
+    }
+  }
+
+  Future<void> _handleArchive(TransactionModel tx) async {
+    final repo = ref.read(transactionRepositoryProvider);
+    if (_showArchived) {
+      await repo.unarchive(tx.id);
+    } else {
+      await repo.archive(tx.id);
+    }
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text( _showArchived ? 'Transaction unarchived' : 'Transaction archived')),
+      );
+    }
   }
 }

@@ -41,13 +41,18 @@ class HomePage extends ConsumerWidget {
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-                      child: OutlinedButton(
+                      child: FilledButton.tonal(
                         onPressed: () => context.push('/all_transactions'),
-                        style: OutlinedButton.styleFrom(
+                        style: FilledButton.styleFrom(
                           minimumSize: const Size.fromHeight(56),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          backgroundColor: colorScheme.primaryContainer.withValues(alpha: 0.4),
+                          foregroundColor: colorScheme.primary,
                         ),
-                        child: const Text('View All Activity'),
+                        child: const Text(
+                          'View All Transactions',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       ),
                     ),
                   ),
@@ -127,6 +132,8 @@ class _HomeFinanceGrid extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final totalAssetBalanceAsync = ref.watch(totalAssetBalanceProvider);
+    // Watch accountsStreamProvider to ensure the grid updates when accounts change
+    ref.watch(accountsStreamProvider);
     final selectedCurrency = ref.watch(currencyProvider);
     final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
 
@@ -167,6 +174,30 @@ class _HomeFinanceGrid extends ConsumerWidget {
             title: 'Loans',
             subtitle: 'Debts & lending',
             onTap: () => context.push('/loans'),
+          ),
+          OverviewCard(
+            icon: Symbols.event_repeat,
+            title: 'Recurring',
+            subtitle: 'Subscription & bills',
+            onTap: () => context.push('/recurring'),
+          ),
+          OverviewCard(
+            icon: Symbols.category,
+            title: 'Categories',
+            subtitle: 'Manage groups',
+            onTap: () => context.push('/categories'),
+          ),
+          OverviewCard(
+            icon: Symbols.call_split,
+            title: 'Bill Splitter',
+            subtitle: 'Shared expenses',
+            onTap: () => context.push('/bill_splitter'),
+          ),
+          OverviewCard(
+            icon: Symbols.group,
+            title: 'People',
+            subtitle: 'Friends & contacts',
+            onTap: () => context.push('/people'),
           ),
         ]),
       ),

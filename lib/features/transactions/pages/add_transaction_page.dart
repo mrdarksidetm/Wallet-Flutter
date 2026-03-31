@@ -159,9 +159,9 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.transaction != null
-            ? 'Edit Transaction'
-            : 'Add Transaction'),
+        title: Text(widget.transaction == null
+            ? 'Add Transaction'
+            : 'Edit Transaction'),
         leading: IconButton(
           onPressed: () => context.pop(),
           icon: const Icon(Icons.close_rounded),
