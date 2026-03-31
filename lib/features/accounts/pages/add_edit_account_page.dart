@@ -5,7 +5,6 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 import '../../../core/database/models/account.dart';
 import '../../../core/database/providers.dart';
-import '../../../core/services/haptic_service.dart';
 import '../../../core/widgets/icon_picker.dart';
 import '../../../core/widgets/primary_atelier_button.dart';
 
@@ -63,7 +62,7 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
     }
 
     await ref.read(accountServiceProvider).saveAccount(account);
-    await HapticService.successStatic();
+    
     if (mounted) context.pop();
   }
 
@@ -168,7 +167,7 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
                   label: Text(type.name.toUpperCase()),
                   selected: selected,
                   onSelected: (s) {
-                    HapticService.selectionStatic();
+                    
                     setState(() => _selectedType = type);
                   },
                 );
@@ -252,7 +251,7 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
               await ref
                   .read(accountServiceProvider)
                   .deleteAccount(widget.account!.id);
-              await HapticService.errorStatic();
+              
               if (mounted) {
                 Navigator.pop(context); // Pop dialog
                 context.pop(); // Pop page

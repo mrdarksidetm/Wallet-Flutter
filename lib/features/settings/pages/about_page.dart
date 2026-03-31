@@ -4,7 +4,6 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/services/haptic_service.dart';
 import '../../../core/services/update_service.dart';
 
 class AboutPage extends ConsumerWidget {
@@ -79,7 +78,7 @@ class AboutPage extends ConsumerWidget {
               title: 'Privacy Policy',
               subtitle: 'How we handle your data',
               onTap: () async {
-                await HapticService.selectionStatic();
+                
                 if (context.mounted) context.push('/privacy_policy');
               },
             ),

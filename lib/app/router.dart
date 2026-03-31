@@ -41,6 +41,8 @@ import '../core/database/models/category.dart';
 import '../core/database/models/auxiliary_models.dart';
 import '../core/theme/personalization_provider.dart';
 import '../core/providers/fab_action_provider.dart';
+import '../core/services/greeting_service.dart';
+import '../features/home/widgets/home_header.dart';
 
 import '../features/auth/pages/onboarding_page.dart';
 import '../features/auth/pages/user_info_page.dart';
@@ -49,17 +51,19 @@ final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
 final routerProvider = Provider<GoRouter>((ref) {
-  final personalization = ref.watch(personalizationProvider);
+  final isOnboardingComplete = ref.watch(
+    personalizationProvider.select((p) => p.isOnboardingComplete),
+  );
 
   return GoRouter(
     initialLocation: '/',
     navigatorKey: _rootNavigatorKey,
     redirect: (context, state) {
       final isOnboarding = state.uri.path == '/onboarding';
-      if (!personalization.isOnboardingComplete && !isOnboarding) {
+      if (!isOnboardingComplete && !isOnboarding) {
         return '/onboarding';
       }
-      if (personalization.isOnboardingComplete && isOnboarding) {
+      if (isOnboardingComplete && isOnboarding) {
         return '/';
       }
       return null;
@@ -175,12 +179,48 @@ class AppShell extends ConsumerWidget {
     if (authState.isLocked) return const UnlockPage();
 
     final location = GoRouterState.of(context).uri.path;
+    final isHome = location == '/';
 
     return Scaffold(
+      appBar: isHome
+          ? PreferredSize(
+              preferredSize: const Size.fromHeight(80),
+              child: Consumer(
+                builder: (context, ref, _) {
+                  final greeting =
+                      ref.watch(greetingServiceProvider).getGreeting();
+                  final userName = ref.watch(
+                          personalizationProvider.select((p) => p.userName)) ??
+                      'User';
+                  final photo = ref.watch(personalizationProvider).userPhoto;
+                  return SafeArea(
+                    child: HomeHeader(
+                      userPhoto: photo,
+                      userName: userName,
+                      greeting: greeting,
+                    ),
+                  );
+                },
+              ),
+            )
+          : (location == '/accounts' ||
+                  location == '/reports' ||
+                  location == '/search')
+              ? AppBar(
+                  title: Text(_getTitle(location)),
+                )
+              : null,
       body: child,
       bottomNavigationBar: _BottomNavBar(location: location),
       floatingActionButton: _FAB(location: location),
     );
+  }
+
+  String _getTitle(String loc) {
+    if (loc == '/accounts') return 'Accounts';
+    if (loc == '/reports') return 'Reports';
+    if (loc == '/search') return 'Search';
+    return '';
   }
 }
 

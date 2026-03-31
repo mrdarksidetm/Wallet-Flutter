@@ -34,5 +34,7 @@ class Category {
 enum CategoryType {
   income,
   expense,
-  transfer, // Added missing transfer type
+  transfer; // Added missing transfer type
+
+  String get name => toString().split('.').last;
 }

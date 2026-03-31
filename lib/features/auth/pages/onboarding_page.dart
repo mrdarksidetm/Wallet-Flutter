@@ -6,7 +6,6 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/theme/personalization_provider.dart';
-import '../../../core/services/haptic_service.dart';
 import '../../settings/pages/currency_selection_page.dart';
 
 class OnboardingPage extends ConsumerStatefulWidget {
@@ -178,7 +177,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage>
                       children: [
                         GestureDetector(
                           onTap: () async {
-                            await HapticService.selectionStatic();
+                            
                             _pickImage();
                           },
                           child: CircleAvatar(
@@ -207,7 +206,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage>
                             icon: Icon(Symbols.edit,
                                 size: 16, color: colorScheme.onPrimary),
                             onPressed: () async {
-                              await HapticService.selectionStatic();
+                              
                               _pickImage();
                             },
                           ),
@@ -302,7 +301,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage>
                             borderRadius: BorderRadius.circular(16)),
                       ),
                       onPressed: () async {
-                        await HapticService.mediumStatic();
+                        
                         _submit();
                       },
                       child: const Row(

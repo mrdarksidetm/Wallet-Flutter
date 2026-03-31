@@ -5,8 +5,6 @@ import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/widgets/icon_picker.dart';
-import '../../../core/services/haptic_service.dart';
-
 class RecurringPage extends ConsumerWidget {
   const RecurringPage({super.key});
 
@@ -42,7 +40,7 @@ class RecurringPage extends ConsumerWidget {
                 direction: DismissDirection.horizontal,
                 confirmDismiss: (direction) async {
                   if (direction == DismissDirection.startToEnd) {
-                    await HapticService.selectionStatic();
+                    
                     item.isActive = !isActive;
                     item.updatedAt = DateTime.now();
                     await ref.read(recurringRepositoryProvider).save(item);
@@ -72,7 +70,7 @@ class RecurringPage extends ConsumerWidget {
                 },
                 onDismissed: (direction) async {
                   if (direction == DismissDirection.endToStart) {
-                    await HapticService.heavyStatic();
+                    
                     await ref.read(recurringRepositoryProvider).delete(item.id);
                   }
                 },

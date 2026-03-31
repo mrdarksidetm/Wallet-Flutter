@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/database/models/auxiliary_models.dart';
 import '../../../core/database/providers.dart';
-import '../../../core/services/haptic_service.dart';
 import '../../../core/widgets/icon_picker.dart';
 import '../../../core/widgets/primary_atelier_button.dart';
 
@@ -66,7 +65,7 @@ class _AddEditGoalPageState extends ConsumerState<AddEditGoalPage> {
     }
 
     await ref.read(goalServiceProvider).saveGoal(goal);
-    await HapticService.successStatic();
+    
     if (mounted) context.pop();
   }
 
@@ -199,7 +198,7 @@ class _AddEditGoalPageState extends ConsumerState<AddEditGoalPage> {
           TextButton(
             onPressed: () async {
               await ref.read(goalServiceProvider).deleteGoal(widget.goal!.id);
-              await HapticService.errorStatic();
+              
               if (mounted) {
                 Navigator.pop(context); // Pop dialog
                 context.pop(); // Pop page

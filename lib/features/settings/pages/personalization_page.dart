@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/theme/personalization_provider.dart';
+import '../../../core/theme/theme_provider.dart';
 import '../../../core/theme/colors.dart';
-import '../../../core/services/haptic_service.dart';
 
 class PersonalizationPage extends ConsumerWidget {
   const PersonalizationPage({super.key});
@@ -12,10 +12,11 @@ class PersonalizationPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(personalizationProvider);
     final notifier = ref.read(personalizationProvider.notifier);
-    final colorScheme = Theme.of(context).colorScheme;
+    final themeState = ref.watch(themeControllerProvider);
+    final themeNotifier = ref.read(themeControllerProvider.notifier);
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
@@ -25,7 +26,7 @@ class PersonalizationPage extends ConsumerWidget {
               icon: const Icon(Symbols.arrow_back_rounded),
             ),
             title: Text(
-              'Personalization',
+              'Preferences',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -34,10 +35,11 @@ class PersonalizationPage extends ConsumerWidget {
               IconButton(
                 onPressed: () {
                   notifier.reset();
-                  HapticService.mediumStatic();
+                  themeNotifier.setThemeMode(ThemeMode.system);
+                  themeNotifier.setUseMaterialYou(false);
                 },
                 icon: const Icon(Symbols.refresh_rounded),
-                tooltip: 'Reset',
+                tooltip: 'Reset All Preferences',
               ),
             ],
           ),
@@ -58,7 +60,7 @@ class PersonalizationPage extends ConsumerWidget {
                             Expanded(
                                 flex: 8,
                                 child: _buildConfigCanvas(
-                                    context, state, notifier)),
+                                    context, state, notifier, themeState, themeNotifier)),
                           ],
                         )
                       : Column(
@@ -66,7 +68,7 @@ class PersonalizationPage extends ConsumerWidget {
                           children: [
                             _buildEditorialHeader(context),
                             const SizedBox(height: 48),
-                            _buildConfigCanvas(context, state, notifier),
+                            _buildConfigCanvas(context, state, notifier, themeState, themeNotifier),
                           ],
                         ),
                 );
@@ -83,7 +85,7 @@ class PersonalizationPage extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Visual\nGrade',
+          'App\nCraft',
           style: Theme.of(context).textTheme.displayLarge?.copyWith(
             color: Theme.of(context).colorScheme.primary,
             fontWeight: FontWeight.w900,
@@ -94,7 +96,7 @@ class PersonalizationPage extends ConsumerWidget {
         ),
         const SizedBox(height: 24),
         Text(
-          'Curate your interface. Adjust the weight, width, and optical properties of the typography to match your creative intent.',
+          'Tailor every detail of your experience. From the depth of the typography to the behavior of the hardware.',
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: Theme.of(context)
                     .colorScheme
@@ -106,8 +108,13 @@ class PersonalizationPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildConfigCanvas(BuildContext context, PersonalizationState state,
-      PersonalizationNotifier notifier) {
+  Widget _buildConfigCanvas(
+    BuildContext context, 
+    PersonalizationState state,
+    PersonalizationNotifier notifier,
+    ThemeState themeState,
+    ThemeController themeNotifier,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -115,21 +122,93 @@ class PersonalizationPage extends ConsumerWidget {
         _TypeTester(state: state),
         const SizedBox(height: 48),
 
-        // Sliders
+        // Appearance Section
+        _buildSectionTitle(context, 'THEME & STYLE'),
+        const SizedBox(height: 16),
+        _buildThemeModeSelector(context, themeState, themeNotifier),
+        const SizedBox(height: 24),
+        _buildToggleItem(
+          context,
+          title: 'Dynamic Color',
+          subtitle: 'Use Material You dynamic palettes from your wallpaper',
+          icon: Symbols.draw_rounded,
+          value: themeState.useMaterialYou,
+          onChanged: (v) => themeNotifier.setUseMaterialYou(v),
+        ),
+
+        const SizedBox(height: 48),
+
+        // Typography Section
+        _buildSectionTitle(context, 'TYPOGRAPHY (GOOGLE SANS FLEX)'),
+        const SizedBox(height: 24),
         _buildSliderSection(context, state, notifier),
 
         const SizedBox(height: 48),
 
-        // Color Schemes
+        // Color Schemes Section
         _buildColorSchemeSection(context, state, notifier),
 
         const SizedBox(height: 48),
 
-        // Toggles
-        _buildTogglesSection(context, state, notifier),
+        // Feedback Section
+        _buildSectionTitle(context, 'FEEDBACK & BEHAVIOR'),
+        const SizedBox(height: 16),
+        _buildToggleItem(
+          context,
+          title: 'Vibrate on Transaction',
+          subtitle: 'Only vibrates when a new transaction is successfully saved',
+          icon: Symbols.vibration_rounded,
+          value: state.vibrateOnTransaction,
+          onChanged: (v) => notifier.toggleVibration(),
+        ),
+        const SizedBox(height: 16),
+        _buildToggleItem(
+          context,
+          title: 'Restart on Currency Change',
+          subtitle: 'Automatically restart the app when you change your default currency',
+          icon: Symbols.restart_alt_rounded,
+          value: state.shouldRestartOnCurrencyChange,
+          onChanged: (v) => notifier.toggleRestartOnCurrencyChange(v),
+        ),
 
         const SizedBox(height: 100), // Bottom padding for breathing room
       ],
+    );
+  }
+
+  Widget _buildSectionTitle(BuildContext context, String title) {
+    return Text(
+      title,
+      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            letterSpacing: 1.2,
+            fontWeight: FontWeight.w900,
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+          ),
+    );
+  }
+
+  Widget _buildThemeModeSelector(BuildContext context, ThemeState state, ThemeController notifier) {
+    final modes = [
+      {'mode': ThemeMode.system, 'label': 'System', 'icon': Symbols.settings_brightness},
+      {'mode': ThemeMode.light, 'label': 'Light', 'icon': Symbols.light_mode},
+      {'mode': ThemeMode.dark, 'label': 'Dark', 'icon': Symbols.dark_mode},
+    ];
+
+    return Wrap(
+      spacing: 8,
+      children: modes.map((m) {
+        final isSelected = state.themeMode == m['mode'];
+        return ChoiceChip(
+          label: Text(m['label'] as String),
+          avatar: Icon(m['icon'] as IconData, size: 18),
+          selected: isSelected,
+          onSelected: (selected) {
+            if (selected) {
+              notifier.setThemeMode(m['mode'] as ThemeMode);
+            }
+          },
+        );
+      }).toList(),
     );
   }
 
@@ -181,7 +260,6 @@ class PersonalizationPage extends ConsumerWidget {
 
   Widget _buildColorSchemeSection(BuildContext context,
       PersonalizationState state, PersonalizationNotifier notifier) {
-    final colorScheme = Theme.of(context).colorScheme;
     final variants = {
       'tonalSpot': 'Tonal Spot',
       'monochrome': 'Monochrome',
@@ -197,14 +275,7 @@ class PersonalizationPage extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'COLOR SCHEME VARIANT',
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                letterSpacing: 1.2,
-                fontWeight: FontWeight.w900,
-                color: colorScheme.onSurface.withValues(alpha: 0.5),
-              ),
-        ),
+        _buildSectionTitle(context, 'COLOR SCHEME VARIANT'),
         const SizedBox(height: 16),
         Wrap(
           spacing: 8,
@@ -217,45 +288,10 @@ class PersonalizationPage extends ConsumerWidget {
               onSelected: (selected) {
                 if (selected) {
                   notifier.updateColorSchemeVariant(e.key);
-                  HapticService.mediumStatic();
                 }
               },
             );
           }).toList(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTogglesSection(BuildContext context, PersonalizationState state,
-      PersonalizationNotifier notifier) {
-    return Column(
-      children: [
-        _buildToggleItem(
-          context,
-          title: 'Filled Icons',
-          subtitle: 'Enable solid fill for all interface iconography',
-          icon: Symbols.brush_rounded,
-          value: state.fillIcons,
-          onChanged: (v) => notifier.toggleFillIcons(v),
-        ),
-        const SizedBox(height: 16),
-        _buildToggleItem(
-          context,
-          title: 'Haptic Feedback',
-          subtitle: 'System-wide vibrations and clicks',
-          icon: Symbols.vibration_rounded,
-          value: state.vibrationEnabled,
-          onChanged: (v) => notifier.toggleVibration(v),
-        ),
-        const SizedBox(height: 16),
-        _buildToggleItem(
-          context,
-          title: 'Transaction Haptics',
-          subtitle: 'Vibrate specifically when adding transactions',
-          icon: Symbols.add_task_rounded,
-          value: state.vibrateOnTransaction,
-          onChanged: (v) => notifier.toggleVibrateOnTransaction(v),
         ),
       ],
     );
@@ -273,7 +309,6 @@ class PersonalizationPage extends ConsumerWidget {
     return InkWell(
       onTap: () {
         onChanged(!value);
-        HapticService.lightStatic();
       },
       borderRadius: BorderRadius.circular(16),
       child: Container(
@@ -320,7 +355,6 @@ class PersonalizationPage extends ConsumerWidget {
               value: value,
               onChanged: (v) {
                 onChanged(v);
-                HapticService.lightStatic();
               },
             ),
           ],
@@ -417,8 +451,9 @@ class _PreviewIcon extends StatelessWidget {
       icon,
       size: 40,
       fill: state.fillIcons ? 1.0 : 0.0,
-      weight: state.weight,
-      grade: state.grade,
+      weight: 600, // Fixed heavier weight for hero icons
+      grade: 0.25,
+      opticalSize: 48, // Match the physical size
     );
   }
 }
@@ -440,7 +475,6 @@ class _AtelierSlider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // We extract the color scheme from the context to maintain consistent theming
     final colorScheme = Theme.of(context).colorScheme;
 
     return Padding(
@@ -460,7 +494,6 @@ class _AtelierSlider extends StatelessWidget {
                     ),
               ),
               Text(
-                // Formats the double to a clean whole number for the UI display
                 value.toStringAsFixed(0),
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
                       fontWeight: FontWeight.w900,
@@ -482,36 +515,12 @@ class _AtelierSlider extends StatelessWidget {
               trackShape: const RoundedRectSliderTrackShape(),
             ),
             child: Slider(
-              // clamp ensures our value never mathematically exceeds the min/max bounds
               value: value.clamp(min, max),
               min: min,
               max: max,
-
-              // onChanged fires continuously (60+ times a second) as the slider is dragged.
               onChanged: (v) {
-                // 1. First, we immediately pass the new precise decimal value back to the
-                //    parent's provider so the UI updates smoothly without stuttering.
                 onChanged(v);
-
-                // 2. THROTTLED HAPTICS (Approach 2)
-                // We compare the rounded integer of the new value (v.round()) against
-                // the rounded integer of the old value (value.round()).
-                // This ensures the haptic motor only fires when crossing a whole number,
-                // preventing the 60fps platform channel flood that caused the crash.
-                if (v.round() != value.round()) {
-                  HapticService.lightStatic();
-                }
               },
-
-              // ALTERNATIVE: SAFE END-DRAG HAPTICS (Approach 1)
-              // If you ever want to switch to vibrating only when the user lets go,
-              // remove the haptics from onChanged and uncomment the block below:
-              /*
-              onChangeEnd: (v) {
-                // Fires exactly once when the interaction is complete
-                HapticService.lightStatic();
-              },
-              */
             ),
           ),
         ],

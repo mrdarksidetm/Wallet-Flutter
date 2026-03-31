@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../database/providers.dart';
 import '../database/models/transaction_model.dart';
-import '../services/haptic_service.dart';
 import 'icon_picker.dart';
 
 class TransactionListTile extends ConsumerWidget {
@@ -48,7 +47,7 @@ class TransactionListTile extends ConsumerWidget {
       child: ListTile(
         onTap: () {
           if (onTap != null) {
-            HapticService.selectionStatic();
+            
             onTap!();
           }
         },
@@ -61,10 +60,15 @@ class TransactionListTile extends ConsumerWidget {
             color: categoryColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(16),
           ),
-          child: Icon(
-            icon,
-            color: categoryColor,
-            size: 24,
+          child: IconTheme(
+            data: IconThemeData(
+              color: categoryColor,
+              size: 24,
+              weight: 600, // Heavier for better visibility in lists
+              grade: 0.25,
+              opticalSize: 24,
+            ),
+            child: Icon(icon),
           ),
         ),
         title: Text(

@@ -44,5 +44,7 @@ enum AccountType {
   wallet,
   investment,
   asset,
-  other,
+  other;
+
+  String get name => toString().split('.').last;
 }

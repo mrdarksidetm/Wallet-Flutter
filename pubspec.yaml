@@ -67,6 +67,7 @@ dependencies:
   image_cropper: ^8.0.2
   ota_update: ^7.1.0
   package_info_plus: ^9.0.0
+  restart_app: ^1.7.3
 
 dev_dependencies:
   flutter_test:

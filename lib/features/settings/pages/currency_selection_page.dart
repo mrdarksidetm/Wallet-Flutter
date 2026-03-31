@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/services/haptic_service.dart';
+import 'package:restart_app/restart_app.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/theme/personalization_provider.dart';
 
@@ -37,17 +37,13 @@ class CurrencySelectionPage extends ConsumerWidget {
     {'code': 'THB', 'name': 'Thai Baht', 'symbol': '฿'},
     {'code': 'VND', 'name': 'Vietnamese Dong', 'symbol': '₫'},
     {'code': 'PHP', 'name': 'Philippine Peso', 'symbol': '₱'},
-    {'code': 'PKR', 'name': 'Pakistani Rupee', 'symbol': '₨'},
     {'code': 'EGP', 'name': 'Egyptian Pound', 'symbol': 'E£'},
-    {'code': 'VND', 'name': 'Vietnamese Dong', 'symbol': '₫'},
     {'code': 'NGN', 'name': 'Nigerian Naira', 'symbol': '₦'},
     {'code': 'COP', 'name': 'Colombian Peso', 'symbol': 'COL\$'},
     {'code': 'ARS', 'name': 'Argentine Peso', 'symbol': 'AR\$'},
     {'code': 'CLP', 'name': 'Chilean Peso', 'symbol': 'CLP\$'},
     {'code': 'PEN', 'name': 'Peruvian Sol', 'symbol': 'S/.'},
-    {'code': 'THB', 'name': 'Thai Baht', 'symbol': '฿'},
     {'code': 'TWD', 'name': 'New Taiwan Dollar', 'symbol': 'NT\$'},
-    {'code': 'MYR', 'name': 'Malaysian Ringgit', 'symbol': 'RM'},
     {'code': 'KWD', 'name': 'Kuwaiti Dinar', 'symbol': 'KD'},
     {'code': 'QAR', 'name': 'Qatari Rial', 'symbol': 'QR'},
     {'code': 'OMR', 'name': 'Omani Rial', 'symbol': 'OR'},
@@ -64,6 +60,7 @@ class CurrencySelectionPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedCurrency = ref.watch(currencyProvider);
+    final personalization = ref.watch(personalizationProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -103,11 +100,31 @@ class CurrencySelectionPage extends ConsumerWidget {
                     color: Theme.of(context).colorScheme.primary)
                 : null,
             onTap: () async {
-              await HapticService.selectionStatic();
               ref
                   .read(personalizationProvider.notifier)
                   .updateCurrency(currency['code']!);
-              if (context.mounted) context.pop();
+              
+              if (personalization.shouldRestartOnCurrencyChange) {
+                if (context.mounted) {
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Currency Changed'),
+                      content: const Text(
+                          'The app needs to restart to apply the new currency settings correctly.'),
+                      actions: [
+                        FilledButton(
+                          onPressed: () => Restart.restartApp(),
+                          child: const Text('Restart Now'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+              } else {
+                if (context.mounted) context.pop();
+              }
             },
           );
         },

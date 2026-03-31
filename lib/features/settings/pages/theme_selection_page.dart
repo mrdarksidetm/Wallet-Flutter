@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/theme/theme_provider.dart';
 import '../../../core/theme/personalization_provider.dart';
-import '../../../core/services/haptic_service.dart';
-
 class ThemeSelectionPage extends ConsumerWidget {
   const ThemeSelectionPage({super.key});
 
@@ -87,7 +85,7 @@ class ThemeSelectionPage extends ConsumerWidget {
 
     return ListTile(
       onTap: () async {
-        await HapticService.selectionStatic();
+        
         ref
             .read(personalizationProvider.notifier)
             .updateColorSchemeVariant(variant);
@@ -116,7 +114,7 @@ class ThemeSelectionPage extends ConsumerWidget {
 
     return ListTile(
       onTap: () async {
-        await HapticService.selectionStatic();
+        
         onTap();
       },
       leading: Container(

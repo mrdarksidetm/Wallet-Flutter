@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../../core/services/haptic_service.dart';
 import '../../../core/widgets/primary_atelier_button.dart';
 
 class FeedbackPage extends ConsumerStatefulWidget {
@@ -109,7 +108,7 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
                   return;
                 }
 
-                await HapticService.successStatic();
+                
 
                 final Uri emailLaunchUri = Uri(
                   scheme: 'mailto',

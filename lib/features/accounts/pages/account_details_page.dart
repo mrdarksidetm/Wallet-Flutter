@@ -5,7 +5,6 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/account.dart';
 import '../../../core/database/models/transaction_model.dart';
-import '../../../core/services/haptic_service.dart';
 import '../../../core/widgets/icon_picker.dart';
 
 class AccountDetailsPage extends ConsumerWidget {
@@ -32,7 +31,7 @@ class AccountDetailsPage extends ConsumerWidget {
         actions: [
           IconButton(
             onPressed: () async {
-              await HapticService.selectionStatic();
+              
               // Edit functionality can be added here
             },
             icon: const Icon(Symbols.edit),

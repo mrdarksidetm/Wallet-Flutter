@@ -5,13 +5,9 @@ import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../../../core/database/providers.dart';
-import '../../../core/services/haptic_service.dart';
-import '../../../core/services/greeting_service.dart';
-import '../../../core/theme/personalization_provider.dart';
 import '../../../core/widgets/transaction_list_tile.dart';
 import '../widgets/total_balance_card.dart';
 import '../widgets/overview_card.dart';
-import '../widgets/home_header.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -24,89 +20,43 @@ class HomePage extends ConsumerWidget {
     
     final backgroundColor = isDark ? colorScheme.surface : const Color(0xFFF7F7F9);
 
-    final greeting = ref.watch(greetingServiceProvider).getGreeting();
-    final userName =
-        ref.watch(personalizationProvider.select((p) => p.userName)) ?? 'User';
-    final photo = ref.watch(personalizationProvider).userPhoto;
-
-    return Scaffold(
-      backgroundColor: backgroundColor,
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Optimized Header with Dynamic Shadow Logo
-            HomeHeader(
-              userPhoto: photo,
-              userName: userName,
-              greeting: greeting,
-            ),
-
-            // FIXED GREETING
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24.0, 8.0, 24.0, 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    greeting,
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: colorScheme.onSurface.withOpacity(0.5),
-                      fontWeight: FontWeight.bold,
+    return Container(
+      color: backgroundColor,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // SCROLLABLE CONTENT
+          Expanded(
+            child: AnimationLimiter(
+              child: CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                  const SliverToBoxAdapter(child: _HomeBalanceSection()),
+                  const _SectionHeader(title: 'Overview'),
+                  const _HomeFinanceGrid(),
+                  const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                  const _SectionHeader(title: 'Recent Transactions'),
+                  const _HomeRecentTransactions(),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+                      child: OutlinedButton(
+                        onPressed: () => context.push('/all_transactions'),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size.fromHeight(56),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        ),
+                        child: const Text('View All Activity'),
+                      ),
                     ),
                   ),
-                  Text(
-                    userName,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
                 ],
               ),
             ),
-
-            // SCROLLABLE CONTENT
-            Expanded(
-              child: AnimationLimiter(
-                child: CustomScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  slivers: [
-                    const SliverToBoxAdapter(child: _HomeBalanceSection()),
-                    const _SectionHeader(title: 'Overview'),
-                    const _HomeFinanceGrid(),
-                    const SliverToBoxAdapter(child: SizedBox(height: 32)),
-                    const _SectionHeader(title: 'Recent Transactions'),
-                    const _HomeRecentTransactions(),
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-                        child: OutlinedButton(
-                          onPressed: () => context.push('/all_transactions'),
-                          style: OutlinedButton.styleFrom(
-                            minimumSize: const Size.fromHeight(56),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                          ),
-                          child: const Text('View All Activity'),
-                        ),
-                      ),
-                    ),
-                    const SliverToBoxAdapter(child: SizedBox(height: 100)),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton.large(
-        onPressed: () {
-          HapticService.selectionStatic();
-          context.push('/add_transaction');
-        },
-        backgroundColor: colorScheme.primary,
-        foregroundColor: colorScheme.onPrimary,
-        child: const Icon(Symbols.add, size: 32),
+          ),
+        ],
       ),
     );
   }
@@ -260,7 +210,7 @@ class _HomeRecentTransactions extends ConsumerWidget {
                       child: TransactionListTile(
                         tx: recentTxs[index],
                         onTap: () {
-                          HapticService.selectionStatic();
+                          
                           context.push('/add_transaction',
                               extra: recentTxs[index]);
                         },

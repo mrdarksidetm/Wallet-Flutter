@@ -5,8 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/widgets/icon_picker.dart';
-import '../../../core/services/haptic_service.dart';
-
 class GoalsPage extends ConsumerWidget {
   const GoalsPage({super.key});
 
@@ -45,7 +43,7 @@ class GoalsPage extends ConsumerWidget {
                 direction: DismissDirection.horizontal,
                 confirmDismiss: (direction) async {
                   if (direction == DismissDirection.startToEnd) {
-                    await HapticService.successStatic();
+                    
                     goal.isCompleted = !isCompleted;
                     goal.updatedAt = DateTime.now();
                     await ref.read(goalRepositoryProvider).save(goal);
@@ -75,7 +73,7 @@ class GoalsPage extends ConsumerWidget {
                 },
                 onDismissed: (direction) async {
                   if (direction == DismissDirection.endToStart) {
-                    await HapticService.heavyStatic();
+                    
                     await ref.read(goalRepositoryProvider).delete(goal.id);
                   }
                 },

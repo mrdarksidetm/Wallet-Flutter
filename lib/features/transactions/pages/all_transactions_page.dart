@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/database/providers.dart';
-import '../../../core/services/haptic_service.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/widgets/transaction_list_tile.dart';
@@ -32,8 +31,7 @@ class _AllTransactionsPageState extends ConsumerState<AllTransactionsPage> {
         title: const Text('All Transactions'),
         actions: [
           IconButton(
-            onPressed: () async {
-              await HapticService.selectionStatic();
+            onPressed: () {
               setState(() {
                 _ascending = !_ascending;
               });
@@ -69,7 +67,6 @@ class _AllTransactionsPageState extends ConsumerState<AllTransactionsPage> {
                 key: ValueKey(tx.id),
                 direction: DismissDirection.endToStart,
                 confirmDismiss: (direction) async {
-                  await HapticService.mediumStatic();
                   return await showDialog<bool>(
                     context: context,
                     builder: (context) => AlertDialog(
@@ -94,7 +91,6 @@ class _AllTransactionsPageState extends ConsumerState<AllTransactionsPage> {
                   );
                 },
                 onDismissed: (direction) async {
-                  await HapticService.heavyStatic();
                   await ref
                       .read(transactionServiceProvider)
                       .deleteTransaction(tx);
@@ -115,8 +111,7 @@ class _AllTransactionsPageState extends ConsumerState<AllTransactionsPage> {
                 ),
                 child: TransactionListTile(
                   tx: tx,
-                  onTap: () async {
-                    await HapticService.selectionStatic();
+                  onTap: () {
                     context.push('/add_transaction', extra: tx);
                   },
                 ),

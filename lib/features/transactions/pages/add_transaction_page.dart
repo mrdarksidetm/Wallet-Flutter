@@ -199,7 +199,6 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
                 ],
                 selected: {_transactionType},
                 onSelectionChanged: (Set<TransactionType> newSelection) {
-                  HapticService.selectionStatic();
                   setState(() {
                     _transactionType = newSelection.first;
                   });
@@ -211,7 +210,6 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
             // Amount Input
             TextField(
               controller: _amountController,
-              onChanged: (_) => HapticService.lightStatic(),
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
               style: theme.textTheme.displayMedium?.copyWith(

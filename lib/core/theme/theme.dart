@@ -109,28 +109,26 @@ class AppTheme {
       ),
       iconTheme: IconThemeData(
         fill: state.fillIcons ? 1.0 : 0.0,
-        weight: state.weight,
-        grade: state.grade,
+        weight: 500, // Medium weight for better presence
+        grade: 0.25, // Slightly heavier grade for visual clarity
+        opticalSize: 24,
         color: colorScheme.onSurface,
       ),
       iconButtonTheme: IconButtonThemeData(
         style: IconButton.styleFrom(
           iconSize: 24,
-          visualDensity: VisualDensity.compact,
+          visualDensity: VisualDensity.standard,
         ),
-      ),
-      scaffoldBackgroundColor:
-          isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
-      cardTheme: CardThemeData(
-        shape: shape,
-        elevation: 0,
-        color: isDark ? AppColors.cardDark : AppColors.surfaceContainerLowest,
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: false,
-        iconTheme: IconThemeData(color: colorScheme.onSurface),
+        iconTheme: IconThemeData(
+          color: colorScheme.onSurface,
+          weight: 600, // Heavier icons for AppBar
+          opticalSize: 24,
+        ),
         titleTextStyle: baseTextStyle.copyWith(
           color: colorScheme.onSurface,
           fontSize: 20,
@@ -183,8 +181,29 @@ class AppTheme {
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: colorScheme.surface,
         indicatorColor: colorScheme.primaryContainer,
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const IconThemeData(
+              weight: 700, // Very heavy for selected tab
+              opticalSize: 24,
+              grade: 0.25,
+            );
+          }
+          return const IconThemeData(
+            weight: 400, // Standard for unselected
+            opticalSize: 24,
+            grade: 0,
+          );
+        }),
         labelTextStyle: WidgetStateProperty.all(
             baseTextStyle.copyWith(fontSize: 12, fontWeight: FontWeight.w500)),
+      ),
+      scaffoldBackgroundColor:
+          isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
+      cardTheme: CardThemeData(
+        shape: shape,
+        elevation: 0,
+        color: isDark ? AppColors.cardDark : AppColors.surfaceContainerLowest,
       ),
     );
   }

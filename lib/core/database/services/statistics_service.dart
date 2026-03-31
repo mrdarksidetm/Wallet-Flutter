@@ -224,4 +224,65 @@ class StatisticsService {
       return {'income': income, 'expense': expense};
     });
   }
+
+  Future<Map<DateTime, int>> getTransactionHeatmapData() async {
+    final now = DateTime.now();
+    final startOfMonth = DateTime(now.year, now.month, 1);
+    final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
+
+    final transactions = await isar.transactionModels
+        .filter()
+        .dateBetween(startOfMonth, endOfMonth)
+        .findAll();
+
+    final Map<DateTime, int> heatmap = {};
+    for (var tx in transactions) {
+      final date = DateTime(tx.date.year, tx.date.month, tx.date.day);
+      heatmap[date] = (heatmap[date] ?? 0) + 1;
+    }
+
+    // Intensity calculation (0: none, 1: 1-2, 2: 3-5, 3: 5+)
+    final Map<DateTime, int> intensityMap = {};
+    heatmap.forEach((date, count) {
+      if (count == 0) {
+        intensityMap[date] = 0;
+      } else if (count <= 2) {
+        intensityMap[date] = 1;
+      } else if (count <= 5) {
+        intensityMap[date] = 2;
+      } else {
+        intensityMap[date] = 3;
+      }
+    });
+
+    return intensityMap;
+  }
+
+  Future<List<MapEntry<DateTime, double>>> getMonthlyTrendData() async {
+    final now = DateTime.now();
+    final thirtyDaysAgo = now.subtract(const Duration(days: 30));
+
+    final transactions = await isar.transactionModels
+        .filter()
+        .dateBetween(thirtyDaysAgo, now)
+        .typeEqualTo(TransactionType.expense)
+        .findAll();
+
+    final Map<DateTime, double> daily = {};
+    for (var tx in transactions) {
+      final date = DateTime(tx.date.year, tx.date.month, tx.date.day);
+      daily[date] = (daily[date] ?? 0) + tx.amount;
+    }
+
+    // Fill missing days with 0
+    for (var i = 0; i <= 30; i++) {
+      final date = now.subtract(Duration(days: i));
+      final dayOnly = DateTime(date.year, date.month, date.day);
+      daily[dayOnly] ??= 0;
+    }
+
+    final sorted = daily.entries.toList()
+      ..sort((a, b) => a.key.compareTo(b.key));
+    return sorted;
+  }
 }

@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
 
-import '../../../core/services/haptic_service.dart';
-
 class UnlockPage extends ConsumerWidget {
   const UnlockPage({super.key});
 
@@ -54,7 +52,7 @@ class UnlockPage extends ConsumerWidget {
                 height: 64,
                 child: FilledButton.icon(
                   onPressed: () async {
-                    await HapticService.lightStatic();
+                    
                     await authNotifier.authenticate();
                   },
                   icon: const Icon(Icons.fingerprint_rounded),

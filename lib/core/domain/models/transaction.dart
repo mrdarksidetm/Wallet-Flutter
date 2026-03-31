@@ -1,4 +1,10 @@
-enum TransactionType { income, expense, transfer }
+enum TransactionType {
+  income,
+  expense,
+  transfer;
+
+  String get name => toString().split('.').last;
+}
 
 /// A robust, scalable Transaction model for personal finance.
 ///

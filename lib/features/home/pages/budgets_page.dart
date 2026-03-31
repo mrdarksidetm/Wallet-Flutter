@@ -5,8 +5,6 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/category.dart';
 import '../../../core/widgets/icon_picker.dart';
-import '../../../core/services/haptic_service.dart';
-
 class BudgetsPage extends ConsumerWidget {
   const BudgetsPage({super.key});
 
@@ -168,7 +166,7 @@ class _BudgetCard extends ConsumerWidget {
                 await ref
                     .read(categoryServiceProvider)
                     .setBudget(category.id, 0);
-                await HapticService.mediumStatic();
+                
                 if (context.mounted) Navigator.pop(context);
               },
               child: const Text('Remove', style: TextStyle(color: Colors.red)),
@@ -179,7 +177,7 @@ class _BudgetCard extends ConsumerWidget {
               await ref
                   .read(categoryServiceProvider)
                   .setBudget(category.id, limitValue);
-              await HapticService.mediumStatic();
+              
               if (context.mounted) Navigator.pop(context);
             },
             child: const Text('Save'),

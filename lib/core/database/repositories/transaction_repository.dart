@@ -1,4 +1,5 @@
 import 'package:isar/isar.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '../../database/models/transaction_model.dart';
 import 'base_repository.dart';
 
@@ -21,6 +22,66 @@ class TransactionRepository extends BaseRepository<TransactionModel> {
         .watch(fireImmediately: true);
   }
 
+  Future<Map<DateTime, int>> getTransactionHeatmapData() async {
+    final now = DateTime.now();
+    final startOfMonth = DateTime(now.year, now.month, 1);
+    final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
+
+    final transactions = await isar.transactionModels
+        .filter()
+        .dateBetween(startOfMonth, endOfMonth)
+        .findAll();
+
+    final Map<DateTime, int> heatmap = {};
+    for (var tx in transactions) {
+      final date = DateTime(tx.date.year, tx.date.month, tx.date.day);
+      heatmap[date] = (heatmap[date] ?? 0) + 1;
+    }
+
+    // Convert count to intensity (0-3)
+    final intensityMap = heatmap.map((date, count) {
+      int intensity = 0;
+      if (count > 0) intensity = 1;
+      if (count > 3) intensity = 2;
+      if (count > 7) intensity = 3;
+      return MapEntry(date, intensity);
+    });
+
+    return intensityMap;
+  }
+
+  Future<List<FlSpot>> getMonthlyTrendData() async {
+    final now = DateTime.now();
+    final thirtyDaysAgo = now.subtract(const Duration(days: 30));
+
+    final transactions = await isar.transactionModels
+        .filter()
+        .dateBetween(thirtyDaysAgo, now)
+        .sortByDate()
+        .findAll();
+
+    final Map<int, double> dailyTotals = {};
+    // Initialize last 30 days with 0
+    for (int i = 0; i <= 30; i++) {
+      final date = thirtyDaysAgo.add(Duration(days: i));
+      dailyTotals[date.day] = 0;
+    }
+
+    for (var tx in transactions) {
+      if (tx.type == TransactionType.expense) {
+        dailyTotals[tx.date.day] = (dailyTotals[tx.date.day] ?? 0) + tx.amount;
+      }
+    }
+
+    final List<FlSpot> spots = [];
+    for (int i = 0; i <= 30; i++) {
+      final date = thirtyDaysAgo.add(Duration(days: i));
+      spots.add(FlSpot(i.toDouble(), dailyTotals[date.day] ?? 0));
+    }
+
+    return spots;
+  }
+
   Future<List<TransactionModel>> search({
     String? query,
     DateTime? startDate,
@@ -29,8 +90,6 @@ class TransactionRepository extends BaseRepository<TransactionModel> {
     List<int>? accountIds,
     List<int>? categoryIds,
   }) async {
-    // Start with a base filter that includes all (id > -1) to ensure we have QAfterFilterCondition
-    // This allows us to chain .and() logic and end up with a state that supports .sortBy...()
     QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition> q =
         isar.transactionModels.filter().idGreaterThan(-1);
 
@@ -41,9 +100,6 @@ class TransactionRepository extends BaseRepository<TransactionModel> {
     if (type != null) {
       q = q.and().typeEqualTo(type);
     }
-
-    // Note: Isar filters on links (account/category) are tricky in simple queries without links logic
-    // For now, we fetch and filter in memory if IDs provided, valid for local DB size.
 
     var results = await q.sortByDateDesc().findAll();
 
@@ -72,16 +128,12 @@ class TransactionRepository extends BaseRepository<TransactionModel> {
   Future<List<TransactionModel>> searchTransactions(String query) async {
     if (query.isEmpty) return [];
 
-    // Simple search by note
     final byNote = await isar.transactionModels
         .filter()
         .noteContains(query, caseSensitive: false)
         .sortByDateDesc()
         .findAll();
 
-    // Also try to search related names or amounts
-    // Note: Isar doesn't support direct filtering on links in one query easily
-    // So we combine or stick to note for now for performance
     return byNote;
   }
 }

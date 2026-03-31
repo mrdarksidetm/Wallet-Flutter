@@ -1,67 +1,46 @@
 # Project Wallet Statistics (Flutter)
 
 ## Version Control
-- **Current Version**: 1.2.7 (March 2026 M3 Build)
+- **Current Version**: 1.2.9 (March 2026 M3 Build)
 - **Codename**: "The Variable Atelier"
 - **Flutter SDK**: >=3.5.0
 - **Primary Design**: Material 3 Expressive (Editorial Style)
 
-## Implementation Status (Phase 15 - Version 1.2.7 Audit)
+## Implementation Status (Phase 17 - Version 1.2.9 Audit)
 
 ### 1. Database & Core (100%)
 - [x] Isar Database implementation.
 - [x] Account, Category, Transaction, Budget entities.
 - [x] Seed service for default data.
 - [x] **FIXED**: Fully reactive Budget streams (watch both transactions and categories).
+- [x] **NEW**: Added `.name` getters to all core Enums to prevent `NoSuchMethodError`.
 
 ### 2. UI & Navigation (100%)
 - [x] GoRouter implementation with animations.
-- [x] **FIXED**: Settings routing (Terms vs Privacy separated).
-- [x] Material 3 Dynamic Color (Android 12+ wallpaper extraction).
-- [x] **UPDATED**: Google Sans Flex variable font integration (using ROND axis).
-- [x] **FIXED**: FAB visibility and Search UI (Removed FAB from search).
+- [x] **FIXED**: Resolved duplicate FABs by centralizing layout in `AppShell`.
+- [x] **UPDATED**: Dynamic `HomeHeader` in `AppShell`.
+- [x] **NEW**: Merged "Theme & Style" and "Dynamic Color" into a unified "Preferences" section.
+- [x] **UPDATED**: Renamed "Personalization" to "Preferences" and redesigned the layout for better information density.
 
 ### 3. Features (100%)
-- [x] **NEW**: In-App GitHub Updater (Dio-based architecture detection).
-- [x] **NEW**: Onboarding Flow (User profiling & currency selection).
-- [x] **UPDATED**: Delete Functionality (Dismissible accounts & transactions).
-- [x] **UPDATED**: Currency Expansion (Broader global support).
-- [x] **FIXED**: Offline Email Validation (Robust Regex).
-- [x] Reports with Filter icon and expanded options.
+- [x] **NEW**: In-App GitHub Updater.
+- [x] **NEW**: Onboarding Flow.
+- [x] **NEW**: Edit Profile Screen.
+- [x] **NEW**: Statistics Service methods for Heatmap and Trend Chart.
+- [x] **UPDATED**: Haptic feedback policy: **ONLY** used for new transaction additions.
+- [x] **NEW**: "Vibrate on Transaction" toggle in Preferences.
+- [x] **FIXED**: Stripped 100% of non-essential haptic/vibration calls from the codebase.
 
 ## Metrics
-- **Total Lines of Code**: ~10,200
-- **Total Files**: 72
+- **Total Lines of Code**: ~10,800
+- **Total Files**: 74
 - **Performance**: 60-120 FPS on modern devices.
-- **APK Size**: ~19.2MB (including variable fonts and SVGs).
+- **APK Size**: ~19.5MB.
 
-## Recent Fixes (v1.2.7 Update)
-- **Budgets**: Implemented `CombineLatestStream` to ensure budgets update instantly when transactions OR categories change.
-- **Routing**: Separated `Terms of Use` and `Privacy Policy` routes and pages.
-- **Search**: Completely removed FAB from Search screen for a cleaner M3 look.
-- **Reports**: Added Filter icon to AppBar and expanded filter logic.
-- **Accounts**: Added `Dismissible` swipe-to-delete with confirmation dialog.
-- **Transactions**: Added `Dismissible` swipe-to-delete for the transaction ledger.
-- **Typography**: Switched to `ROND` axis for variable font roundness as per M3 standards.
-- **Updater**: Migrated GitHub API fetching to `dio` with robust architecture matching.
-- **Feedback**: Implemented local email Regex validation for offline resilience.
-- **Currencies**: Added over 20 new global currencies to the selection engine.
-- **Static Analysis**: Resolved all `curly_braces_in_flow_control_structures` and `unused_import` issues across the codebase to ensure 100% clean `flutter analyze`.
-- **Optimization**: Enabled strict `prefer_const_constructors` and `prefer_final_locals` lints.
-- **Refactoring**: Consolidated transaction list UI into a shared `TransactionListTile` (DRY Law).
-- **UI Consistency**: Ensured FAB actions are properly cleared in `Reports` and `People` pages via `dispose`.
-- **Currency Sync**: Refactored `TotalBalanceCard` to respect user-selected currency, eliminating hardcoded locales.
-- **Privacy Policy**: Linked the `Privacy Policy` tile in the `About` page to the internal `PrivacyPolicyPage` with haptic feedback.
-- **Developer Profile**: Replaced the generic developer icon with a circular `developer.png` asset in the `About` page for a more personal touch.
-- **Dynamic Branding**: Implemented a dynamic footer in the `About` page showing Android/Flutter logos and the device's specific CPU architecture (armeabi/arm64) via `UpdateService`.
-- **Personalization Fix**: Resolved app crashes in `PersonalizationPage` by switching font axis `ROND` to `SOFT`, removing the unsupported `slnt` axis, and throttling haptic feedback callers to prevent platform channel flooding.
-- **Font Consolidation**: Deleted `ProductSans` and `SFPro` fonts. Enforced `GoogleSansFlex` as the universal font across all UI components, with `AppleColorEmoji` and `Noto Color Emoji` as system-wide fallbacks for maximum consistency.
-- **Image Cropping Fix**: Added `UCropActivity` to `AndroidManifest.xml` and implemented `try-catch` error handling in the Onboarding image picker to prevent crashes during the cropping process.
-- **Accounts Page Stability**: Added robust null checks and safety logic to the `AccountsPage` UI to prevent "Something went wrong" crashes caused by malformed data or empty fields.
-- **Global Error Handling**: Enhanced `GlobalErrorScreen` to display detailed Exception and Stack Trace information, making it easier to diagnose future issues.
-- **Onboarding UI Redesign**: Implemented a modern, animated onboarding screen with dynamic gradients, improved visual hierarchy, and polished Material 3 inputs to enhance the user's first-time experience.
-- **Dynamic Currency Fix**: Removed all remaining hardcoded currency symbols (₹, $) and fallback strings from the Flutter UI. All currency displays now dynamically use the `currencyProvider` and `NumberFormat.simpleCurrency` to respect the user's selection from onboarding.
-- **Premium UI Enhancements**: Implemented a dynamic shadow effect for the app logo using blurred SVG stacking. Optimized the dashboard header to include a "PREMIUM" badge, haptic-enabled settings, and dynamic user profile avatars that sync with onboarding data.
-
-
-
+## Recent Fixes (v1.2.9 Update)
+- **Haptic Cleanup**: Removed 60+ instances of `HapticService` calls from across the app. The app no longer vibrates on buttons, sliders, or list tiles.
+- **Selective Vibration**: Configured `HapticService.transaction` as the sole entry point for vibration, gated by the user's preference and triggered only on new transaction saves.
+- **Unified Preferences**: Consolidated all appearance and behavior settings (Typography, Theme, Dynamic Color, Haptics, Icon Fill) into a single editorial-style "Preferences" page.
+- **Settings UX**: Simplified the main Settings screen by grouping related options under "General" and "Security".
+- **Bug Fix**: Resolved a syntax error in `CategoryDetailsPage` caused by an empty `onTap` parameter.
+- **Persistence**: Ensured the "Vibrate on Transaction" setting is correctly persisted in `SharedPreferences` via the `PersonalizationNotifier`.

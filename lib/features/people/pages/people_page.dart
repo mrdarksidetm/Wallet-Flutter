@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/auxiliary_models.dart';
-import '../../../core/services/haptic_service.dart';
 import '../../../core/providers/fab_action_provider.dart';
 
 class PeoplePage extends ConsumerStatefulWidget {
@@ -89,7 +88,7 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
           TextButton(
             onPressed: () async {
               await ref.read(personServiceProvider).deletePerson(person.id);
-              await HapticService.errorStatic();
+              
               if (context.mounted) Navigator.pop(context);
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),

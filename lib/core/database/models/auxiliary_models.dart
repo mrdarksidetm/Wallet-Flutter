@@ -55,7 +55,9 @@ enum BudgetPeriod {
   weekly,
   monthly,
   yearly,
-  oneTime,
+  oneTime;
+
+  String get name => toString().split('.').last;
 }
 
 // --- Loan ---
@@ -82,7 +84,9 @@ class Loan {
 
 enum LoanType {
   lent, // I gave money
-  borrowed, // I took money
+  borrowed; // I took money
+
+  String get name => toString().split('.').last;
 }
 
 // --- Goal ---
@@ -133,7 +137,9 @@ enum RecurrenceFrequency {
   daily,
   weekly,
   monthly,
-  yearly,
+  yearly;
+
+  String get name => toString().split('.').last;
 }
 
 // --- Label ---

@@ -4,8 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/auxiliary_models.dart';
-import '../../../core/services/haptic_service.dart';
-
 class LoansPage extends ConsumerWidget {
   const LoansPage({super.key});
 
@@ -95,7 +93,7 @@ class LoansPage extends ConsumerWidget {
             direction: DismissDirection.horizontal,
             confirmDismiss: (direction) async {
               if (direction == DismissDirection.startToEnd) {
-                await HapticService.successStatic();
+                
                 item.isPaid = !isPaid;
                 item.updatedAt = DateTime.now();
                 await ref.read(loanRepositoryProvider).save(item);
@@ -124,7 +122,7 @@ class LoansPage extends ConsumerWidget {
             },
             onDismissed: (direction) async {
               if (direction == DismissDirection.endToStart) {
-                await HapticService.heavyStatic();
+                
                 await ref.read(loanRepositoryProvider).delete(item.id);
               }
             },

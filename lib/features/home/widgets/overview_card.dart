@@ -42,15 +42,22 @@ class OverviewCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Icon(
-                      icon,
-                      color: colorScheme.primary,
-                      size: 20,
+                    IconTheme(
+                      data: IconThemeData(
+                        color: colorScheme.primary,
+                        size: 20,
+                        weight: 600,
+                        grade: 0.25,
+                      ),
+                      child: Icon(icon),
                     ),
-                    Icon(
-                      Icons.chevron_right_rounded,
-                      size: 16,
-                      color: colorScheme.onSurface.withValues(alpha: 0.3),
+                    IconTheme(
+                      data: IconThemeData(
+                        size: 16,
+                        color: colorScheme.onSurface.withValues(alpha: 0.3),
+                        weight: 600,
+                      ),
+                      child: const Icon(Icons.chevron_right_rounded),
                     ),
                   ],
                 ),

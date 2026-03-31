@@ -1,9 +1,12 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/widgets/animated_counter.dart';
+import '../../../core/theme/personalization_provider.dart';
 
-class TotalBalanceCard extends StatelessWidget {
+class TotalBalanceCard extends ConsumerWidget {
   final double totalBalance;
   final double monthlyIncome;
   final double monthlyExpense;
@@ -18,10 +21,11 @@ class TotalBalanceCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
+    final isVisible = ref.watch(personalizationProvider.select((p) => p.isBalanceVisible));
 
     return Container(
       height: 220,
@@ -78,22 +82,39 @@ class TotalBalanceCard extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    Icon(
-                      Icons.visibility_off_outlined,
-                      size: 20,
-                      color: colorScheme.onSurface.withValues(alpha: 0.5),
+                    IconButton(
+                      onPressed: () {
+                        ref.read(personalizationProvider.notifier).toggleBalanceVisibility();
+                      },
+                      icon: Icon(
+                        isVisible ? Symbols.visibility : Symbols.visibility_off,
+                        size: 20,
+                        weight: 600,
+                        grade: 0.25,
+                        color: colorScheme.onSurface.withValues(alpha: 0.5),
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
-                AnimatedCounter(
-                  amount: totalBalance,
-                  style: theme.textTheme.displayMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
-                    color: colorScheme.onSurface,
-                    letterSpacing: -1,
+                if (isVisible)
+                  AnimatedCounter(
+                    amount: totalBalance,
+                    style: theme.textTheme.displayMedium?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      color: colorScheme.onSurface,
+                      letterSpacing: -1,
+                    ),
+                  )
+                else
+                  Text(
+                    '••••••',
+                    style: theme.textTheme.displayMedium?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      color: colorScheme.onSurface,
+                      letterSpacing: 4,
+                    ),
                   ),
-                ),
                 const Spacer(),
                 Row(
                   children: [
@@ -103,6 +124,7 @@ class TotalBalanceCard extends StatelessWidget {
                       monthlyIncome,
                       Colors.green,
                       Icons.arrow_downward,
+                      isVisible,
                     ),
                     const SizedBox(width: 32),
                     _buildStatItem(
@@ -111,6 +133,7 @@ class TotalBalanceCard extends StatelessWidget {
                       monthlyExpense,
                       Colors.red,
                       Icons.arrow_upward,
+                      isVisible,
                     ),
                   ],
                 ),
@@ -122,7 +145,7 @@ class TotalBalanceCard extends StatelessWidget {
     );
   }
 
-  Widget _buildStatItem(BuildContext context, String label, double amount, Color color, IconData icon) {
+  Widget _buildStatItem(BuildContext context, String label, double amount, Color color, IconData icon, bool isVisible) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -131,7 +154,13 @@ class TotalBalanceCard extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(icon, size: 12, color: color),
+            Icon(
+              icon,
+              size: 12,
+              color: color,
+              weight: 700, // Extra heavy for very small icons
+              grade: 0.25,
+            ),
             const SizedBox(width: 4),
             Text(
               label,
@@ -144,7 +173,7 @@ class TotalBalanceCard extends StatelessWidget {
         ),
         const SizedBox(height: 2),
         Text(
-          format.format(amount),
+          isVisible ? format.format(amount) : '•••',
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w900,
             color: colorScheme.onSurface,

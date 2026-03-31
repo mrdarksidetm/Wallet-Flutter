@@ -6,7 +6,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'core/theme/theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'core/theme/personalization_provider.dart';
-import 'core/services/haptic_service.dart';
 import 'app/router.dart';
 import 'core/database/providers.dart';
 import 'core/widgets/global_error_screen.dart';
@@ -49,7 +48,6 @@ class WalletApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    HapticService.init(ref);
     final isarInit = ref.watch(isarProvider);
     final router = ref.watch(routerProvider);
     final themeState = ref.watch(themeControllerProvider);

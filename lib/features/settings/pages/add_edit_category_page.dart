@@ -5,7 +5,6 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 import '../../../core/database/models/category.dart';
 import '../../../core/database/providers.dart';
-import '../../../core/services/haptic_service.dart';
 import '../../../core/widgets/icon_picker.dart';
 import '../../../core/widgets/primary_atelier_button.dart';
 
@@ -66,7 +65,7 @@ class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
     }
 
     await ref.read(categoryServiceProvider).saveCategory(category);
-    await HapticService.successStatic();
+    
     if (mounted) context.pop();
   }
 
@@ -155,7 +154,7 @@ class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
                 ],
                 selected: {_type},
                 onSelectionChanged: (s) {
-                  HapticService.selectionStatic();
+                  
                   setState(() => _type = s.first);
                 },
               ),
@@ -175,7 +174,7 @@ class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
               subtitle: const Text('Set a monthly spending limit'),
               value: _isBudget,
               onChanged: (v) {
-                HapticService.lightStatic();
+                
                 setState(() => _isBudget = v);
               },
             ),
@@ -269,7 +268,7 @@ class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
               await ref
                   .read(categoryServiceProvider)
                   .deleteCategory(widget.category!.id);
-              await HapticService.errorStatic();
+              
               if (mounted) {
                 Navigator.pop(context); // Pop dialog
                 context.pop(); // Pop page

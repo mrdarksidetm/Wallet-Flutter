@@ -7,7 +7,6 @@ import '../../../core/database/models/category.dart';
 import '../../../core/database/models/auxiliary_models.dart';
 import '../../../core/database/models/transaction_model.dart';
 import '../../../core/database/providers.dart';
-import '../../../core/services/haptic_service.dart';
 import '../../../core/widgets/icon_picker.dart';
 
 class AddEditRecurringPage extends ConsumerStatefulWidget {
@@ -76,7 +75,7 @@ class _AddEditRecurringPageState extends ConsumerState<AddEditRecurringPage> {
     }
 
     await ref.read(recurringServiceProvider).saveRecurring(recurring);
-    await HapticService.successStatic();
+    
     if (mounted) context.pop();
   }
 

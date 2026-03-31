@@ -7,8 +7,6 @@ import '../../../core/database/providers.dart';
 import '../../../core/database/models/transaction_model.dart';
 import '../../../core/database/models/auxiliary_models.dart';
 import '../../../core/database/models/account.dart';
-import '../../../core/services/haptic_service.dart';
-
 class SearchPage extends ConsumerStatefulWidget {
   const SearchPage({super.key});
 
@@ -196,7 +194,7 @@ class _ResultTile extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return ListTile(
       onTap: () {
-        HapticService.selectionStatic();
+        
         onTap();
       },
       contentPadding: EdgeInsets.zero,

@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import '../../../core/services/haptic_service.dart';
-
 class HomeHeader extends StatelessWidget {
   final String? userPhoto;
   final String userName;
@@ -31,38 +29,13 @@ class HomeHeader extends StatelessWidget {
           // Left Side: Dynamic Shadow Logo
           _buildDynamicShadowLogo(),
 
-          // Right Side: Premium, Settings & Profile
+          // Right Side: Settings & Profile
           Row(
             children: [
-              // Premium Badge
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: colorScheme.primaryContainer.withOpacity(0.4),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Symbols.diamond, size: 16, color: colorScheme.primary),
-                    const SizedBox(width: 6),
-                    Text(
-                      "PREMIUM",
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        fontWeight: FontWeight.w900,
-                        color: colorScheme.primary,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-
               // Settings Icon
               IconButton(
                 icon: const Icon(Symbols.settings),
                 onPressed: () {
-                  HapticService.selectionStatic();
                   context.push('/settings');
                 },
                 visualDensity: VisualDensity.compact,
@@ -72,8 +45,7 @@ class HomeHeader extends StatelessWidget {
               // User Profile Avatar
               GestureDetector(
                 onTap: () {
-                  HapticService.selectionStatic();
-                  context.push('/user_info');
+                  context.push('/edit_profile');
                 },
                 child: CircleAvatar(
                   radius: 20,

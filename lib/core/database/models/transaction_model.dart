@@ -45,5 +45,7 @@ class TransactionModel {
 enum TransactionType {
   income,
   expense,
-  transfer,
+  transfer;
+
+  String get name => toString().split('.').last;
 }

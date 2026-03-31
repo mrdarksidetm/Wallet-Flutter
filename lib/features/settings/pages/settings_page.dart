@@ -4,10 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:ota_update/ota_update.dart';
-import '../../../core/services/haptic_service.dart';
 import '../../../core/services/update_service.dart';
 import '../../../core/database/providers.dart';
-import '../../../core/theme/theme_provider.dart';
 import '../../../core/theme/personalization_provider.dart';
 import '../../auth/providers/auth_provider.dart';
 
@@ -19,7 +17,7 @@ class SettingsPage extends ConsumerStatefulWidget {
 }
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
-  String _currentVersion = '1.27';
+  String _currentVersion = '1.28';
 
   @override
   void initState() {
@@ -41,8 +39,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final authState = ref.watch(authProvider);
-    final themeState = ref.watch(themeControllerProvider);
-    final themeNotifier = ref.read(themeControllerProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(
@@ -51,48 +47,23 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: 16),
         children: [
-          _buildSectionHeader(context, 'Appearance'),
+          _buildSectionHeader(context, 'General'),
           _buildSettingsTile(
             context,
-            icon: Symbols.palette,
-            title: 'Personalization',
-            subtitle: 'Fine-tune typography and geometry',
-            onTap: () async {
-              await HapticService.selectionStatic();
-              if (context.mounted) context.push('/personalization');
+            icon: Symbols.settings_suggest_rounded,
+            title: 'Preferences',
+            subtitle: 'Theme, typography, and feedback behavior',
+            onTap: () {
+              context.push('/personalization');
             },
-          ),
-          _buildSettingsTile(
-            context,
-            icon: Symbols.color_lens,
-            title: 'Theme & Style',
-            subtitle: themeState.themeMode.name.toUpperCase(),
-            onTap: () async {
-              await HapticService.selectionStatic();
-              if (context.mounted) context.push('/theme_selection');
-            },
-          ),
-          _buildSettingsTile(
-            context,
-            icon: Symbols.draw,
-            title: 'Dynamic Color',
-            subtitle: 'Material You dynamic palettes',
-            trailing: Switch(
-              value: themeState.useMaterialYou,
-              onChanged: (val) async {
-                await HapticService.mediumStatic();
-                await themeNotifier.setUseMaterialYou(val);
-              },
-            ),
           ),
           _buildSettingsTile(
             context,
             icon: Symbols.currency_exchange,
             title: 'Currency',
             subtitle: ref.watch(currencyProvider),
-            onTap: () async {
-              await HapticService.selectionStatic();
-              if (context.mounted) context.push('/currency_selection');
+            onTap: () {
+              context.push('/currency_selection');
             },
           ),
           const Divider(indent: 24, endIndent: 24, height: 32),
@@ -109,7 +80,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               value: authState.isBiometricEnabled,
               onChanged: authState.canCheckBiometrics
                   ? (val) async {
-                      await HapticService.mediumStatic();
                       await ref
                           .read(authProvider.notifier)
                           .toggleBiometric(val);
@@ -125,10 +95,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             title: 'Export Data',
             subtitle: 'Export transactions to CSV',
             onTap: () async {
-              await HapticService.mediumStatic();
               try {
                 await ref.read(csvServiceProvider).exportTransactions();
-                await HapticService.successStatic();
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -137,7 +105,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   );
                 }
               } catch (e) {
-                await HapticService.errorStatic();
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Export failed: $e')),
@@ -152,17 +119,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             title: 'Import Data',
             subtitle: 'Import transactions from CSV',
             onTap: () async {
-              await HapticService.mediumStatic();
               try {
                 await ref.read(csvServiceProvider).importTransactions();
-                await HapticService.successStatic();
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Imported successfully!')),
                   );
                 }
               } catch (e) {
-                await HapticService.errorStatic();
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Import failed: $e')),
@@ -177,11 +141,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             title: 'Backup Database',
             subtitle: 'Create a local .isar backup',
             onTap: () async {
-              await HapticService.mediumStatic();
               try {
                 final path =
                     await ref.read(backupServiceProvider).createBackup();
-                await HapticService.successStatic();
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Backup created at: $path')),
@@ -189,7 +151,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 }
               } catch (e) {
                 if (e.toString().contains('cancelled')) return;
-                await HapticService.errorStatic();
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Backup failed: $e')),
@@ -204,12 +165,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             title: 'Restore Backup',
             subtitle: 'Restore from an .isar file',
             onTap: () async {
-              await HapticService.mediumStatic();
               try {
                 final success =
                     await ref.read(backupServiceProvider).restoreBackup();
                 if (success && context.mounted) {
-                  await HapticService.successStatic();
                   showDialog(
                     context: context,
                     barrierDismissible: false,
@@ -228,7 +187,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 }
               } catch (e) {
                 if (e.toString().contains('cancelled')) return;
-                await HapticService.errorStatic();
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Restore failed: $e')),
@@ -244,9 +202,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             icon: Symbols.shield_lock,
             title: 'Privacy Policy',
             subtitle: 'Offline-first data philosophy',
-            onTap: () async {
-              await HapticService.selectionStatic();
-              if (context.mounted) context.push('/privacy_policy');
+            onTap: () {
+              context.push('/privacy_policy');
             },
           ),
           _buildSettingsTile(
@@ -254,9 +211,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             icon: Symbols.policy,
             title: 'Terms of Use',
             subtitle: 'Open source usage terms',
-            onTap: () async {
-              await HapticService.selectionStatic();
-              if (context.mounted) context.push('/terms_of_use');
+            onTap: () {
+              context.push('/terms_of_use');
             },
           ),
           const Divider(indent: 24, endIndent: 24, height: 32),
@@ -266,9 +222,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             icon: Symbols.rate_review,
             title: 'Send Feedback',
             subtitle: 'Tell us what you think',
-            onTap: () async {
-              await HapticService.selectionStatic();
-              if (context.mounted) context.push('/feedback');
+            onTap: () {
+              context.push('/feedback');
             },
           ),
           const Divider(indent: 24, endIndent: 24, height: 32),
@@ -278,9 +233,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             icon: Symbols.info,
             title: 'About',
             subtitle: 'Version and developer info',
-            onTap: () async {
-              await HapticService.selectionStatic();
-              if (context.mounted) context.push('/about');
+            onTap: () {
+              context.push('/about');
             },
           ),
           _buildSettingsTile(
@@ -288,8 +242,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             icon: Symbols.update,
             title: 'Check for Updates',
             subtitle: 'v$_currentVersion "The Variable Atelier"',
-            onTap: () async {
-              await HapticService.mediumStatic();
+            onTap: () {
               _checkForUpdates(context);
             },
           ),

@@ -4,8 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/database/models/auxiliary_models.dart';
 import '../../../core/database/providers.dart';
-import '../../../core/services/haptic_service.dart';
-
 class AddEditLoanPage extends ConsumerStatefulWidget {
   final Loan? loan;
   const AddEditLoanPage({super.key, this.loan});
@@ -56,7 +54,7 @@ class _AddEditLoanPageState extends ConsumerState<AddEditLoanPage> {
       await ref
           .read(loanServiceProvider)
           .saveLoan(loan, personName: _personController.text);
-      await HapticService.successStatic();
+      
       if (mounted) context.pop();
     } catch (e) {
       if (mounted) {

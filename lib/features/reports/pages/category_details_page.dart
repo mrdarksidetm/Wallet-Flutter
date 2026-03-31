@@ -4,7 +4,6 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/category.dart';
-import '../../../core/services/haptic_service.dart';
 import '../../../core/widgets/icon_picker.dart';
 
 class CategoryDetailsPage extends ConsumerWidget {
@@ -147,7 +146,6 @@ class CategoryDetailsPage extends ConsumerWidget {
                     (context, index) {
                       final tx = categoryTxs[index];
                       return ListTile(
-                        onTap: () => HapticService.selectionStatic(),
                         leading: CircleAvatar(
                           backgroundColor: categoryColor.withValues(alpha: 0.1),
                           child: Icon(

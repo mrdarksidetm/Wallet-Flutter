@@ -12,13 +12,14 @@ class PersonalizationState {
   final double fontRoundness;
   final double opticalSize;
   final bool fillIcons;
-  final bool vibrationEnabled;
-  final bool vibrateOnTransaction;
+  final bool shouldRestartOnCurrencyChange;
   final String colorSchemeVariant;
   final bool isOnboardingComplete;
   final String? userName;
   final String? userPhoto;
   final String? defaultCurrency;
+  final bool isBalanceVisible;
+  final bool vibrateOnTransaction;
 
   PersonalizationState({
     this.grade = 50,
@@ -29,13 +30,14 @@ class PersonalizationState {
     this.fontRoundness = 0,
     this.opticalSize = 12,
     this.fillIcons = false,
-    this.vibrationEnabled = true,
-    this.vibrateOnTransaction = true,
+    this.shouldRestartOnCurrencyChange = true,
     this.colorSchemeVariant = 'tonalSpot',
     this.isOnboardingComplete = false,
     this.userName,
     this.userPhoto,
     this.defaultCurrency,
+    this.isBalanceVisible = true,
+    this.vibrateOnTransaction = true,
   });
 
   PersonalizationState copyWith({
@@ -47,13 +49,14 @@ class PersonalizationState {
     double? fontRoundness,
     double? opticalSize,
     bool? fillIcons,
-    bool? vibrationEnabled,
-    bool? vibrateOnTransaction,
+    bool? shouldRestartOnCurrencyChange,
     String? colorSchemeVariant,
     bool? isOnboardingComplete,
     String? userName,
     String? userPhoto,
     String? defaultCurrency,
+    bool? isBalanceVisible,
+    bool? vibrateOnTransaction,
   }) {
     return PersonalizationState(
       grade: grade ?? this.grade,
@@ -64,13 +67,15 @@ class PersonalizationState {
       fontRoundness: fontRoundness ?? this.fontRoundness,
       opticalSize: opticalSize ?? this.opticalSize,
       fillIcons: fillIcons ?? this.fillIcons,
-      vibrationEnabled: vibrationEnabled ?? this.vibrationEnabled,
-      vibrateOnTransaction: vibrateOnTransaction ?? this.vibrateOnTransaction,
+      shouldRestartOnCurrencyChange:
+          shouldRestartOnCurrencyChange ?? this.shouldRestartOnCurrencyChange,
       colorSchemeVariant: colorSchemeVariant ?? this.colorSchemeVariant,
       isOnboardingComplete: isOnboardingComplete ?? this.isOnboardingComplete,
       userName: userName ?? this.userName,
       userPhoto: userPhoto ?? this.userPhoto,
       defaultCurrency: defaultCurrency ?? this.defaultCurrency,
+      isBalanceVisible: isBalanceVisible ?? this.isBalanceVisible,
+      vibrateOnTransaction: vibrateOnTransaction ?? this.vibrateOnTransaction,
     );
   }
 
@@ -84,13 +89,14 @@ class PersonalizationState {
       'fontRoundness': fontRoundness,
       'opticalSize': opticalSize,
       'fillIcons': fillIcons,
-      'vibrationEnabled': vibrationEnabled,
-      'vibrateOnTransaction': vibrateOnTransaction,
+      'shouldRestartOnCurrencyChange': shouldRestartOnCurrencyChange,
       'colorSchemeVariant': colorSchemeVariant,
       'isOnboardingComplete': isOnboardingComplete,
       'userName': userName,
       'userPhoto': userPhoto,
       'defaultCurrency': defaultCurrency,
+      'isBalanceVisible': isBalanceVisible,
+      'vibrateOnTransaction': vibrateOnTransaction,
     };
   }
 
@@ -104,13 +110,15 @@ class PersonalizationState {
       fontRoundness: (map['fontRoundness'] as num?)?.toDouble() ?? 0,
       opticalSize: (map['opticalSize'] as num?)?.toDouble() ?? 12,
       fillIcons: map['fillIcons'] as bool? ?? false,
-      vibrationEnabled: map['vibrationEnabled'] as bool? ?? true,
-      vibrateOnTransaction: map['vibrateOnTransaction'] as bool? ?? true,
+      shouldRestartOnCurrencyChange:
+          map['shouldRestartOnCurrencyChange'] as bool? ?? true,
       colorSchemeVariant: map['colorSchemeVariant'] as String? ?? 'tonalSpot',
       isOnboardingComplete: map['isOnboardingComplete'] as bool? ?? false,
       userName: map['userName'] as String?,
       userPhoto: map['userPhoto'] as String?,
       defaultCurrency: map['defaultCurrency'] as String?,
+      isBalanceVisible: map['isBalanceVisible'] as bool? ?? true,
+      vibrateOnTransaction: map['vibrateOnTransaction'] as bool? ?? true,
     );
   }
 }
@@ -152,6 +160,30 @@ class PersonalizationNotifier extends Notifier<PersonalizationState> {
     _save();
   }
 
+  void updateProfile({String? name, String? photo, String? currency}) {
+    state = state.copyWith(
+      userName: name ?? state.userName,
+      userPhoto: photo ?? state.userPhoto,
+      defaultCurrency: currency ?? state.defaultCurrency,
+    );
+    _save();
+  }
+
+  void toggleBalanceVisibility() {
+    state = state.copyWith(isBalanceVisible: !state.isBalanceVisible);
+    _save();
+  }
+
+  void toggleVibration() {
+    state = state.copyWith(vibrateOnTransaction: !state.vibrateOnTransaction);
+    _save();
+  }
+
+  void toggleRestartOnCurrencyChange(bool value) {
+    state = state.copyWith(shouldRestartOnCurrencyChange: value);
+    _save();
+  }
+
   void updateCurrency(String currency) {
     state = state.copyWith(defaultCurrency: currency);
     _save();
@@ -183,7 +215,6 @@ class PersonalizationNotifier extends Notifier<PersonalizationState> {
   }
 
   void updateFontRoundness(double value) {
-    // Combine with general roundness to prevent double state updates
     state = state.copyWith(
         fontRoundness: value.clamp(0, 100),
         roundness: (value * 0.32).clamp(0, 32));
@@ -197,16 +228,6 @@ class PersonalizationNotifier extends Notifier<PersonalizationState> {
 
   void toggleFillIcons(bool value) {
     state = state.copyWith(fillIcons: value);
-    _save();
-  }
-
-  void toggleVibration(bool value) {
-    state = state.copyWith(vibrationEnabled: value);
-    _save();
-  }
-
-  void toggleVibrateOnTransaction(bool value) {
-    state = state.copyWith(vibrateOnTransaction: value);
     _save();
   }
 
