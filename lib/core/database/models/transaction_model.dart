@@ -27,6 +27,7 @@ class TransactionModel {
   int categoryId = 0;
 
   String? icon;
+  String? color;
   List<String>? tags;
   bool isArchived = false;
   bool isDeleted = false;

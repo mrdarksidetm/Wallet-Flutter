@@ -30,7 +30,7 @@ class TransactionListTile extends ConsumerWidget {
     final iconName = tx.icon ?? category?.icon;
     final icon = AppIcons.getIcon(iconName);
 
-    final String colorStr = category?.color ?? '0xFF9E9E9E';
+    final String colorStr = tx.color ?? category?.color ?? '0xFF9E9E9E';
     final Color categoryColor =
         Color(int.parse(colorStr.replaceFirst('0x', ''), radix: 16));
 
@@ -47,7 +47,6 @@ class TransactionListTile extends ConsumerWidget {
       child: ListTile(
         onTap: () {
           if (onTap != null) {
-            
             onTap!();
           }
         },

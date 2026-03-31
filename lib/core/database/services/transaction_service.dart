@@ -27,6 +27,7 @@ class TransactionService {
     Person? person,
     String? note,
     String? icon,
+    String? color,
     Account? transferAccount,
     List<String> tags = const [],
   }) async {
@@ -46,6 +47,7 @@ class TransactionService {
         ..type = type
         ..note = note
         ..icon = icon
+        ..color = color
         ..tags = tags
         ..createdAt = DateTime.now()
         ..updatedAt = DateTime.now();
