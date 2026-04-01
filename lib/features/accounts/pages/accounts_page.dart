@@ -49,7 +49,7 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
           IconButton(
             icon: const Icon(Symbols.reorder),
             onPressed: () {
-              final accounts = [...(accountsAsync.value ?? [])];
+              final accounts = accountsAsync.value?.toList() ?? <Account>[];
               _showReorderBottomSheet(context, accounts);
             },
           ),
