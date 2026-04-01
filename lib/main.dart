@@ -9,35 +9,40 @@ import 'core/theme/personalization_provider.dart';
 import 'app/router.dart';
 import 'core/database/providers.dart';
 import 'core/widgets/global_error_screen.dart';
+import 'core/services/log_service.dart';
 
 void main() async {
-  // 1. Capture Flutter Framework errors
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // 1. Pre-load SharedPreferences for synchronous access
+  final sharedPrefs = await SharedPreferences.getInstance();
+
+  final container = ProviderContainer(
+    overrides: [
+      sharedPreferencesProvider.overrideWithValue(sharedPrefs),
+    ],
+  );
+
+  // 2. Capture Flutter Framework errors
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
-    debugPrint('Flutter Error: ${details.exception}');
+    container.read(logServiceProvider.notifier).logError('Flutter Error', details.exception, details.stack);
   };
 
-  // 2. Capture asynchronous errors outside of Flutter
+  // 3. Capture asynchronous errors outside of Flutter
   PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
-    debugPrint('Async Error: $error');
+    container.read(logServiceProvider.notifier).logError('Async Error', error, stack);
     return true;
   };
 
-  // 3. Custom Error Widget for UI crashes
+  // 4. Custom Error Widget for UI crashes
   ErrorWidget.builder = (FlutterErrorDetails details) {
     return GlobalErrorScreen(errorDetails: details);
   };
 
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // 4. Pre-load SharedPreferences for synchronous access
-  final sharedPrefs = await SharedPreferences.getInstance();
-
   runApp(
-    ProviderScope(
-      overrides: [
-        sharedPreferencesProvider.overrideWithValue(sharedPrefs),
-      ],
+    UncontrolledProviderScope(
+      container: container,
       child: const WalletApp(),
     ),
   );

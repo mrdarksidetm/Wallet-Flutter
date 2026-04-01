@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/theme/personalization_provider.dart';
+import '../../../core/theme/color_extension.dart';
 import '../../../core/database/models/account.dart';
 import '../../../core/widgets/icon_picker.dart';
 
@@ -49,9 +50,7 @@ class _AccountCardState extends ConsumerState<AccountCard> with SingleTickerProv
     final format = NumberFormat.simpleCurrency(name: currency);
     final isVisible = ref.watch(personalizationProvider.select((p) => p.isBalanceVisible));
 
-    final color = Color(int.parse(
-        widget.account.color.replaceAll('0x', '0xFF').replaceAll('0xFFFF', '0xFF'),
-        radix: 16));
+    final color = widget.account.color.parseHexColor();
     
     final blob1Color = color.withValues(alpha: 0.4);
     final blob2Color = color.withValues(alpha: 0.2);

@@ -7,6 +7,7 @@ import '../../../core/database/models/auxiliary_models.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/widgets/icon_picker.dart';
 import '../../../core/widgets/primary_atelier_button.dart';
+import '../../../core/theme/color_extension.dart';
 
 class AddEditGoalPage extends ConsumerStatefulWidget {
   final Goal? goal;
@@ -94,9 +95,7 @@ class _AddEditGoalPageState extends ConsumerState<AddEditGoalPage> {
                     context: context,
                     builder: (context) => IconPickerWidget(
                       selectedIcon: _selectedIcon,
-                      selectedColor: Color(int.parse(
-                          _selectedColor.replaceAll('0x', ''),
-                          radix: 16)),
+                      selectedColor: _selectedColor.parseHexColor(),
                       onIconSelected: (icon) {
                         setState(() => _selectedIcon = icon);
                         Navigator.pop(context);
@@ -109,16 +108,13 @@ class _AddEditGoalPageState extends ConsumerState<AddEditGoalPage> {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: Color(int.parse(_selectedColor.replaceAll('0x', ''),
-                            radix: 16))
-                        .withValues(alpha: 0.1),
+                    color: _selectedColor.parseHexColor().withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     AppIcons.getIcon(_selectedIcon),
                     size: 40,
-                    color: Color(int.parse(_selectedColor.replaceAll('0x', ''),
-                        radix: 16)),
+                    color: _selectedColor.parseHexColor(),
                   ),
                 ),
               ),

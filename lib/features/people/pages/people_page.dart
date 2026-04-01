@@ -6,6 +6,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/auxiliary_models.dart';
 import '../../../core/providers/fab_action_provider.dart';
+import '../../../core/theme/color_extension.dart';
 
 class PeoplePage extends ConsumerStatefulWidget {
   const PeoplePage({super.key});
@@ -86,7 +87,7 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
               final personTxs = txs.where((t) => t.person.value?.id == person.id);
               final txCount = personTxs.length;
 
-              final color = Color(int.parse(person.color.replaceAll('0x', '0xFF'), radix: 16));
+              final color = person.color.parseHexColor();
 
               return Card(
                 margin: const EdgeInsets.only(bottom: 12),

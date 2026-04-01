@@ -8,6 +8,7 @@ import '../../../core/providers/fab_action_provider.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/category.dart';
 import '../../../core/widgets/icon_picker.dart';
+import '../../../core/theme/color_extension.dart';
 
 class ReportsPage extends ConsumerStatefulWidget {
   const ReportsPage({super.key});
@@ -145,9 +146,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                           (value / total * 100).toStringAsFixed(1);
 
                       return PieChartSectionData(
-                        color: Color(int.parse(
-                            category.color.replaceAll('0x', ''),
-                            radix: 16)),
+                        color: category.color.parseHexColor(),
                         value: value,
                         title: '$percentage%',
                         radius: 20,
@@ -226,9 +225,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                 children: sortedEntries.map((entry) {
                   final category = entry.key;
                   final value = entry.value;
-                  final color = Color(int.parse(
-                      category.color.replaceAll('0x', ''),
-                      radix: 16));
+                  final color = category.color.parseHexColor();
                   return _buildReportItem(
                       context, category, currencyFormat.format(value), color);
                 }).toList(),

@@ -5,6 +5,8 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/category.dart';
 import '../../../core/widgets/icon_picker.dart';
+import '../../../core/theme/color_extension.dart';
+
 class BudgetsPage extends ConsumerWidget {
   const BudgetsPage({super.key});
 
@@ -100,8 +102,7 @@ class _BudgetCard extends ConsumerWidget {
     final double spent = budgetData['spent'] as double;
     final double percent = budgetData['percent'] as double;
     final bool hasBudget = limit > 0;
-    final color =
-        Color(int.parse(category.color.replaceAll('0x', ''), radix: 16));
+    final color = category.color.parseHexColor();
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),

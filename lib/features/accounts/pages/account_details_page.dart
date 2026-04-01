@@ -7,6 +7,7 @@ import '../../../core/database/providers.dart';
 import '../../../core/database/models/account.dart';
 import '../../../core/database/models/transaction_model.dart';
 import '../../../core/widgets/icon_picker.dart';
+import '../../../core/theme/color_extension.dart';
 
 class AccountDetailsPage extends ConsumerWidget {
   final Account account;
@@ -16,9 +17,7 @@ class AccountDetailsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final color = Color(int.parse(
-        account.color.replaceAll('0x', '0xFF').replaceAll('0xFFFF', '0xFF'),
-        radix: 16));
+    final color = account.color.parseHexColor();
 
     final selectedCurrency = ref.watch(currencyProvider);
     final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);

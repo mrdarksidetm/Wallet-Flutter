@@ -6,6 +6,7 @@ import '../../../core/database/providers.dart';
 import '../../../core/database/models/auxiliary_models.dart';
 import '../../../core/database/models/transaction_model.dart';
 import '../../../core/widgets/transaction_list_tile.dart';
+import '../../../core/theme/color_extension.dart';
 
 class PersonDetailsPage extends ConsumerWidget {
   final Person person;
@@ -14,7 +15,7 @@ class PersonDetailsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final color = Color(int.parse(person.color.replaceAll('0x', '0xFF'), radix: 16));
+    final color = person.color.parseHexColor();
     final currency = ref.watch(currencyProvider);
     final format = NumberFormat.simpleCurrency(name: currency);
 

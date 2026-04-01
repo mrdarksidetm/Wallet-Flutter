@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/models/account.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/widgets/icon_picker.dart';
+import '../../../core/theme/color_extension.dart';
 
 class EditAccountBottomSheet extends ConsumerStatefulWidget {
   final Account account;
@@ -50,7 +51,7 @@ class _EditAccountBottomSheetState extends ConsumerState<EditAccountBottomSheet>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final Color currentColor = Color(int.parse(_selectedColor.replaceAll('0x', '0xFF'), radix: 16));
+    final Color currentColor = _selectedColor.parseHexColor();
 
     return Container(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
@@ -193,7 +194,7 @@ class _EditAccountBottomSheetState extends ConsumerState<EditAccountBottomSheet>
       context: context,
       builder: (context) => IconPickerWidget(
         selectedIcon: _selectedIcon,
-        selectedColor: Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16)),
+        selectedColor: _selectedColor.parseHexColor(),
         onIconSelected: (icon) {
           setState(() => _selectedIcon = icon);
           Navigator.pop(context);

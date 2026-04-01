@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../database/providers.dart';
 import '../database/models/transaction_model.dart';
+import '../theme/color_extension.dart';
 import 'icon_picker.dart';
 
 class TransactionListTile extends ConsumerWidget {
@@ -25,17 +26,12 @@ class TransactionListTile extends ConsumerWidget {
     final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
     final isIncome = tx.type == TransactionType.income;
 
-    // Use transaction icon/color if available, otherwise fall back to category
     final category = tx.category.value;
-    final iconName = tx.icon ?? category?.icon;
-    final icon = AppIcons.getIcon(iconName);
-
-    final String colorStr = tx.color ?? category?.color ?? '0xFF9E9E9E';
-    final Color categoryColor =
-        Color(int.parse(colorStr.replaceFirst('0x', ''), radix: 16));
+    final icon = AppIcons.getIcon(tx.icon ?? category?.icon);
+    final categoryColor = (tx.color ?? category?.color ?? '0xFF9E9E9E').parseHexColor();
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: isDark ? colorScheme.surfaceContainer : Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -45,12 +41,8 @@ class TransactionListTile extends ConsumerWidget {
         ),
       ),
       child: ListTile(
-        onTap: () {
-          if (onTap != null) {
-            onTap!();
-          }
-        },
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        onTap: onTap,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         leading: Container(
           width: 48,
@@ -59,15 +51,10 @@ class TransactionListTile extends ConsumerWidget {
             color: categoryColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(16),
           ),
-          child: IconTheme(
-            data: IconThemeData(
-              color: categoryColor,
-              size: 24,
-              weight: 600, // Heavier for better visibility in lists
-              grade: 0.25,
-              opticalSize: 24,
-            ),
-            child: Icon(icon),
+          child: Icon(
+            icon,
+            color: categoryColor,
+            size: 24,
           ),
         ),
         title: Text(

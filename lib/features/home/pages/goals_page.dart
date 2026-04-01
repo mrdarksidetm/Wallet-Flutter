@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/widgets/icon_picker.dart';
+import '../../../core/theme/color_extension.dart';
+
 class GoalsPage extends ConsumerWidget {
   const GoalsPage({super.key});
 
@@ -34,8 +36,7 @@ class GoalsPage extends ConsumerWidget {
 
               final percent =
                   (goal.currentAmount / goal.targetAmount).clamp(0.0, 1.0);
-              final color =
-                  Color(int.parse(goal.color.replaceAll('0x', ''), radix: 16));
+              final color = goal.color.parseHexColor();
               final isCompleted = goal.isCompleted;
 
               return Dismissible(

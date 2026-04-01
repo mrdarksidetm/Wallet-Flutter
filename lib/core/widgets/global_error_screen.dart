@@ -18,51 +18,53 @@ class GlobalErrorScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: colorScheme.errorContainer,
+      appBar: AppBar(
+        title: const Text('Render Error'),
+        backgroundColor: colorScheme.errorContainer,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.copy_rounded),
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: errorText));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Error details copied to clipboard')),
+              );
+            },
+            tooltip: 'Copy Error',
+          ),
+        ],
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(
-                Icons.bug_report_rounded,
-                size: 80,
-                color: colorScheme.error,
-              ),
-              const SizedBox(height: 24),
+              Icon(Icons.bug_report_rounded, color: colorScheme.error, size: 48),
+              const SizedBox(height: 16),
               Text(
-                'Something went wrong',
-                style: theme.textTheme.headlineMedium?.copyWith(
+                'Something went wrong while rendering this part of the UI.',
+                style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: colorScheme.onErrorContainer,
                 ),
-                textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
-              Text(
-                'The app encountered an unexpected error. Don\'t worry, your data is safe.',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onErrorContainer.withValues(alpha: 0.8),
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 32),
               Expanded(
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: colorScheme.surface.withValues(alpha: 0.5),
+                    color: colorScheme.surface,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                        color: colorScheme.error.withValues(alpha: 0.2)),
+                    border: Border.all(color: colorScheme.error.withValues(alpha: 0.2)),
                   ),
                   child: SingleChildScrollView(
                     child: SelectableText(
                       errorText,
-                      style: const TextStyle(
+                      style: theme.textTheme.bodySmall?.copyWith(
                         fontFamily: 'monospace',
-                        fontSize: 12,
+                        color: colorScheme.error,
                       ),
                     ),
                   ),
@@ -73,26 +75,24 @@ class GlobalErrorScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: FilledButton.icon(
-                      onPressed: () {
-                        Clipboard.setData(ClipboardData(text: errorText));
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content:
-                                  Text('Error copied to clipboard')),
-                        );
-                      },
-                      icon: const Icon(Icons.copy_rounded),
-                      label: const Text('Copy Error'),
+                      onPressed: () => context.go('/'),
+                      icon: const Icon(Icons.home_rounded),
+                      label: const Text('Back to Home'),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: () {
-                        context.go('/');
+                        // Attempt to pop or go back
+                        if (Navigator.canPop(context)) {
+                          Navigator.pop(context);
+                        } else {
+                          context.go('/');
+                        }
                       },
                       icon: const Icon(Icons.refresh_rounded),
-                      label: const Text('Restart App'),
+                      label: const Text('Retry'),
                     ),
                   ),
                 ],

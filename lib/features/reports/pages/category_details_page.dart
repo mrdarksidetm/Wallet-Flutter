@@ -6,6 +6,8 @@ import '../../../core/database/providers.dart';
 import '../../../core/database/models/category.dart';
 import '../../../core/widgets/icon_picker.dart';
 
+import 'package:wallet/core/theme/color_extension.dart';
+
 class CategoryDetailsPage extends ConsumerWidget {
   final Category category;
   const CategoryDetailsPage({super.key, required this.category});
@@ -15,8 +17,7 @@ class CategoryDetailsPage extends ConsumerWidget {
     final theme = Theme.of(context);
     final selectedCurrency = ref.watch(currencyProvider);
     final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
-    final categoryColor =
-        Color(int.parse(category.color.replaceAll('0x', ''), radix: 16));
+    final categoryColor = category.color.parseHexColor();
 
     final statsAsync = ref.watch(categoryMonthlyStatsProvider(category.id));
     final allTransactionsAsync = ref.watch(transactionsStreamProvider);

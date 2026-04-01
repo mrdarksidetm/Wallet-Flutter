@@ -35,6 +35,7 @@ import '../features/settings/pages/privacy_policy_page.dart';
 import '../features/settings/pages/terms_of_use_page.dart';
 import '../features/settings/pages/feedback_page.dart';
 import '../features/settings/pages/about_page.dart';
+import '../features/settings/pages/logcat_page.dart';
 import '../features/accounts/pages/account_details_page.dart';
 
 import '../core/database/models/transaction_model.dart';
@@ -116,6 +117,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       _rootRoute('/terms_of_use', (_) => const TermsOfUsePage()),
       _rootRoute('/feedback', (_) => const FeedbackPage()),
       _rootRoute('/about', (_) => const AboutPage()),
+      _rootRoute('/logcat', (_) => const LogcatPage()),
       _rootRoute('/user_info', (_) => const UserInfoPage()),
       _rootRoute('/edit_profile', (_) => const EditProfilePage()),
       _rootRoute('/person_details',

@@ -66,6 +66,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               context.push('/currency_selection');
             },
           ),
+          _buildSettingsTile(
+            context,
+            icon: Symbols.bug_report,
+            title: 'Logcat (Dev)',
+            subtitle: 'View runtime logs and performance',
+            onTap: () {
+              context.push('/logcat');
+            },
+          ),
           const Divider(indent: 24, endIndent: 24, height: 32),
           _buildSectionHeader(context, 'Security'),
           _buildSettingsTile(

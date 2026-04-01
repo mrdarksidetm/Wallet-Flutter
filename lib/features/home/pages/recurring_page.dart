@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/widgets/icon_picker.dart';
+import '../../../core/theme/color_extension.dart';
+
 class RecurringPage extends ConsumerWidget {
   const RecurringPage({super.key});
 
@@ -29,9 +31,7 @@ class RecurringPage extends ConsumerWidget {
             itemBuilder: (context, index) {
               final item = items[index];
               final categoryColor = item.category.value?.color != null
-                  ? Color(int.parse(
-                      item.category.value!.color.replaceAll('0x', ''),
-                      radix: 16))
+                  ? item.category.value!.color.parseHexColor()
                   : Theme.of(context).colorScheme.primary;
               final isActive = item.isActive;
 

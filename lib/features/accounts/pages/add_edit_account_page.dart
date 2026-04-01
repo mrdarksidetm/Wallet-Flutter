@@ -7,6 +7,7 @@ import '../../../core/database/models/account.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/widgets/icon_picker.dart';
 import '../../../core/widgets/primary_atelier_button.dart';
+import '../../../core/theme/color_extension.dart';
 
 class AddEditAccountPage extends ConsumerStatefulWidget {
   final Account? account;
@@ -70,9 +71,7 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final Color currentColor = Color(int.parse(
-        _selectedColor.replaceAll('0x', '0xFF').replaceAll('0xFFFF', '0xFF'),
-        radix: 16));
+    final Color currentColor = _selectedColor.parseHexColor();
 
     return Scaffold(
       appBar: AppBar(
@@ -168,7 +167,6 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
                   label: Text(type.name.toUpperCase()),
                   selected: selected,
                   onSelected: (s) {
-                    
                     setState(() => _selectedType = type);
                   },
                 );
@@ -194,8 +192,7 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
       context: context,
       builder: (context) => IconPickerWidget(
         selectedIcon: _selectedIcon,
-        selectedColor:
-            Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16)),
+        selectedColor: _selectedColor.parseHexColor(),
         onIconSelected: (icon) {
           setState(() => _selectedIcon = icon);
           Navigator.pop(context);
@@ -205,8 +202,7 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
   }
 
   Future<void> _showColorPicker() async {
-    final Color colorBefore =
-        Color(int.parse(_selectedColor.replaceAll('0x', ''), radix: 16));
+    final Color colorBefore = _selectedColor.parseHexColor();
     final Color newColor = await showColorPickerDialog(
       context,
       colorBefore,
