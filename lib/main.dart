@@ -10,6 +10,7 @@ import 'app/router.dart';
 import 'core/database/providers.dart';
 import 'core/widgets/global_error_screen.dart';
 import 'core/services/log_service.dart';
+import 'core/widgets/safe_runtime_fixer.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,7 +44,7 @@ void main() async {
   runApp(
     UncontrolledProviderScope(
       container: container,
-      child: const WalletApp(),
+      child: const SafeRuntimeFixer(child: WalletApp()),
     ),
   );
 }
