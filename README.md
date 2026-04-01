@@ -1,9 +1,14 @@
-# 🏦 Project Wallet (Paisa Clone)
+# Wallet
+<p align="center">
+  <img src="assets/icon/Original-Colour.svg" width="160" height="160" alt="Wallet Logo">
 
 [![Flutter Version](https://img.shields.io/badge/Flutter-3.5.0-blue.svg?logo=flutter)](https://flutter.dev)
 [![Material 3](https://img.shields.io/badge/Design-Material_3-green.svg)](https://m3.material.io)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-brightgreen.svg)](https://github.com/mrdarksidetm/Wallet-Flutter/graphs/commit-activity)
+
+</p>
+
 
 **Project Wallet** is a premium, offline-first personal finance dashboard built with **Flutter 2026 Standards**. It empowers users to monitor their financial health, track transactions, manage multiple wallets, and visualize spending with high-performance, native aesthetics. ✨
 
