@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/services/update_service.dart';
 
 class AboutPage extends ConsumerStatefulWidget {
@@ -52,10 +53,11 @@ class _AboutPageState extends ConsumerState<AboutPage> {
                   color: colorScheme.primaryContainer.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(40),
                 ),
-                child: Image.asset('assets/images/logo.png',
-                    errorBuilder: (context, error, stackTrace) =>
-                        Icon(Symbols.account_balance_wallet,
-                            size: 64, color: colorScheme.primary)),
+                child: SvgPicture.asset('assets/icon/original.svg',
+                    height: 64,
+                    width: 64,
+                    placeholderBuilder: (context) => Icon(Symbols.account_balance_wallet,
+                        size: 64, color: colorScheme.primary)),
               ),
             ),
             const SizedBox(height: 24),
