@@ -248,10 +248,10 @@ final dailyStatsProvider =
 });
 
 final categoryMonthlyStatsProvider =
-    FutureProvider.family<List<MapEntry<DateTime, double>>, Id>(
+    FutureProvider.family<List<MapEntry<DateTime, double>>, int>(
         (ref, categoryId) async {
   final service = ref.watch(statisticsServiceProvider);
-  return await service.getCategoryMonthlyStats(categoryId);
+  return await service.getCategoryMonthlyStats(categoryId, DateTime.now());
 });
 
 final categoriesStreamProvider = StreamProvider<List<Category>>((ref) {

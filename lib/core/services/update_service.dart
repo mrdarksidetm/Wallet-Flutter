@@ -105,10 +105,15 @@ class UpdateService {
     if (!Platform.isAndroid) return 'universal';
 
     try {
-      // First, check if the app was installed as a universal (fat) APK
-      final bool isUniversal = await _platform.invokeMethod('isUniversalBuild') ?? false;
-      if (isUniversal) return 'universal';
+      // Check if the build is actually architecture-specific via the native side
+      final String? arch = await _platform.invokeMethod('getArchitecture');
+      if (arch != null && arch.isNotEmpty && arch != 'universal') {
+        if (arch.contains('arm64')) return 'arm64-v8a';
+        if (arch.contains('v7')) return 'armeabi-v7a';
+        return arch;
+      }
 
+      // Fallback to reading the device's ABIs
       final deviceInfo = DeviceInfoPlugin();
       final androidInfo = await deviceInfo.androidInfo;
       final abis = androidInfo.supportedAbis;

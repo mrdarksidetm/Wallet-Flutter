@@ -125,7 +125,7 @@ class _AllTransactionsPageState extends ConsumerState<AllTransactionsPage> {
       alignment: Alignment.centerRight,
       padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
-        color: Colors.amber,
+        color: Colors.blueAccent,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(

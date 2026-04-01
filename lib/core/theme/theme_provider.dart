@@ -2,6 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../database/providers.dart';
 
+enum ColorSchemeVariant {
+  tonalSpot,
+  vibrant,
+  expressive,
+  fruitSalad;
+
+  String get name => toString().split('.').last;
+}
+
 class ThemeState {
   final ThemeMode themeMode;
   final bool useMaterialYou;
@@ -10,6 +19,7 @@ class ThemeState {
   final String fontFamily;
   final String currencySymbol;
   final String currencyCode;
+  final ColorSchemeVariant variant;
 
   const ThemeState({
     required this.themeMode,
@@ -19,6 +29,7 @@ class ThemeState {
     required this.fontFamily,
     required this.currencySymbol,
     required this.currencyCode,
+    required this.variant,
   });
 
   ThemeState copyWith({
@@ -29,6 +40,7 @@ class ThemeState {
     String? fontFamily,
     String? currencySymbol,
     String? currencyCode,
+    ColorSchemeVariant? variant,
   }) {
     return ThemeState(
       themeMode: themeMode ?? this.themeMode,
@@ -38,6 +50,7 @@ class ThemeState {
       fontFamily: fontFamily ?? this.fontFamily,
       currencySymbol: currencySymbol ?? this.currencySymbol,
       currencyCode: currencyCode ?? this.currencyCode,
+      variant: variant ?? this.variant,
     );
   }
 }
@@ -50,6 +63,7 @@ class ThemeController extends Notifier<ThemeState> {
   static const _keyFontFamily = 'font_family';
   static const _keyCurrencySymbol = 'currency_symbol';
   static const _keyCurrencyCode = 'currency_code';
+  static const _keyVariant = 'color_scheme_variant';
 
   @override
   ThemeState build() {
@@ -58,10 +72,11 @@ class ThemeController extends Notifier<ThemeState> {
     final modeIndex = prefs.getInt(_keyThemeMode) ?? 0;
     final useMaterialYou = prefs.getBool(_keyUseMaterialYou) ?? true;
     final customColorVal = prefs.getInt(_keyCustomColor);
-    final isLiquid = prefs.getBool(_keyIsLiquid) ?? false;
+    final isLiquid = prefs.getBool(_keyIsLiquid) ?? true;
     final fontFamily = prefs.getString(_keyFontFamily) ?? 'GoogleSansFlex';
     final currencySymbol = prefs.getString(_keyCurrencySymbol) ?? '\$';
     final currencyCode = prefs.getString(_keyCurrencyCode) ?? 'USD';
+    final variantStr = prefs.getString(_keyVariant) ?? 'tonalSpot';
 
     ThemeMode mode;
     switch (modeIndex) {
@@ -75,6 +90,11 @@ class ThemeController extends Notifier<ThemeState> {
         mode = ThemeMode.system;
     }
 
+    final variant = ColorSchemeVariant.values.firstWhere(
+      (e) => e.name == variantStr,
+      orElse: () => ColorSchemeVariant.tonalSpot,
+    );
+
     return ThemeState(
       themeMode: mode,
       useMaterialYou: useMaterialYou,
@@ -83,6 +103,7 @@ class ThemeController extends Notifier<ThemeState> {
       fontFamily: fontFamily,
       currencySymbol: currencySymbol,
       currencyCode: currencyCode,
+      variant: variant,
     );
   }
 
@@ -111,16 +132,10 @@ class ThemeController extends Notifier<ThemeState> {
     }
   }
 
-  Future<void> toggleLiquid(bool enabled) async {
-    state = state.copyWith(isLiquid: enabled);
+  Future<void> setVariant(ColorSchemeVariant variant) async {
+    state = state.copyWith(variant: variant);
     final prefs = ref.read(sharedPreferencesProvider);
-    await prefs.setBool(_keyIsLiquid, enabled);
-  }
-
-  Future<void> setFontFamily(String family) async {
-    state = state.copyWith(fontFamily: family);
-    final prefs = ref.read(sharedPreferencesProvider);
-    await prefs.setString(_keyFontFamily, family);
+    await prefs.setString(_keyVariant, variant.name);
   }
 
   Future<void> setCurrency(String symbol, String code) async {

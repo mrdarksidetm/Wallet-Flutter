@@ -66,15 +66,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               context.push('/currency_selection');
             },
           ),
-          _buildSettingsTile(
-            context,
-            icon: Symbols.bug_report,
-            title: 'Logcat (Dev)',
-            subtitle: 'View runtime logs and performance',
-            onTap: () {
-              context.push('/logcat');
-            },
-          ),
           const Divider(indent: 24, endIndent: 24, height: 32),
           _buildSectionHeader(context, 'Security'),
           _buildSettingsTile(
@@ -233,6 +224,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             subtitle: 'Tell us what you think',
             onTap: () {
               context.push('/feedback');
+            },
+          ),
+          _buildSettingsTile(
+            context,
+            icon: Symbols.bug_report,
+            title: 'Logcat (Dev)',
+            subtitle: 'View runtime logs and performance',
+            onTap: () {
+              context.push('/logcat');
             },
           ),
           const Divider(indent: 24, endIndent: 24, height: 32),
@@ -458,7 +458,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           borderRadius: BorderRadius.circular(12),
         ),
         child: Icon(icon,
-            size: 22,
+            size: 24,
             fill: ref.watch(personalizationProvider).fillIcons ? 1.0 : 0.0),
       ),
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),

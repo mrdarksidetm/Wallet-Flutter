@@ -85,6 +85,11 @@ class TransactionService {
   Future<void> updateTransaction(
       TransactionModel oldTransaction, TransactionModel newTransaction) async {
     await isar.writeTxn(() async {
+      // Ensure links are loaded for reverting balances
+      await oldTransaction.account.load();
+      await oldTransaction.category.load();
+      await oldTransaction.transferAccount.load();
+
       final account = oldTransaction.account.value;
       final category = oldTransaction.category.value;
       final transferAccount = oldTransaction.transferAccount.value;

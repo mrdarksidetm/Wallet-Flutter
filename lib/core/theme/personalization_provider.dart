@@ -20,6 +20,7 @@ class PersonalizationState {
   final String? defaultCurrency;
   final bool isBalanceVisible;
   final bool vibrateOnTransaction;
+  final bool useGoogleSansFlex;
 
   PersonalizationState({
     this.grade = 50,
@@ -38,6 +39,7 @@ class PersonalizationState {
     this.defaultCurrency,
     this.isBalanceVisible = true,
     this.vibrateOnTransaction = true,
+    this.useGoogleSansFlex = true,
   });
 
   PersonalizationState copyWith({
@@ -57,6 +59,7 @@ class PersonalizationState {
     String? defaultCurrency,
     bool? isBalanceVisible,
     bool? vibrateOnTransaction,
+    bool? useGoogleSansFlex,
   }) {
     return PersonalizationState(
       grade: grade ?? this.grade,
@@ -67,8 +70,7 @@ class PersonalizationState {
       fontRoundness: fontRoundness ?? this.fontRoundness,
       opticalSize: opticalSize ?? this.opticalSize,
       fillIcons: fillIcons ?? this.fillIcons,
-      shouldRestartOnCurrencyChange:
-          shouldRestartOnCurrencyChange ?? this.shouldRestartOnCurrencyChange,
+      shouldRestartOnCurrencyChange: shouldRestartOnCurrencyChange ?? this.shouldRestartOnCurrencyChange,
       colorSchemeVariant: colorSchemeVariant ?? this.colorSchemeVariant,
       isOnboardingComplete: isOnboardingComplete ?? this.isOnboardingComplete,
       userName: userName ?? this.userName,
@@ -76,6 +78,7 @@ class PersonalizationState {
       defaultCurrency: defaultCurrency ?? this.defaultCurrency,
       isBalanceVisible: isBalanceVisible ?? this.isBalanceVisible,
       vibrateOnTransaction: vibrateOnTransaction ?? this.vibrateOnTransaction,
+      useGoogleSansFlex: useGoogleSansFlex ?? this.useGoogleSansFlex,
     );
   }
 
@@ -97,6 +100,7 @@ class PersonalizationState {
       'defaultCurrency': defaultCurrency,
       'isBalanceVisible': isBalanceVisible,
       'vibrateOnTransaction': vibrateOnTransaction,
+      'useGoogleSansFlex': useGoogleSansFlex,
     };
   }
 
@@ -110,8 +114,7 @@ class PersonalizationState {
       fontRoundness: (map['fontRoundness'] as num?)?.toDouble() ?? 0,
       opticalSize: (map['opticalSize'] as num?)?.toDouble() ?? 12,
       fillIcons: map['fillIcons'] as bool? ?? false,
-      shouldRestartOnCurrencyChange:
-          map['shouldRestartOnCurrencyChange'] as bool? ?? true,
+      shouldRestartOnCurrencyChange: map['shouldRestartOnCurrencyChange'] as bool? ?? true,
       colorSchemeVariant: map['colorSchemeVariant'] as String? ?? 'tonalSpot',
       isOnboardingComplete: map['isOnboardingComplete'] as bool? ?? false,
       userName: map['userName'] as String?,
@@ -119,6 +122,7 @@ class PersonalizationState {
       defaultCurrency: map['defaultCurrency'] as String?,
       isBalanceVisible: map['isBalanceVisible'] as bool? ?? true,
       vibrateOnTransaction: map['vibrateOnTransaction'] as bool? ?? true,
+      useGoogleSansFlex: map['useGoogleSansFlex'] as bool? ?? true,
     );
   }
 }
@@ -130,11 +134,11 @@ class PersonalizationNotifier extends Notifier<PersonalizationState> {
   @override
   PersonalizationState build() {
     final prefs = ref.watch(sharedPreferencesProvider);
-    final data = prefs.getString(_key);
-    if (data != null) {
+    final jsonStr = prefs.getString(_key);
+    if (jsonStr != null) {
       try {
-        return PersonalizationState.fromMap(json.decode(data));
-      } catch (_) {
+        return PersonalizationState.fromMap(json.decode(jsonStr));
+      } catch (e) {
         return PersonalizationState();
       }
     }
@@ -149,28 +153,8 @@ class PersonalizationNotifier extends Notifier<PersonalizationState> {
     });
   }
 
-  void completeOnboarding(
-      {required String name, required String currency, String? photo}) {
-    state = state.copyWith(
-      isOnboardingComplete: true,
-      userName: name,
-      userPhoto: photo,
-      defaultCurrency: currency,
-    );
-    _save();
-  }
-
-  void updateProfile({String? name, String? photo, String? currency}) {
-    state = state.copyWith(
-      userName: name ?? state.userName,
-      userPhoto: photo ?? state.userPhoto,
-      defaultCurrency: currency ?? state.defaultCurrency,
-    );
-    _save();
-  }
-
-  void toggleBalanceVisibility() {
-    state = state.copyWith(isBalanceVisible: !state.isBalanceVisible);
+  void toggleFillIcons() {
+    state = state.copyWith(fillIcons: !state.fillIcons);
     _save();
   }
 
@@ -179,8 +163,33 @@ class PersonalizationNotifier extends Notifier<PersonalizationState> {
     _save();
   }
 
+  void toggleGoogleSans(bool value) {
+    state = state.copyWith(useGoogleSansFlex: value);
+    _save();
+  }
+
   void toggleRestartOnCurrencyChange(bool value) {
     state = state.copyWith(shouldRestartOnCurrencyChange: value);
+    _save();
+  }
+
+  void toggleBalanceVisibility() {
+    state = state.copyWith(isBalanceVisible: !state.isBalanceVisible);
+    _save();
+  }
+
+  void completeOnboarding({String? name, String? currency, String? photo}) {
+    state = state.copyWith(
+      isOnboardingComplete: true,
+      userName: name,
+      defaultCurrency: currency,
+      userPhoto: photo,
+    );
+    _save();
+  }
+
+  void updateProfile({String? name, String? photo}) {
+    state = state.copyWith(userName: name, userPhoto: photo);
     _save();
   }
 
@@ -189,63 +198,21 @@ class PersonalizationNotifier extends Notifier<PersonalizationState> {
     _save();
   }
 
-  void updateGrade(double value) {
-    state = state.copyWith(grade: value);
-    _save();
-  }
-
-  void updateWeight(double value) {
-    state = state.copyWith(weight: value);
-    _save();
-  }
-
-  void updateSlant(double value) {
-    state = state.copyWith(slant: value);
-    _save();
-  }
-
-  void updateWidth(double value) {
-    state = state.copyWith(width: value);
-    _save();
-  }
-
-  void updateRoundness(double value) {
-    state = state.copyWith(roundness: value);
-    _save();
-  }
-
-  void updateFontRoundness(double value) {
-    state = state.copyWith(
-        fontRoundness: value.clamp(0, 100),
-        roundness: (value * 0.32).clamp(0, 32));
-    _save();
-  }
-
-  void updateOpticalSize(double value) {
-    state = state.copyWith(opticalSize: value);
-    _save();
-  }
-
-  void toggleFillIcons(bool value) {
-    state = state.copyWith(fillIcons: value);
-    _save();
-  }
-
   void updateColorSchemeVariant(String variant) {
     state = state.copyWith(colorSchemeVariant: variant);
     _save();
   }
 
+  void updateGrade(double v) { state = state.copyWith(grade: v); _save(); }
+  void updateWeight(double v) { state = state.copyWith(weight: v); _save(); }
+  void updateSlant(double v) { state = state.copyWith(slant: v); _save(); }
+  void updateWidth(double v) { state = state.copyWith(width: v); _save(); }
+  void updateRoundness(double v) { state = state.copyWith(roundness: v); _save(); }
+  void updateFontRoundness(double v) { state = state.copyWith(fontRoundness: v); _save(); }
+  void updateOpticalSize(double v) { state = state.copyWith(opticalSize: v); _save(); }
+  
   void reset() {
-    state = state.copyWith(
-      grade: 50,
-      weight: 400,
-      slant: 0,
-      width: 100,
-      roundness: 28,
-      fontRoundness: 0,
-      opticalSize: 12,
-    );
+    state = PersonalizationState();
     _save();
   }
 }

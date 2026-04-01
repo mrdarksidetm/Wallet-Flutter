@@ -28,6 +28,8 @@ class Account {
 
   bool isDeleted = false;
 
+  bool isDefault = false;
+
   DateTime createdAt = DateTime.now();
 
   DateTime updatedAt = DateTime.now();
@@ -41,12 +43,8 @@ class Account {
 
 enum AccountType {
   cash,
-  bank,
-  creditCard,
-  wallet,
-  investment,
-  asset,
-  other;
+  card,
+  savings;
 
   String get name => toString().split('.').last;
 }

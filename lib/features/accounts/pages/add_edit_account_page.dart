@@ -22,18 +22,20 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
   late TextEditingController _nameController;
   late TextEditingController _balanceController;
   late AccountType _selectedType;
-  String _selectedColor = '0xFF4CAF50';
-  String _selectedIcon = 'payments';
+  bool _isDefault = false;
+  String _selectedColor = '0xFF2196F3';
+  String _selectedIcon = 'account_balance_wallet';
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.account?.name ?? '');
     _balanceController =
-        TextEditingController(text: widget.account?.balance.toString() ?? '0');
+        TextEditingController(text: widget.account?.balance.toString() ?? '0.0');
     _selectedType = widget.account?.type ?? AccountType.cash;
-    _selectedColor = widget.account?.color ?? '0xFF4CAF50';
-    _selectedIcon = widget.account?.icon ?? 'payments';
+    _isDefault = widget.account?.isDefault ?? false;
+    _selectedColor = widget.account?.color ?? '0xFF2196F3';
+    _selectedIcon = widget.account?.icon ?? 'account_balance_wallet';
   }
 
   @override
@@ -50,13 +52,15 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
       ..name = _nameController.text
       ..balance = double.tryParse(_balanceController.text) ?? 0.0
       ..type = _selectedType
+      ..isDefault = _isDefault
       ..color = _selectedColor
       ..icon = _selectedIcon
-      ..bankName = ''
-      ..number = ''
-      ..validThru = DateTime.now()
+      ..bankName = widget.account?.bankName ?? ''
+      ..number = widget.account?.number ?? ''
+      ..validThru = widget.account?.validThru ?? DateTime.now()
       ..createdAt = widget.account?.createdAt ?? DateTime.now()
-      ..updatedAt = DateTime.now();
+      ..updatedAt = DateTime.now()
+      ..order = widget.account?.order ?? 0;
 
     if (widget.account != null) {
       account.id = widget.account!.id;
@@ -67,6 +71,29 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
     if (mounted) context.pop();
   }
 
+  Future<void> _showDeleteDialog() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Account?'),
+        content: const Text('This will hide the account from your list. Transactions will remain.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && widget.account != null) {
+      await ref.read(accountServiceProvider).deleteAccount(widget.account!.id);
+      if (mounted) context.pop();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -75,13 +102,14 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.account == null ? 'Add Account' : 'Edit Account'),
+        title: Text(widget.account == null ? 'New Account' : 'Edit Account'),
         actions: [
           if (widget.account != null)
             IconButton(
               onPressed: _showDeleteDialog,
               icon: const Icon(Icons.delete_outline_rounded, color: Colors.red),
             ),
+          const SizedBox(width: 8),
         ],
       ),
       body: Form(
@@ -101,9 +129,7 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
                       decoration: BoxDecoration(
                         color: currentColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(
-                            color: currentColor.withValues(alpha: 0.2),
-                            width: 2),
+                        border: Border.all(color: currentColor.withValues(alpha: 0.2)),
                       ),
                       child: Icon(
                         AppIcons.getIcon(_selectedIcon),
@@ -124,12 +150,13 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.1),
-                                blurRadius: 8),
+                              color: Colors.black.withValues(alpha: 0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
                           ],
                         ),
-                        child: Icon(Icons.palette_rounded,
-                            size: 20, color: currentColor),
+                        child: Icon(Icons.palette_rounded, size: 20, color: currentColor),
                       ),
                     ),
                   ),
@@ -141,36 +168,39 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
               controller: _nameController,
               decoration: const InputDecoration(
                 labelText: 'Account Name',
-                prefixIcon: Icon(Icons.badge_rounded),
+                prefixIcon: Icon(Symbols.label),
               ),
-              validator: (v) => v?.isEmpty ?? true ? 'Required' : null,
+              validator: (v) => v?.isEmpty == true ? 'Name is required' : null,
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _balanceController,
               decoration: const InputDecoration(
-                labelText: 'Initial Balance',
-                prefixIcon: Icon(Icons.account_balance_wallet_rounded),
+                labelText: 'Current Balance',
+                prefixIcon: Icon(Symbols.account_balance),
               ),
-              keyboardType: TextInputType.number,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
             ),
             const SizedBox(height: 24),
-            Text('Account Type',
-                style: theme.textTheme.titleMedium
-                    ?.copyWith(fontWeight: FontWeight.bold)),
+            Text('Account Type', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              children: AccountType.values.map((type) {
-                final selected = _selectedType == type;
-                return ChoiceChip(
-                  label: Text(type.name.toUpperCase()),
-                  selected: selected,
-                  onSelected: (s) {
-                    setState(() => _selectedType = type);
-                  },
-                );
-              }).toList(),
+            SegmentedButton<AccountType>(
+              segments: const [
+                ButtonSegment(value: AccountType.cash, label: Text('Cash'), icon: Icon(Symbols.payments)),
+                ButtonSegment(value: AccountType.card, label: Text('Card'), icon: Icon(Symbols.credit_card)),
+                ButtonSegment(value: AccountType.savings, label: Text('Savings'), icon: Icon(Symbols.savings)),
+              ],
+              selected: {_selectedType},
+              onSelectionChanged: (v) => setState(() => _selectedType = v.first),
+            ),
+            const SizedBox(height: 24),
+            SwitchListTile(
+              title: const Text('Default Account'),
+              subtitle: const Text('New transactions will use this account by default'),
+              value: _isDefault,
+              onChanged: (v) => setState(() => _isDefault = v),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              tileColor: colorScheme.surfaceContainerLow,
             ),
             const SizedBox(height: 48),
             PrimaryAtelierButton(
@@ -190,6 +220,7 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
   void _showIconPicker() {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       builder: (context) => IconPickerWidget(
         selectedIcon: _selectedIcon,
         selectedColor: _selectedColor.parseHexColor(),
@@ -217,7 +248,7 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
       enableOpacity: false,
       showColorCode: true,
       colorCodeHasColor: true,
-      pickersEnabled: <ColorPickerType, bool>{
+      pickersEnabled: const <ColorPickerType, bool>{
         ColorPickerType.both: false,
         ColorPickerType.primary: true,
         ColorPickerType.accent: true,
@@ -226,38 +257,6 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
         ColorPickerType.wheel: true,
       },
     );
-    setState(() {
-      _selectedColor =
-          '0x${newColor.toARGB32().toRadixString(16).toUpperCase()}';
-    });
-  }
-
-  void _showDeleteDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Account?'),
-        content: const Text(
-            'All transactions associated with this account will remain, but the account will be permanently removed. Proceed?'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel')),
-          TextButton(
-            onPressed: () async {
-              await ref
-                  .read(accountServiceProvider)
-                  .deleteAccount(widget.account!.id);
-              
-              if (mounted) {
-                Navigator.pop(context); // Pop dialog
-                context.pop(); // Pop page
-              }
-            },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
+    setState(() => _selectedColor = '0x${newColor.value.toRadixString(16).toUpperCase()}');
   }
 }

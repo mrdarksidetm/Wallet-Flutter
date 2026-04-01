@@ -14,7 +14,6 @@ import '../../../core/database/models/category.dart';
 import '../../../core/widgets/icon_picker.dart';
 import '../../../core/widgets/primary_atelier_button.dart';
 import '../../../core/theme/color_extension.dart';
-
 import '../../../core/database/models/auxiliary_models.dart';
 import '../../../core/widgets/expressive_bottom_sheet.dart';
 
@@ -357,6 +356,30 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
     if (_selectedAccount == null || _selectedCategory == null) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select account and category')));
       return;
+    }
+
+    // Overbudget Check
+    if (_transactionType == TransactionType.expense && _selectedCategory!.budgetLimit != null) {
+      final stats = ref.read(budgetStatsProvider).value;
+      final categoryStat = stats?.firstWhere((s) => s['categoryId'] == _selectedCategory!.id, orElse: () => {});
+      if (categoryStat != null && categoryStat.isNotEmpty) {
+        final spent = categoryStat['spent'] as double;
+        final limit = _selectedCategory!.budgetLimit!;
+        if (spent + amount > limit) {
+          final confirmed = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Over Budget Warning'),
+              content: Text('This transaction will exceed your budget for ${_selectedCategory!.name}.\n\nLimit: $limit\nCurrently Spent: $spent\nNew Total: ${spent + amount}\n\nDo you want to continue?'),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+                TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Continue')),
+              ],
+            ),
+          );
+          if (confirmed != true) return;
+        }
+      }
     }
 
     try {

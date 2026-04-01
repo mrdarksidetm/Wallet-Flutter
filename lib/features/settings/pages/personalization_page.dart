@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/theme/personalization_provider.dart';
 import '../../../core/theme/theme_provider.dart';
-import '../../../core/theme/colors.dart';
 
 class PersonalizationPage extends ConsumerWidget {
   const PersonalizationPage({super.key});
@@ -36,43 +35,24 @@ class PersonalizationPage extends ConsumerWidget {
                 onPressed: () {
                   notifier.reset();
                   themeNotifier.setThemeMode(ThemeMode.system);
-                  themeNotifier.setUseMaterialYou(false);
+                  themeNotifier.setUseMaterialYou(true);
                 },
-                icon: const Icon(Symbols.refresh_rounded),
-                tooltip: 'Reset All Preferences',
+                icon: const Icon(Symbols.restart_alt_rounded),
+                tooltip: 'Reset to Default',
               ),
             ],
           ),
           SliverToBoxAdapter(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final isWide = constraints.maxWidth > 900;
-                return Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
-                  child: isWide
-                      ? Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                                flex: 4, child: _buildEditorialHeader(context)),
-                            const SizedBox(width: 48),
-                            Expanded(
-                                flex: 8,
-                                child: _buildConfigCanvas(
-                                    context, state, notifier, themeState, themeNotifier)),
-                          ],
-                        )
-                      : Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildEditorialHeader(context),
-                            const SizedBox(height: 48),
-                            _buildConfigCanvas(context, state, notifier, themeState, themeNotifier),
-                          ],
-                        ),
-                );
-              },
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildEditorialHeader(context),
+                  const SizedBox(height: 48),
+                  _buildConfigCanvas(context, state, notifier, themeState, themeNotifier),
+                ],
+              ),
             ),
           ),
         ],
@@ -118,11 +98,7 @@ class PersonalizationPage extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Preview Card (Type-Tester)
-        _TypeTester(state: state),
-        const SizedBox(height: 48),
-
-        // Appearance Section
+        // 1. Appearance Section (THEME & STYLE)
         _buildSectionTitle(context, 'THEME & STYLE'),
         const SizedBox(height: 16),
         _buildThemeModeSelector(context, themeState, themeNotifier),
@@ -135,22 +111,34 @@ class PersonalizationPage extends ConsumerWidget {
           value: themeState.useMaterialYou,
           onChanged: (v) => themeNotifier.setUseMaterialYou(v),
         ),
-
         const SizedBox(height: 48),
 
-        // Typography Section
-        _buildSectionTitle(context, 'TYPOGRAPHY (GOOGLE SANS FLEX)'),
-        const SizedBox(height: 24),
-        _buildSliderSection(context, state, notifier),
-
+        // 2. Color Scheme Variant
+        _buildSectionTitle(context, 'COLOR SCHEME VARIANT'),
+        const SizedBox(height: 16),
+        _buildVariantSelector(context, themeState, themeNotifier),
         const SizedBox(height: 48),
 
-        // Color Schemes Section
-        _buildColorSchemeSection(context, state, notifier),
-
+        // 3. Live Preview (Card Sample)
+        _buildSectionTitle(context, 'LIVE PREVIEW'),
+        const SizedBox(height: 16),
+        _TypeTester(state: state),
         const SizedBox(height: 48),
 
-        // Feedback Section
+        // 4. Typography Section
+        _buildSectionTitle(context, 'TYPOGRAPHY'),
+        const SizedBox(height: 16),
+        _buildToggleItem(
+          context,
+          title: 'Google Sans Flex',
+          subtitle: 'Enable variable weight and width optimizations',
+          icon: Symbols.font_download_rounded,
+          value: state.useGoogleSansFlex,
+          onChanged: (v) => notifier.toggleGoogleSans(v),
+        ),
+        const SizedBox(height: 48),
+
+        // 5. Feedback Section
         _buildSectionTitle(context, 'FEEDBACK & BEHAVIOR'),
         const SizedBox(height: 16),
         _buildToggleItem(
@@ -165,7 +153,7 @@ class PersonalizationPage extends ConsumerWidget {
         _buildToggleItem(
           context,
           title: 'Restart on Currency Change',
-          subtitle: 'Automatically restart the app when you change your default currency',
+          subtitle: 'Automatically restart app to apply new currency settings',
           icon: Symbols.restart_alt_rounded,
           value: state.shouldRestartOnCurrencyChange,
           onChanged: (v) => notifier.toggleRestartOnCurrencyChange(v),
@@ -194,106 +182,67 @@ class PersonalizationPage extends ConsumerWidget {
       {'mode': ThemeMode.dark, 'label': 'Dark', 'icon': Symbols.dark_mode},
     ];
 
-    return Wrap(
-      spacing: 8,
+    return Row(
       children: modes.map((m) {
         final isSelected = state.themeMode == m['mode'];
-        return ChoiceChip(
-          label: Text(m['label'] as String),
-          avatar: Icon(m['icon'] as IconData, size: 18),
-          selected: isSelected,
-          onSelected: (selected) {
-            if (selected) {
-              notifier.setThemeMode(m['mode'] as ThemeMode);
-            }
-          },
+        return Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: InkWell(
+              onTap: () => notifier.setThemeMode(m['mode'] as ThemeMode),
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Icon(m['icon'] as IconData, color: isSelected ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.onSurface, size: 20),
+                    const SizedBox(height: 8),
+                    Text(
+                      m['label'] as String,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: isSelected ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         );
       }).toList(),
     );
   }
 
-  Widget _buildSliderSection(BuildContext context, PersonalizationState state,
-      PersonalizationNotifier notifier) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _AtelierSlider(
-          label: 'Grade',
-          value: state.grade,
-          min: -200,
-          max: 150,
-          onChanged: (v) => notifier.updateGrade(v),
-        ),
-        _AtelierSlider(
-          label: 'Weight',
-          value: state.weight,
-          min: 100,
-          max: 1000,
-          onChanged: (v) => notifier.updateWeight(v),
-        ),
-        _AtelierSlider(
-          label: 'Width',
-          value: state.width,
-          min: 50,
-          max: 150,
-          onChanged: (v) => notifier.updateWidth(v),
-        ),
-        _AtelierSlider(
-          label: 'Roughness (SOFT)',
-          value: state.fontRoundness,
-          min: 0,
-          max: 100,
-          onChanged: (v) {
-            notifier.updateFontRoundness(v);
+  Widget _buildVariantSelector(BuildContext context, ThemeState state, ThemeController notifier) {
+    final variants = [
+      {'variant': ColorSchemeVariant.tonalSpot, 'label': 'Tonal Spot'},
+      {'variant': ColorSchemeVariant.vibrant, 'label': 'Vibrant'},
+      {'variant': ColorSchemeVariant.expressive, 'label': 'Expressive'},
+      {'variant': ColorSchemeVariant.fruitSalad, 'label': 'Fruit Salad'},
+    ];
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: variants.map((v) {
+        final isSelected = state.variant == v['variant'];
+        return ChoiceChip(
+          label: Text(v['label'] as String),
+          selected: isSelected,
+          onSelected: (selected) {
+            if (selected) notifier.setVariant(v['variant'] as ColorSchemeVariant);
           },
-        ),
-        _AtelierSlider(
-          label: 'Optical Size (opsz)',
-          value: state.opticalSize,
-          min: 8,
-          max: 144,
-          onChanged: (v) => notifier.updateOpticalSize(v),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildColorSchemeSection(BuildContext context,
-      PersonalizationState state, PersonalizationNotifier notifier) {
-    final variants = {
-      'tonalSpot': 'Tonal Spot',
-      'monochrome': 'Monochrome',
-      'neutral': 'Neutral',
-      'vibrant': 'Vibrant',
-      'expressive': 'Expressive',
-      'content': 'Content',
-      'fidelity': 'Fidelity',
-      'rainbow': 'Rainbow',
-      'fruitSalad': 'Fruit Salad',
-    };
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionTitle(context, 'COLOR SCHEME VARIANT'),
-        const SizedBox(height: 16),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: variants.entries.map((e) {
-            final isSelected = state.colorSchemeVariant == e.key;
-            return ChoiceChip(
-              label: Text(e.value),
-              selected: isSelected,
-              onSelected: (selected) {
-                if (selected) {
-                  notifier.updateColorSchemeVariant(e.key);
-                }
-              },
-            );
-          }).toList(),
-        ),
-      ],
+        );
+      }).toList(),
     );
   }
 
@@ -303,62 +252,29 @@ class PersonalizationPage extends ConsumerWidget {
     required String subtitle,
     required IconData icon,
     required bool value,
-    required ValueChanged<bool> onChanged,
+    required Function(bool) onChanged,
   }) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return InkWell(
-      onTap: () {
-        onChanged(!value);
-      },
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: colorScheme.surfaceContainer,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: value ? colorScheme.primary : colorScheme.surface,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                icon,
-                color: value ? Colors.white : colorScheme.primary,
-                fill: value ? 1.0 : 0.0, // Specific local control
-              ),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: Theme.of(context).colorScheme.primary, size: 24),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(subtitle, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.outline)),
+              ],
             ),
-            const SizedBox(width: 24),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                  Text(
-                    subtitle,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurface.withValues(alpha: 0.6),
-                        ),
-                  ),
-                ],
-              ),
-            ),
-            Switch.adaptive(
-              value: value,
-              onChanged: (v) {
-                onChanged(v);
-              },
-            ),
-          ],
-        ),
+          ),
+          Switch(value: value, onChanged: onChanged),
+        ],
       ),
     );
   }
@@ -372,155 +288,40 @@ class _TypeTester extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(32),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(24),
+        color: colorScheme.primaryContainer.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(color: colorScheme.primaryContainer.withValues(alpha: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'LIVE PREVIEW',
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      letterSpacing: 1.5,
-                      fontWeight: FontWeight.w900,
-                      color: colorScheme.onSurface.withValues(alpha: 0.4),
-                    ),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(color: colorScheme.primary, shape: BoxShape.circle),
+                child: Icon(Symbols.account_balance_wallet, color: colorScheme.onPrimary, size: 20),
               ),
-              Row(
-                children: [
-                  Icon(Symbols.palette, size: 18, color: colorScheme.primary),
-                  const SizedBox(width: 12),
-                  Icon(Symbols.text_fields_rounded,
-                      size: 18, color: colorScheme.primary),
-                  const SizedBox(width: 12),
-                  Icon(Symbols.auto_awesome_rounded,
-                      size: 18, color: colorScheme.primary),
-                ],
-              ),
+              const SizedBox(width: 12),
+              Text('Wallet Sample', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
             ],
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 24),
           Text(
-            'The quick brown fox jumps over the lazy dog',
-            style: TextStyle(
-              fontFamily: 'GoogleSansFlex',
-              fontSize: 48,
-              height: 1.1,
-              fontVariations: [
-                FontVariation('GRAD', state.grade),
-                FontVariation('wght', state.weight),
-                FontVariation('wdth', state.width),
-                FontVariation('SOFT', state.fontRoundness),
-                FontVariation('opsz', state.opticalSize),
-              ],
+            'The quick brown fox jumps over the lazy dog.',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              fontFamily: state.useGoogleSansFlex ? 'GoogleSansFlex' : null,
+              fontWeight: FontWeight.w900,
             ),
           ),
-          const SizedBox(height: 48),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              _PreviewIcon(icon: Symbols.face_rounded, state: state),
-              const SizedBox(width: 32),
-              _PreviewIcon(icon: Symbols.eco_rounded, state: state),
-              const SizedBox(width: 32),
-              _PreviewIcon(icon: Symbols.star_rounded, state: state),
-              const SizedBox(width: 32),
-              _PreviewIcon(icon: Symbols.favorite_rounded, state: state),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PreviewIcon extends StatelessWidget {
-  final IconData icon;
-  final PersonalizationState state;
-  const _PreviewIcon({required this.icon, required this.state});
-
-  @override
-  Widget build(BuildContext context) {
-    return Icon(
-      icon,
-      size: 40,
-      fill: state.fillIcons ? 1.0 : 0.0,
-      weight: 600, // Fixed heavier weight for hero icons
-      grade: 0.25,
-      opticalSize: 48, // Match the physical size
-    );
-  }
-}
-
-class _AtelierSlider extends StatelessWidget {
-  final String label;
-  final double value;
-  final double min;
-  final double max;
-  final ValueChanged<double> onChanged;
-
-  const _AtelierSlider({
-    required this.label,
-    required this.value,
-    required this.min,
-    required this.max,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 32),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                label.toUpperCase(),
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      letterSpacing: 1.2,
-                      fontWeight: FontWeight.w900,
-                      color: colorScheme.onSurface.withValues(alpha: 0.5),
-                    ),
-              ),
-              Text(
-                value.toStringAsFixed(0),
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.w900,
-                      color: colorScheme.primary,
-                    ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          SliderTheme(
-            data: SliderTheme.of(context).copyWith(
-              trackHeight: 4,
-              activeTrackColor: colorScheme.primary.withValues(alpha: 0.3),
-              inactiveTrackColor: colorScheme.surfaceContainer,
-              thumbColor: AppColors.primary,
-              overlayColor: AppColors.primary.withValues(alpha: 0.1),
-              thumbShape: const RoundSliderThumbShape(
-                  enabledThumbRadius: 8, elevation: 0),
-              trackShape: const RoundedRectSliderTrackShape(),
-            ),
-            child: Slider(
-              value: value.clamp(min, max),
-              min: min,
-              max: max,
-              onChanged: (v) {
-                onChanged(v);
-              },
+          const SizedBox(height: 12),
+          Text(
+            'Variable font weight and width optimizations applied dynamically.',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontFamily: state.useGoogleSansFlex ? 'GoogleSansFlex' : null,
             ),
           ),
         ],

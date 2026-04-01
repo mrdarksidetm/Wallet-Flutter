@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import '../database/providers.dart';
 import '../database/models/transaction_model.dart';
 import '../theme/color_extension.dart';
 import 'icon_picker.dart';
+import 'expressive_bottom_sheet.dart';
 
 class TransactionListTile extends ConsumerWidget {
   final TransactionModel tx;
@@ -16,6 +19,68 @@ class TransactionListTile extends ConsumerWidget {
     this.onTap,
   });
 
+  void _showContextMenu(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final txService = ref.read(transactionServiceProvider);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => ExpressiveBottomSheet(
+        title: 'Transaction Options',
+        child: Column(
+          children: [
+            ListTile(
+              leading: const Icon(Symbols.edit),
+              title: const Text('Edit'),
+              onTap: () {
+                Navigator.pop(context);
+                context.push('/add-transaction', extra: tx);
+              },
+            ),
+            ListTile(
+              leading: Icon(tx.isArchived ? Symbols.unarchive : Symbols.archive),
+              title: Text(tx.isArchived ? 'Unarchive' : 'Archive'),
+              onTap: () async {
+                Navigator.pop(context);
+                if (tx.isArchived) {
+                  await ref.read(transactionRepositoryProvider).unarchive(tx.id);
+                } else {
+                  await txService.archiveTransaction(tx);
+                }
+              },
+            ),
+            ListTile(
+              leading: Icon(Symbols.delete, color: colorScheme.error),
+              title: Text('Delete', style: TextStyle(color: colorScheme.error)),
+              onTap: () async {
+                Navigator.pop(context);
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Delete Transaction?'),
+                    content: const Text('This will permanently delete this transaction and update your balance.'),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        style: TextButton.styleFrom(foregroundColor: colorScheme.error),
+                        child: const Text('Delete'),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirmed == true) {
+                  await txService.deleteTransaction(tx);
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
@@ -26,6 +91,7 @@ class TransactionListTile extends ConsumerWidget {
     final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
     final isIncome = tx.type == TransactionType.income;
 
+    // Ensure links are loaded if possible, otherwise use fallback
     final category = tx.category.value;
     final icon = AppIcons.getIcon(tx.icon ?? category?.icon);
     final categoryColor = (tx.color ?? category?.color ?? '0xFF9E9E9E').parseHexColor();
@@ -42,6 +108,7 @@ class TransactionListTile extends ConsumerWidget {
       ),
       child: ListTile(
         onTap: onTap,
+        onLongPress: () => _showContextMenu(context, ref),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         leading: Container(

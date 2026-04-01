@@ -12,7 +12,7 @@ import '../../../core/database/models/transaction_model.dart';
 import '../../../core/database/models/category.dart';
 import '../widgets/account_card.dart';
 import '../widgets/category_segmented_bar.dart';
-import '../widgets/edit_account_bottom_sheet.dart';
+import '../../../core/widgets/transaction_list_tile.dart';
 import '../../../core/widgets/icon_picker.dart';
 
 class AccountsPage extends ConsumerStatefulWidget {
@@ -78,7 +78,7 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
                         itemBuilder: (context, index) {
                           return AccountCard(
                             account: accounts[index],
-                            onEdit: () => _showEditAccountModal(context, accounts[index]),
+                            onEdit: () => context.push('/add-account', extra: accounts[index]),
                           );
                         },
                       ),
@@ -259,44 +259,11 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
   }
 
   Widget _buildTransactionItem(BuildContext context, TransactionModel tx, NumberFormat format) {
-    final cat = tx.category.value;
-    final color = (tx.color ?? cat?.color ?? '0xFF9E9E9E').parseHexColor();
-    final isIncome = tx.type == TransactionType.income;
-
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
-      child: InkWell(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: TransactionListTile(
+        tx: tx,
         onTap: () => context.push('/add_transaction', extra: tx),
-        borderRadius: BorderRadius.circular(16),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(AppIcons.getIcon(tx.icon ?? cat?.icon), color: color, size: 24),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(tx.note ?? cat?.name ?? 'Transaction', style: const TextStyle(fontWeight: FontWeight.bold)),
-                  Text(DateFormat.yMMMd().format(tx.date), style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                ],
-              ),
-            ),
-            Text(
-              '${isIncome ? '+' : '-'}${format.format(tx.amount)}',
-              style: TextStyle(
-                fontWeight: FontWeight.w900,
-                color: isIncome ? Colors.green : Colors.red,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -351,11 +318,6 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
                             final item = accounts.removeAt(oldIndex);
                             accounts.insert(newIndex, item);
                           });
-                          // Update order in database
-                          for (int i = 0; i < accounts.length; i++) {
-                            // Assuming we have an order field or just update them all
-                            // For now we'll just log or implement if field exists
-                          }
                         },
                         itemBuilder: (context, index) {
                           final acc = accounts[index];
@@ -382,7 +344,6 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
                         width: double.infinity,
                         child: FilledButton(
                           onPressed: () async {
-                            // Save new order to database
                             await ref.read(accountServiceProvider).updateAccountsOrder(accounts);
                             if (context.mounted) Navigator.pop(context);
                           },
@@ -397,15 +358,6 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
           },
         );
       },
-    );
-  }
-
-  void _showEditAccountModal(BuildContext context, Account account) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => EditAccountBottomSheet(account: account),
     );
   }
 }
