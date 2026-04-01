@@ -48,7 +48,10 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
         actions: [
           IconButton(
             icon: const Icon(Symbols.reorder),
-            onPressed: () => _showReorderBottomSheet(context, accountsAsync.value ?? []),
+            onPressed: () {
+              final accounts = [...(accountsAsync.value ?? [])];
+              _showReorderBottomSheet(context, accounts);
+            },
           ),
           const SizedBox(width: 8),
         ],
@@ -78,7 +81,8 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
                         itemBuilder: (context, index) {
                           return AccountCard(
                             account: accounts[index],
-                            onEdit: () => context.push('/add-account', extra: accounts[index]),
+                            onEdit: () => context.push('/add_account', extra: accounts[index]),
+
                           );
                         },
                       ),

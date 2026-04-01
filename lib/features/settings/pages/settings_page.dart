@@ -449,7 +449,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
       leading: Container(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: Theme.of(context)
               .colorScheme
@@ -458,7 +458,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           borderRadius: BorderRadius.circular(12),
         ),
         child: Icon(icon,
-            size: 24,
+            size: 28,
             fill: ref.watch(personalizationProvider).fillIcons ? 1.0 : 0.0),
       ),
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),

@@ -47,6 +47,18 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
     if (widget.transaction != null) {
       _isLoading = true;
       _initializeData();
+    } else {
+      _loadDefaultAccount();
+    }
+  }
+
+  Future<void> _loadDefaultAccount() async {
+    final accountRepo = ref.read(accountRepositoryProvider);
+    final defaultAcc = await accountRepo.getDefaultAccount();
+    if (mounted && defaultAcc != null) {
+      setState(() {
+        _selectedAccount = defaultAcc;
+      });
     }
   }
 
@@ -360,9 +372,9 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
 
     // Overbudget Check
     if (_transactionType == TransactionType.expense && _selectedCategory!.budgetLimit != null) {
-      final stats = ref.read(budgetStatsProvider).value;
-      final categoryStat = stats?.firstWhere((s) => s['categoryId'] == _selectedCategory!.id, orElse: () => {});
-      if (categoryStat != null && categoryStat.isNotEmpty) {
+      final stats = await ref.read(statisticsServiceProvider).watchBudgets().first;
+      final categoryStat = stats.firstWhere((s) => s['categoryId'] == _selectedCategory!.id, orElse: () => {});
+      if (categoryStat.isNotEmpty) {
         final spent = categoryStat['spent'] as double;
         final limit = _selectedCategory!.budgetLimit!;
         if (spent + amount > limit) {
@@ -370,7 +382,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
             context: context,
             builder: (context) => AlertDialog(
               title: const Text('Over Budget Warning'),
-              content: Text('This transaction will exceed your budget for ${_selectedCategory!.name}.\n\nLimit: $limit\nCurrently Spent: $spent\nNew Total: ${spent + amount}\n\nDo you want to continue?'),
+              content: Text('This transaction will exceed your monthly budget for ${_selectedCategory!.name}.\n\nLimit: $limit\nCurrently Spent: $spent\nNew Total: ${spent + amount}\n\nDo you want to continue?'),
               actions: [
                 TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
                 TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Continue')),

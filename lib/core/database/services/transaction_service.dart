@@ -146,6 +146,10 @@ class TransactionService {
 
   /// Deletes a transaction (soft delete) and restores account balances.
   Future<void> deleteTransaction(TransactionModel transaction) async {
+    // Ensure links are loaded for restoring balances
+    await transaction.account.load();
+    await transaction.transferAccount.load();
+
     await isar.writeTxn(() async {
       final account = transaction.account.value;
       final transferAccount = transaction.transferAccount.value;

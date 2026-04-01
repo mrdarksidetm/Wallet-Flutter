@@ -35,7 +35,7 @@ class TransactionListTile extends ConsumerWidget {
               title: const Text('Edit'),
               onTap: () {
                 Navigator.pop(context);
-                context.push('/add-transaction', extra: tx);
+                context.push('/add_transaction', extra: tx);
               },
             ),
             ListTile(

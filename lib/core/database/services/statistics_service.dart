@@ -116,6 +116,7 @@ class StatisticsService {
 
     final Map<Category, double> breakdown = {};
     for (var tx in transactions) {
+      await tx.category.load();
       final category = tx.category.value;
       if (category != null) {
         breakdown[category] = (breakdown[category] ?? 0) + tx.amount;
