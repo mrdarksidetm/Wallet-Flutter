@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:device_info_plus/device_info_plus.dart';
-import 'dart:io';
-import '../../../core/theme/personalization_provider.dart';
+import '../../../core/services/update_service.dart';
 
 class AboutPage extends ConsumerStatefulWidget {
   const AboutPage({super.key});
@@ -15,30 +12,20 @@ class AboutPage extends ConsumerStatefulWidget {
 }
 
 class _AboutPageState extends ConsumerState<AboutPage> {
-  String _architecture = 'Loading...';
+  String _arch = 'Universal';
 
   @override
   void initState() {
     super.initState();
-    _getDeviceInfo();
+    _loadArch();
   }
 
-  Future<void> _getDeviceInfo() async {
-    final deviceInfo = DeviceInfoPlugin();
-    String arch = 'Unknown';
-    try {
-      if (Platform.isAndroid) {
-        final androidInfo = await deviceInfo.androidInfo;
-        arch = androidInfo.supportedAbis.isNotEmpty 
-            ? androidInfo.supportedAbis.first 
-            : 'Unknown';
-      } else if (Platform.isIOS) {
-        arch = 'arm64';
-      }
-    } catch (_) {}
-    
+  Future<void> _loadArch() async {
+    final arch = await ref.read(updateServiceProvider).getDeviceArchitecture();
     if (mounted) {
-      setState(() => _architecture = arch);
+      setState(() {
+        _arch = arch;
+      });
     }
   }
 
@@ -46,87 +33,75 @@ class _AboutPageState extends ConsumerState<AboutPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final userName =
-        ref.watch(personalizationProvider.select((p) => p.userName)) ?? 'Abhi';
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('About'),
+        title: const Text('About Wallet'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
             const SizedBox(height: 40),
-            _buildAppIcon(colorScheme),
+            Center(
+              child: Container(
+                width: 120,
+                height: 120,
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: colorScheme.primaryContainer.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(40),
+                ),
+                child: Image.asset('assets/images/logo.png',
+                    errorBuilder: (context, error, stackTrace) =>
+                        Icon(Symbols.account_balance_wallet,
+                            size: 64, color: colorScheme.primary)),
+              ),
+            ),
             const SizedBox(height: 24),
             Text(
               'Wallet',
-              style: theme.textTheme.headlineLarge?.copyWith(
+              style: theme.textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.w900,
                 letterSpacing: -1,
               ),
             ),
-            const SizedBox(height: 32),
             Text(
-              'Rebuild from ground up to support Android Community using modern technologies and Material 3 design principles.',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: colorScheme.onSurface.withValues(alpha: 0.7),
+              'v1.28 Stable',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.outline,
+                fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 48),
-            _AboutTile(
-              icon: Symbols.code,
-              title: 'Developer',
-              subtitle: 'Built with ❤️ by $userName',
-            ),
-            const SizedBox(height: 16),
-            _AboutTile(
-              icon: Symbols.source_notes,
-              title: 'Open Source',
-              subtitle: 'View source code on GitHub',
-              onTap: () => _launchUrl('https://github.com/h4h13/paisa-app'),
-            ),
-            const SizedBox(height: 16),
-            _AboutTile(
-              icon: Symbols.policy,
-              title: 'Privacy Policy',
-              subtitle: 'How we handle your data',
-              onTap: () => _launchUrl(
-                  'https://github.com/h4h13/paisa-app/blob/main/PRIVACY_POLICY.md'),
-            ),
-            const SizedBox(height: 16),
-            _AboutTile(
-              icon: Symbols.gavel,
-              title: 'Licenses',
-              subtitle: 'Third-party software libraries',
-              onTap: () => showLicensePage(
-                context: context,
-                applicationName: 'Wallet',
+            _buildInfoCard(context),
+            const SizedBox(height: 48),
+            _buildLink(
+                context, 'GitHub Repository', 'https://github.com/mrdarksidetm/Wallet-Flutter'),
+            _buildLink(context, 'Privacy Policy', 'https://example.com/privacy'),
+            _buildLink(context, 'Licenses', ''),
+            const SizedBox(height: 64),
+            Text(
+              'Architecture',
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: colorScheme.outline,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.2,
               ),
             ),
-            const SizedBox(height: 48),
+            const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(8),
+                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                'Architecture: $_architecture',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  fontFamily: 'monospace',
+                _arch.toUpperCase(),
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w900,
                   color: colorScheme.primary,
-                  fontWeight: FontWeight.bold,
                 ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              '© 2026 Antigravity Ideas',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurface.withValues(alpha: 0.5),
               ),
             ),
           ],
@@ -135,54 +110,67 @@ class _AboutPageState extends ConsumerState<AboutPage> {
     );
   }
 
-  Widget _buildAppIcon(ColorScheme colorScheme) {
+  Widget _buildInfoCard(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(32),
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(24),
       ),
-      child: SvgPicture.asset(
-        'assets/images/logo.svg',
-        height: 64,
-        width: 64,
+      child: Column(
+        children: [
+          const Text(
+            'Built with ❤️ and Flutter. This app is part of the Antigravity project ecosystem, focusing on premiium, native-feeling utility.',
+            textAlign: TextAlign.center,
+            style: TextStyle(height: 1.5),
+          ),
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildFeatureChip(context, 'Material 3'),
+              const SizedBox(width: 8),
+              _buildFeatureChip(context, 'Offline First'),
+              const SizedBox(width: 8),
+              _buildFeatureChip(context, 'Local Only'),
+            ],
+          ),
+        ],
       ),
     );
   }
 
-  Future<void> _launchUrl(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    }
+  Widget _buildFeatureChip(BuildContext context, String label) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: colorScheme.primary.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(100),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+          color: colorScheme.primary,
+        ),
+      ),
+    );
   }
-}
 
-class _AboutTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback? onTap;
-
-  const _AboutTile({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
+  Widget _buildLink(BuildContext context, String title, String url) {
     return ListTile(
-      onTap: onTap,
-      leading: Icon(icon, color: colorScheme.primary),
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: Text(subtitle),
-      trailing: onTap != null ? const Icon(Icons.chevron_right_rounded) : null,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      trailing: const Icon(Symbols.chevron_right, size: 20),
+      onTap: () async {
+        if (url.isEmpty) return;
+        final uri = Uri.parse(url);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri);
+        }
+      },
     );
   }
 }
