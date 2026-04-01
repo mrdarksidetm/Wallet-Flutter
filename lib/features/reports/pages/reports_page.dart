@@ -30,7 +30,11 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
 
   @override
   void dispose() {
-    ref.read(fabActionProvider.notifier).setAction(null);
+    try {
+      ref.read(fabActionProvider.notifier).setAction(null);
+    } catch (_) {
+      // ref might be already disposed in some unmount scenarios
+    }
     super.dispose();
   }
 
