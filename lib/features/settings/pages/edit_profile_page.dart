@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -52,7 +53,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
               children: [
                 CircleAvatar(
                   radius: 60,
-                  backgroundImage: photo != null ? AssetImage(photo) : null,
+                  backgroundImage: photo != null ? FileImage(File(photo)) : null,
                   child: photo == null ? const Icon(Symbols.person, size: 60) : null,
                 ),
                 Positioned(
