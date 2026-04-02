@@ -504,7 +504,7 @@ class DynamicBlueprintBanner extends StatelessWidget {
 
       // 4. Load your transparent SVG and dynamically tint it.
       child: SvgPicture.asset(
-        'assets/images/banner.svg',
+        'assets/images/blueprint.svg',
         // 'cover' ensures the grid lines stretch to fill the width,
         // while Figma's internal center constraints keep your logo perfect.
         fit: BoxFit.cover,

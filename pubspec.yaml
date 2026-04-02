@@ -91,6 +91,7 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/images/blueprint.svg
     - assets/icon/
 
   fonts:

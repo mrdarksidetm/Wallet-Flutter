@@ -195,8 +195,8 @@ final currencyProvider = Provider<String>((ref) {
   final personalization = ref.watch(personalizationProvider);
   final currency = personalization.defaultCurrency;
   if (currency == null) {
-    // This should never happen if onboarding is completed
-    throw UnimplementedError('Default currency not selected during onboarding');
+    // Return a default currency symbol to avoid app crash
+    return 'USD';
   }
   return currency;
 });
