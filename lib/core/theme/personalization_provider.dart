@@ -211,6 +211,19 @@ class PersonalizationNotifier extends Notifier<PersonalizationState> {
   void updateFontRoundness(double v) { state = state.copyWith(fontRoundness: v); _save(); }
   void updateOpticalSize(double v) { state = state.copyWith(opticalSize: v); _save(); }
   
+  void resetTypography() {
+    state = state.copyWith(
+      grade: 50,
+      weight: 400,
+      slant: 0,
+      width: 100,
+      roundness: 28,
+      fontRoundness: 0,
+      opticalSize: 12,
+    );
+    _save();
+  }
+
   void reset() {
     state = PersonalizationState();
     _save();

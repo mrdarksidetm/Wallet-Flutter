@@ -32,17 +32,6 @@ class PersonalizationPage extends ConsumerWidget {
                     fontWeight: FontWeight.bold,
                   ),
             ),
-            actions: [
-              IconButton(
-                onPressed: () {
-                  notifier.reset();
-                  themeNotifier.setThemeMode(ThemeMode.system);
-                  themeNotifier.setUseMaterialYou(true);
-                },
-                icon: const Icon(Symbols.restart_alt_rounded),
-                tooltip: 'Reset to Default',
-              ),
-            ],
           ),
           SliverToBoxAdapter(
             child: Column(
@@ -147,6 +136,18 @@ class PersonalizationPage extends ConsumerWidget {
         if (state.useGoogleSansFlex) ...[
           const SizedBox(height: 24),
           _buildSliderSection(context, state, notifier),
+          const SizedBox(height: 8),
+          Center(
+            child: TextButton.icon(
+              onPressed: () => notifier.resetTypography(),
+              icon: const Icon(Symbols.restart_alt_rounded, size: 18),
+              label: const Text('Reset Typography to Default'),
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.primary,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
+            ),
+          ),
         ],
         const SizedBox(height: 48),
 

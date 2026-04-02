@@ -96,7 +96,6 @@ class AboutPage extends ConsumerWidget {
             FutureBuilder<String>(
               future: ref.read(updateServiceProvider).getDeviceArchitecture(),
               builder: (context, snapshot) {
-                final arch = snapshot.data ?? '...';
                 return Opacity(
                   opacity: 0.5,
                   child: Row(
@@ -110,26 +109,6 @@ class AboutPage extends ConsumerWidget {
                         ),
                       ),
                       const FlutterLogo(size: 14),
-                      Text(
-                        ' | ',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const Icon(Symbols.memory, size: 14),
-                      Text(
-                        ' Architecture: ',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        arch.toUpperCase(),
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: colorScheme.primary,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
                     ],
                   ),
                 );
