@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import '../../../core/database/providers.dart';
 import '../../../core/database/models/category.dart';
-import '../../../core/widgets/icon_picker.dart';
+import '../../../core/database/providers.dart';
+import '../../../core/services/currency_engine.dart';
 import '../../../core/theme/color_extension.dart';
+import '../../../core/widgets/icon_picker.dart';
 
+/// ReportsPage: A dynamic, reactive dashboard for spending analysis.
+/// It uses Riverpod to watch the database and automatically update metrics.
 class ReportsPage extends ConsumerStatefulWidget {
   const ReportsPage({super.key});
 
@@ -15,6 +18,7 @@ class ReportsPage extends ConsumerStatefulWidget {
 }
 
 class _ReportsPageState extends ConsumerState<ReportsPage> {
+  // [LOGIC]: Persistent custom range if selected, otherwise defaults to "This Month".
   DateTimeRange? _customRange;
 
   @override
@@ -22,181 +26,209 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final selectedCurrency = ref.watch(currencyProvider);
-    final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
 
+    // [LOGIC]: Calculate the effective range (either custom or current month).
     final now = DateTime.now();
-    final currentRange = _customRange ??
+    final effectiveRange = _customRange ??
         DateTimeRange(
           start: DateTime(now.year, now.month, 1),
           end: DateTime(now.year, now.month + 1, 0),
         );
 
-    final breakdownAsync = ref.watch(categoryBreakdownProvider(currentRange));
+    // [REACTIVE DATA]: Watch the breakdown provider for the effective range.
+    // Because we added ref.watch(transactionsStreamProvider) in providers.dart,
+    // this will rebuild the UI whenever ANY transaction is added, edited, or deleted.
+    final breakdownAsync = ref.watch(categoryBreakdownProvider(effectiveRange));
 
     return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Reports', style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
+            onPressed: _selectDateRange,
             icon: const Icon(Symbols.calendar_month),
-            onPressed: _showFilterDialog,
           ),
           const SizedBox(width: 8),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildDateHeader(theme, currentRange),
-            const SizedBox(height: 32),
-            
-            // Summary Cards
-            breakdownAsync.when(
-              data: (data) => _buildSummaryCards(context, data, currencyFormat),
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, _) => Text('Error: $err'),
-            ),
-            
-            const SizedBox(height: 40),
-            Text(
-              'Spending Breakdown',
-              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900, letterSpacing: -0.5),
-            ),
-            const SizedBox(height: 24),
-
-            // Spending Chart
-            SizedBox(
-              height: 240,
-              width: double.infinity,
-              child: breakdownAsync.when(
-                data: (breakdown) {
-                  if (breakdown.isEmpty) {
-                    return Center(child: Text('No data for this period', style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.outline)));
-                  }
-                  return CustomPaint(
-                    painter: _SpendingChartPainter(breakdown: breakdown),
-                  );
-                },
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (err, _) => Center(child: Text('Error: $err')),
-              ),
-            ),
-
-            const SizedBox(height: 48),
-            Text(
-              'Top Categories',
-              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900, letterSpacing: -0.5),
-            ),
-            const SizedBox(height: 16),
-            
-            breakdownAsync.when(
-              data: (breakdown) => _buildCategoryList(context, breakdown, currencyFormat),
-              loading: () => const SizedBox.shrink(),
-              error: (_, __) => const SizedBox.shrink(),
-            ),
-            const SizedBox(height: 100),
-          ],
+      body: breakdownAsync.when(
+        data: (breakdown) => _buildReportContent(
+          theme,
+          colorScheme,
+          breakdown,
+          selectedCurrency,
+          effectiveRange,
         ),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, _) => Center(child: Text('Error loading reports: $err')),
+      ),
+      // [FEATURE]: Filter FAB positioned above navigation.
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // Placeholder for future advanced filters (by Account, Tags, etc.)
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Advanced filtering by account coming soon!')),
+          );
+        },
+        backgroundColor: colorScheme.primary,
+        foregroundColor: colorScheme.onPrimary,
+        child: const Icon(Symbols.filter_list),
       ),
     );
   }
 
-  Widget _buildDateHeader(ThemeData theme, DateTimeRange range) {
-    final format = DateFormat('MMM d, yyyy');
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          _customRange == null ? 'This Month' : 'Custom Range',
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.primary,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 1.2,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          '${format.format(range.start)} - ${format.format(range.end)}',
-          style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-        ),
-      ],
-    );
-  }
+  /// [UI BLOCK]: Main scrollable content using Sliver architecture for fluid motion.
+  Widget _buildReportContent(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    Map<Category, double> breakdown,
+    String currency,
+    DateTimeRange range,
+  ) {
+    // [CALCULATION]: Iterating through filtered transactions (via provider) to sum metrics.
+    final totalSpent = breakdown.values.fold(0.0, (sum, val) => sum + val);
+    final categoryCount = breakdown.keys.length;
 
-  Widget _buildSummaryCards(BuildContext context, Map<Category, double> data, NumberFormat format) {
-    final double total = data.values.fold(0, (sum, val) => sum + val);
-    
-    return Row(
-      children: [
-        Expanded(
-          child: _SummaryCard(
-            title: 'Total Spent',
-            amount: total,
-            color: Colors.redAccent,
-            icon: Symbols.trending_down,
-            format: format,
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _SummaryCard(
-            title: 'Categories',
-            amount: data.length.toDouble(),
-            color: Colors.blueAccent,
-            icon: Symbols.category,
-            format: NumberFormat.decimalPattern(),
-            isCurrency: false,
-          ),
-        ),
-      ],
-    );
-  }
+    // [CALCULATION]: Grouping and sorting expenses by category amount (highest to lowest).
+    final sortedEntries = breakdown.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
 
-  Widget _buildCategoryList(BuildContext context, Map<Category, double> breakdown, NumberFormat format) {
-    final sorted = breakdown.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
-    final double total = breakdown.values.fold(0, (sum, val) => sum + val);
+    final dateLabel = _customRange == null ? 'This Month' : 'Custom Period';
+    final dateString =
+        '${DateFormat('MMM d').format(range.start)} - ${DateFormat('MMM d, y').format(range.end)}';
 
-    return Column(
-      children: sorted.map((e) {
-        final cat = e.key;
-        final amount = e.value;
-        final percentage = total > 0 ? (amount / total) * 100 : 0.0;
-
-        return ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: cat.color.parseHexColor().withValues(alpha: 0.1),
-              shape: BoxShape.circle,
+    return CustomScrollView(
+      physics: const BouncingScrollPhysics(),
+      slivers: [
+        // [SECTION]: Date Display Header
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  dateLabel.toUpperCase(),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  dateString,
+                  style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                ),
+              ],
             ),
-            child: Icon(AppIcons.getIcon(cat.icon), color: cat.color.parseHexColor(), size: 20),
           ),
-          title: Text(cat.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-          subtitle: Text('${percentage.toStringAsFixed(1)}% of total'),
-          trailing: Text(
-            format.format(amount),
-            style: const TextStyle(fontWeight: FontWeight.w900),
+        ),
+
+        // [SECTION]: Dynamic Metric Cards
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                // [CARD]: Total Spent with dynamic currency formatting.
+                Expanded(
+                  child: _MetricCard(
+                    title: 'Total Spent',
+                    value: CurrencyEngine.formatCurrency(totalSpent, currency),
+                    icon: Symbols.trending_down,
+                    iconColor: Colors.redAccent,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // [CARD]: Category usage metric.
+                Expanded(
+                  child: _MetricCard(
+                    title: 'Categories',
+                    value: '$categoryCount used',
+                    icon: Symbols.category,
+                    iconColor: colorScheme.primary,
+                  ),
+                ),
+              ],
+            ),
           ),
-        );
-      }).toList(),
+        ),
+
+        // [SECTION]: Spending Breakdown Header
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+            child: Text(
+              'SPENDING BREAKDOWN',
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: Colors.grey,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.2,
+              ),
+            ),
+          ),
+        ),
+
+        // [SECTION]: Spending Breakdown List (Handles Empty State)
+        if (sortedEntries.isEmpty)
+          const SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Symbols.analytics, size: 48, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text('No data for this period', style: TextStyle(color: Colors.grey)),
+                ],
+              ),
+            ),
+          )
+        else
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final entry = sortedEntries[index];
+                  final category = entry.key;
+                  final amount = entry.value;
+                  final percentage = totalSpent > 0 ? (amount / totalSpent) * 100 : 0.0;
+
+                  return _CategoryBreakdownTile(
+                    category: category,
+                    amount: amount,
+                    currency: currency,
+                    percentage: percentage,
+                  );
+                },
+                childCount: sortedEntries.length,
+              ),
+            ),
+          ),
+        
+        const SliverToBoxAdapter(child: SizedBox(height: 120)),
+      ],
     );
   }
 
-  void _showFilterDialog() async {
-    final picked = await showDateRangePicker(
+  /// [HELPER]: Logic to connect calendar icon to Flutter showDateRangePicker.
+  Future<void> _selectDateRange() async {
+    final DateTimeRange? picked = await showDateRangePicker(
       context: context,
+      initialDateRange: _customRange ?? DateTimeRange(
+        start: DateTime(DateTime.now().year, DateTime.now().month, 1),
+        end: DateTime.now(),
+      ),
       firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
-      initialDateRange: _customRange,
+      lastDate: DateTime.now().add(const Duration(days: 365)),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: Theme.of(context).colorScheme.copyWith(
                   primary: Theme.of(context).colorScheme.primary,
-                  onPrimary: Theme.of(context).colorScheme.onPrimary,
                 ),
           ),
           child: child!,
@@ -210,83 +242,118 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
   }
 }
 
-class _SummaryCard extends StatelessWidget {
+/// [_MetricCard]: Modern M3 metric card with tonal elevation.
+class _MetricCard extends StatelessWidget {
   final String title;
-  final double amount;
-  final Color color;
+  final String value;
   final IconData icon;
-  final NumberFormat format;
-  final bool isCurrency;
+  final Color iconColor;
 
-  const _SummaryCard({
+  const _MetricCard({
     required this.title,
-    required this.amount,
-    required this.color,
+    required this.value,
     required this.icon,
-    required this.format,
-    this.isCurrency = true,
+    required this.iconColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: color.withValues(alpha: 0.1)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 16),
-          Text(
-            title,
-            style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            isCurrency ? format.format(amount) : amount.toInt().toString(),
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
-          ),
-        ],
+    final theme = Theme.of(context);
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: iconColor, size: 20),
+            ),
+            const SizedBox(height: 16),
+            Text(title, style: theme.textTheme.labelMedium?.copyWith(color: Colors.grey, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w900, 
+                letterSpacing: -0.5,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _SpendingChartPainter extends CustomPainter {
-  final Map<Category, double> breakdown;
+/// [_CategoryBreakdownTile]: List item for category spending.
+class _CategoryBreakdownTile extends StatelessWidget {
+  final Category category;
+  final double amount;
+  final String currency;
+  final double percentage;
 
-  _SpendingChartPainter({required this.breakdown});
+  const _CategoryBreakdownTile({
+    required this.category,
+    required this.amount,
+    required this.currency,
+    required this.percentage,
+  });
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 40
-      ..strokeCap = StrokeCap.round;
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final color = category.color.parseHexColor();
 
-    final double total = breakdown.values.fold(0, (sum, val) => sum + val);
-    double startAngle = -1.5708; // Start from top (-90 degrees)
-
-    if (total == 0) return;
-
-    final rect = Rect.fromCircle(
-      center: Offset(size.width / 2, size.height / 2),
-      radius: size.height * 0.4,
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(12),
+        leading: Container(
+          width: 52,
+          height: 52,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Icon(AppIcons.getIcon(category.icon), color: color, size: 24),
+        ),
+        title: Text(category.name, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('${percentage.toStringAsFixed(1)}% of total period spending'),
+              const SizedBox(height: 8),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: percentage / 100,
+                  backgroundColor: color.withValues(alpha: 0.05),
+                  valueColor: AlwaysStoppedAnimation<Color>(color),
+                  minHeight: 6,
+                ),
+              ),
+            ],
+          ),
+        ),
+        trailing: Text(
+          CurrencyEngine.formatCurrency(amount, currency),
+          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: -0.5),
+        ),
+      ),
     );
-
-    breakdown.forEach((cat, amount) {
-      final sweepAngle = (amount / total) * 6.28318; // Full circle is 2*PI
-      paint.color = cat.color.parseHexColor();
-      
-      canvas.drawArc(rect, startAngle, sweepAngle * 0.95, false, paint);
-      startAngle += sweepAngle;
-    });
   }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }

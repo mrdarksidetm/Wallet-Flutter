@@ -4756,7 +4756,14 @@ const GoalSchema = CollectionSchema(
   deserializeProp: _goalDeserializeProp,
   idName: r'id',
   indexes: {},
-  links: {},
+  links: {
+    r'account': LinkSchema(
+      id: 1732188125270901006,
+      name: r'account',
+      target: r'Account',
+      single: true,
+    )
+  },
   embeddedSchemas: {},
   getId: _goalGetId,
   getLinks: _goalGetLinks,
@@ -4857,11 +4864,12 @@ Id _goalGetId(Goal object) {
 }
 
 List<IsarLinkBase<dynamic>> _goalGetLinks(Goal object) {
-  return [];
+  return [object.account];
 }
 
 void _goalAttach(IsarCollection<dynamic> col, Id id, Goal object) {
   object.id = id;
+  object.account.attach(col, col.isar.collection<Account>(), r'account', id);
 }
 
 extension GoalQueryWhereSort on QueryBuilder<Goal, Goal, QWhere> {
@@ -5697,7 +5705,20 @@ extension GoalQueryFilter on QueryBuilder<Goal, Goal, QFilterCondition> {
 
 extension GoalQueryObject on QueryBuilder<Goal, Goal, QFilterCondition> {}
 
-extension GoalQueryLinks on QueryBuilder<Goal, Goal, QFilterCondition> {}
+extension GoalQueryLinks on QueryBuilder<Goal, Goal, QFilterCondition> {
+  QueryBuilder<Goal, Goal, QAfterFilterCondition> account(
+      FilterQuery<Account> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.link(q, r'account');
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition> accountIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'account', 0, true, 0, true);
+    });
+  }
+}
 
 extension GoalQuerySortBy on QueryBuilder<Goal, Goal, QSortBy> {
   QueryBuilder<Goal, Goal, QAfterSortBy> sortByColor() {

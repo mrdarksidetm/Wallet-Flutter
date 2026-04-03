@@ -6,7 +6,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/auxiliary_models.dart';
 import '../../../core/providers/fab_action_provider.dart';
-import '../../../core/theme/color_extension.dart';
+import '../widgets/person_avatar.dart';
 
 class PeoplePage extends ConsumerStatefulWidget {
   const PeoplePage({super.key});
@@ -91,8 +91,6 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
               final personTxs = txs.where((t) => t.person.value?.id == person.id);
               final txCount = personTxs.length;
 
-              final color = person.color.parseHexColor();
-
               return Card(
                 margin: const EdgeInsets.only(bottom: 12),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -104,13 +102,9 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
                     padding: const EdgeInsets.all(16),
                     child: Row(
                       children: [
-                        CircleAvatar(
+                        PersonAvatar(
+                          person: person,
                           radius: 28,
-                          backgroundColor: color.withValues(alpha: 0.1),
-                          child: Text(
-                            person.name[0].toUpperCase(),
-                            style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 20),
-                          ),
                         ),
                         const SizedBox(width: 16),
                         Expanded(

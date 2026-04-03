@@ -235,6 +235,8 @@ final categoryBreakdownProvider =
     FutureProvider.family<Map<Category, double>, DateTimeRange?>(
         (ref, range) async {
   if (range == null) return {};
+  // Watch transactions to force rebuild when data changes
+  ref.watch(transactionsStreamProvider);
   final service = ref.watch(statisticsServiceProvider);
   return await service.getCategoryBreakdown(range.start, range.end);
 });
@@ -243,6 +245,8 @@ final dailyStatsProvider =
     FutureProvider.family<List<MapEntry<DateTime, double>>, DateTimeRange?>(
         (ref, range) async {
   if (range == null) return [];
+  // Watch transactions to force rebuild when data changes
+  ref.watch(transactionsStreamProvider);
   final service = ref.watch(statisticsServiceProvider);
   return await service.getDailyStats(range.start, range.end);
 });

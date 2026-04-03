@@ -8,6 +8,7 @@ import '../../../core/widgets/expressive_bottom_sheet.dart';
 import '../../../core/theme/color_extension.dart';
 import '../../../core/theme/personalization_provider.dart';
 import '../../../core/services/haptic_service.dart';
+import '../../people/widgets/person_avatar.dart';
 
 class BillSplitterPage extends ConsumerStatefulWidget {
   const BillSplitterPage({super.key});
@@ -187,7 +188,7 @@ class _BillSplitterPageState extends ConsumerState<BillSplitterPage> {
             const SizedBox(height: 8),
             ..._selectedPeople.map((p) => _buildPersonTile(p.name, p.color, () {
               setState(() { _selectedPeople.remove(p); _calculate(); });
-            })),
+            }, person: p)),
             ..._manualPeople.map((name) => _buildPersonTile(name, '0xFF9E9E9E', () {
               setState(() { _manualPeople.remove(name); _calculate(); });
             })),
@@ -259,7 +260,7 @@ class _BillSplitterPageState extends ConsumerState<BillSplitterPage> {
     }
   }
 
-  Widget _buildPersonTile(String name, String colorStr, VoidCallback onDelete) {
+  Widget _buildPersonTile(String name, String colorStr, VoidCallback onDelete, {Person? person}) {
     final color = colorStr.parseHexColor();
     final selectedCurrency = ref.watch(currencyProvider);
     final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
@@ -267,10 +268,12 @@ class _BillSplitterPageState extends ConsumerState<BillSplitterPage> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: color.withValues(alpha: 0.2),
-          child: Text(name[0].toUpperCase(), style: TextStyle(color: color, fontWeight: FontWeight.bold)),
-        ),
+        leading: person != null 
+          ? PersonAvatar(person: person, radius: 20)
+          : CircleAvatar(
+              backgroundColor: color.withValues(alpha: 0.2),
+              child: Text(name[0].toUpperCase(), style: TextStyle(color: color, fontWeight: FontWeight.bold)),
+            ),
         title: Text(name),
         subtitle: Text('Owes ${currencyFormat.format(_totalPerPerson)}'),
         trailing: IconButton(icon: const Icon(Icons.remove_circle_outline_rounded, color: Colors.red), onPressed: onDelete),
@@ -309,10 +312,7 @@ class _BillSplitterPageState extends ConsumerState<BillSplitterPage> {
             const Divider(),
             if (availablePeople.isEmpty) const Padding(padding: EdgeInsets.all(32.0), child: Text('No saved people found.')),
             ...availablePeople.where((p) => !_selectedPeople.contains(p)).map((p) => ListTile(
-              leading: CircleAvatar(
-                backgroundColor: p.color.parseHexColor(),
-                child: Text(p.name[0].toUpperCase(), style: const TextStyle(color: Colors.white)),
-              ),
+              leading: PersonAvatar(person: p, radius: 20),
               title: Text(p.name),
               onTap: () {
                 setState(() { _selectedPeople.add(p); _calculate(); });

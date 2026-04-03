@@ -73,6 +73,21 @@ class TransactionService {
         await isar.accounts.put(transferAccount);
       }
 
+      // [ACTION]: Sync with Goals if account is a Savings account
+      if (account.type == AccountType.savings) {
+        final linkedGoals = await isar.goals.filter().account((q) => q.idEqualTo(account.id)).findAll();
+        for (var goal in linkedGoals) {
+          if (type == TransactionType.income) {
+            goal.currentAmount += amount;
+          } else if (type == TransactionType.expense) {
+            goal.currentAmount -= amount;
+          }
+          goal.isCompleted = goal.currentAmount >= goal.targetAmount;
+          goal.updatedAt = DateTime.now();
+          await isar.goals.put(goal);
+        }
+      }
+
       // 3. Save
       await isar.accounts.put(account);
       await isar.transactionModels.put(transaction);
@@ -104,6 +119,20 @@ class TransactionService {
           oldTransferAcc.balance -= txToRevert.amount;
           await isar.accounts.put(oldTransferAcc);
         }
+
+        // [ACTION]: Revert Goal progress
+        if (oldAcc.type == AccountType.savings) {
+          final linkedGoals = await isar.goals.filter().account((q) => q.idEqualTo(oldAcc.id)).findAll();
+          for (var goal in linkedGoals) {
+            if (txToRevert.type == TransactionType.income) {
+              goal.currentAmount -= txToRevert.amount;
+            } else if (txToRevert.type == TransactionType.expense) {
+              goal.currentAmount += txToRevert.amount;
+            }
+            goal.isCompleted = goal.currentAmount >= goal.targetAmount;
+            await isar.goals.put(goal);
+          }
+        }
         await isar.accounts.put(oldAcc);
       }
 
@@ -120,6 +149,20 @@ class TransactionService {
           newAcc.balance -= newTransaction.amount;
           newTransferAcc.balance += newTransaction.amount;
           await isar.accounts.put(newTransferAcc);
+        }
+
+        // [ACTION]: Apply New Goal progress
+        if (newAcc.type == AccountType.savings) {
+          final linkedGoals = await isar.goals.filter().account((q) => q.idEqualTo(newAcc.id)).findAll();
+          for (var goal in linkedGoals) {
+            if (newTransaction.type == TransactionType.income) {
+              goal.currentAmount += newTransaction.amount;
+            } else if (newTransaction.type == TransactionType.expense) {
+              goal.currentAmount -= newTransaction.amount;
+            }
+            goal.isCompleted = goal.currentAmount >= goal.targetAmount;
+            await isar.goals.put(goal);
+          }
         }
         await isar.accounts.put(newAcc);
       }
@@ -166,6 +209,20 @@ class TransactionService {
           account.balance += tx.amount;
           transferAccount.balance -= tx.amount;
           await isar.accounts.put(transferAccount);
+        }
+
+        // [ACTION]: Revert Goal progress
+        if (account.type == AccountType.savings) {
+          final linkedGoals = await isar.goals.filter().account((q) => q.idEqualTo(account.id)).findAll();
+          for (var goal in linkedGoals) {
+            if (tx.type == TransactionType.income) {
+              goal.currentAmount -= tx.amount;
+            } else if (tx.type == TransactionType.expense) {
+              goal.currentAmount += tx.amount;
+            }
+            goal.isCompleted = goal.currentAmount >= goal.targetAmount;
+            await isar.goals.put(goal);
+          }
         }
         await isar.accounts.put(account);
       }

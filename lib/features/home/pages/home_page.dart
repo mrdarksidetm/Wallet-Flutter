@@ -6,17 +6,29 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/widgets/transaction_list_tile.dart';
 import '../../../core/services/currency_engine.dart';
+import '../../../core/theme/personalization_provider.dart';
 import '../widgets/animated_balance_hero.dart';
 import '../widgets/overview_card.dart';
+import '../widgets/home_header.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
+
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good Morning';
+    if (hour < 17) return 'Good Afternoon';
+    return 'Good Evening';
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
+    
+    final personalization = ref.watch(personalizationProvider);
+    final userName = personalization.userName ?? 'User';
     
     final backgroundColor = isDark ? colorScheme.surface : const Color(0xFFF7F7F9);
 
@@ -32,6 +44,16 @@ class HomePage extends ConsumerWidget {
                 physics: const BouncingScrollPhysics(),
                 slivers: [
                   const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                  
+                  // [ACTION]: Header with Logo and Dynamic Greeting
+                  SliverToBoxAdapter(
+                    child: HomeHeader(
+                      userName: userName,
+                      greeting: _getGreeting(),
+                      userPhoto: personalization.userPhoto,
+                    ),
+                  ),
+
                   const SliverToBoxAdapter(child: _HomeBalanceSection()),
                   const _SectionHeader(title: 'Overview'),
                   const _HomeFinanceGrid(),

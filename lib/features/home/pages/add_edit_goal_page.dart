@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 import '../../../core/database/models/auxiliary_models.dart';
+import '../../../core/database/models/account.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/widgets/icon_picker.dart';
 import '../../../core/widgets/primary_atelier_button.dart';
@@ -26,6 +27,7 @@ class _AddEditGoalPageState extends ConsumerState<AddEditGoalPage> {
   DateTime _deadline = DateTime.now().add(const Duration(days: 30));
   String _selectedColor = '0xFF4CAF50';
   String _selectedIcon = 'savings';
+  Account? _selectedAccount;
 
   @override
   void initState() {
@@ -39,6 +41,7 @@ class _AddEditGoalPageState extends ConsumerState<AddEditGoalPage> {
         widget.goal?.deadline ?? DateTime.now().add(const Duration(days: 30));
     _selectedColor = widget.goal?.color ?? '0xFF4CAF50';
     _selectedIcon = widget.goal?.icon ?? 'savings';
+    _selectedAccount = widget.goal?.account.value;
   }
 
   @override
@@ -89,6 +92,10 @@ class _AddEditGoalPageState extends ConsumerState<AddEditGoalPage> {
       ..createdAt = widget.goal?.createdAt ?? DateTime.now()
       ..updatedAt = DateTime.now();
 
+    if (_selectedAccount != null) {
+      goal.account.value = _selectedAccount;
+    }
+
     if (widget.goal != null) {
       goal.id = widget.goal!.id;
     }
@@ -103,6 +110,7 @@ class _AddEditGoalPageState extends ConsumerState<AddEditGoalPage> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final effectiveColor = _selectedColor.parseHexColor();
+    final accountsAsync = ref.watch(accountsStreamProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -194,6 +202,39 @@ class _AddEditGoalPageState extends ConsumerState<AddEditGoalPage> {
               ],
             ),
             const SizedBox(height: 24),
+
+            // Account Link (Savings only)
+            accountsAsync.when(
+              data: (accounts) {
+                final savingsAccounts = accounts.where((a) => a.type == AccountType.savings).toList();
+                if (savingsAccounts.isEmpty) return const SizedBox.shrink();
+                
+                return Column(
+                  children: [
+                    DropdownButtonFormField<Account>(
+                      value: savingsAccounts.any((a) => a.id == _selectedAccount?.id) 
+                        ? savingsAccounts.firstWhere((a) => a.id == _selectedAccount?.id)
+                        : null,
+                      decoration: InputDecoration(
+                        labelText: 'Link to Savings Account',
+                        prefixIcon: const Icon(Icons.account_balance_wallet_rounded),
+                        helperText: 'Goal progress will sync with this account',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      items: savingsAccounts.map((a) => DropdownMenuItem(
+                        value: a,
+                        child: Text(a.name),
+                      )).toList(),
+                      onChanged: (v) => setState(() => _selectedAccount = v),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                );
+              },
+              loading: () => const LinearProgressIndicator(),
+              error: (_, __) => const SizedBox.shrink(),
+            ),
+
             TextFormField(
               controller: _nameController,
               decoration: const InputDecoration(

@@ -13,6 +13,7 @@ import '../../../core/widgets/transaction_list_tile.dart';
 import '../../../core/theme/color_extension.dart';
 import '../../../core/widgets/icon_picker.dart';
 import '../../../core/widgets/expressive_bottom_sheet.dart';
+import '../widgets/person_avatar.dart';
 
 class PersonDetailsPage extends ConsumerStatefulWidget {
   final Person person;
@@ -235,13 +236,9 @@ class _PersonDetailsPageState extends ConsumerState<PersonDetailsPage> {
                   padding: const EdgeInsets.all(24.0),
                   child: Column(
                     children: [
-                      CircleAvatar(
+                      PersonAvatar(
+                        person: _person,
                         radius: 40,
-                        backgroundColor: color.withValues(alpha: 0.2),
-                        backgroundImage: _person.avatar?.startsWith('/') == true ? FileImage(File(_person.avatar!)) : null,
-                        child: _person.avatar?.startsWith('/') != true 
-                          ? Icon(AppIcons.getIcon(_person.avatar ?? 'person'), color: color, size: 32)
-                          : null,
                       ),
                       const SizedBox(height: 16),
                       Text(

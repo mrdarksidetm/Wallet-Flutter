@@ -202,7 +202,7 @@ class AppShell extends ConsumerWidget {
     return Scaffold(
       appBar: isHome
           ? PreferredSize(
-              preferredSize: const Size.fromHeight(80),
+              preferredSize: const Size.fromHeight(110),
               child: Consumer(
                 builder: (context, ref, _) {
                   final greeting =

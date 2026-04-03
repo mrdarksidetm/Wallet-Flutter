@@ -34,7 +34,7 @@ class AboutPage extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Version 1.3.0',
+              'Version 1.4.0',
               style: theme.textTheme.labelLarge?.copyWith(
                 color: colorScheme.primary,
                 fontWeight: FontWeight.bold,

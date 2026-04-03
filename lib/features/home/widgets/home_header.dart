@@ -26,8 +26,22 @@ class HomeHeader extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Left Side: Dynamic Shadow Logo
-          _buildDynamicShadowLogo(),
+          // Left Side: Logo & Greeting
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildDynamicShadowLogo(),
+              const SizedBox(height: 8),
+              Text(
+                '$greeting, $userName',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: -0.5,
+                ),
+              ),
+            ],
+          ),
 
           // Right Side: Settings & Profile
           Row(
