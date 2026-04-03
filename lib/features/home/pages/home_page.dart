@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/widgets/transaction_list_tile.dart';
+import '../../../core/services/currency_engine.dart';
 import '../widgets/animated_balance_hero.dart';
 import '../widgets/overview_card.dart';
 
@@ -131,7 +131,6 @@ class _HomeFinanceGrid extends ConsumerWidget {
     // Watch accountsStreamProvider to ensure the grid updates when accounts change
     ref.watch(accountsStreamProvider);
     final selectedCurrency = ref.watch(currencyProvider);
-    final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
 
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -147,7 +146,7 @@ class _HomeFinanceGrid extends ConsumerWidget {
             icon: Symbols.account_balance,
             title: 'Accounts',
             subtitle: totalAssetBalanceAsync.when(
-              data: (v) => '${currencyFormat.format(v)} total',
+              data: (v) => '${CurrencyEngine.formatCurrency(v, selectedCurrency)} total',
               loading: () => '...',
               error: (_, __) => 'Error',
             ),

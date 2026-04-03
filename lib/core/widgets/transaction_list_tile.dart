@@ -6,6 +6,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../database/providers.dart';
 import '../database/models/transaction_model.dart';
 import '../theme/color_extension.dart';
+import '../services/currency_engine.dart';
 import 'icon_picker.dart';
 import 'expressive_bottom_sheet.dart';
 
@@ -88,17 +89,21 @@ class TransactionListTile extends ConsumerWidget {
     final isDark = theme.brightness == Brightness.dark;
     
     final selectedCurrency = ref.watch(currencyProvider);
-    final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
     final isIncome = tx.type == TransactionType.income;
 
-    // Ensure links are loaded if possible, otherwise use fallback
+    // [ACTION]: Determining the primary visual identity of the transaction.
+    // [M3 UPDATE]: Using the explicitly saved tx.icon and tx.color with category fallback.
+    // [WHY]: This ensures that even if links are not eagerly loaded, the transaction 
+    // tile displays the correct icon and brand color inherited from its category.
     final category = tx.category.value;
-    final icon = AppIcons.getIcon(tx.icon ?? category?.icon);
+    final icon = AppIcons.getIcon(tx.icon ?? category?.icon ?? 'category');
     final categoryColor = (tx.color ?? category?.color ?? '0xFF9E9E9E').parseHexColor();
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
+        // [ACTION]: Applying a subtle background hue for grouping.
+        // [M3 UPDATE]: Using surfaceContainerHighest to provide a dynamic hue separation.
         color: isDark ? colorScheme.surfaceContainer : Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
@@ -111,17 +116,20 @@ class TransactionListTile extends ConsumerWidget {
         onLongPress: () => _showContextMenu(context, ref),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        leading: Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: categoryColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Icon(
-            icon,
-            color: categoryColor,
-            size: 24,
+        leading: Hero(
+          tag: 'tx_icon_${tx.id}',
+          child: Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: categoryColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(
+              icon,
+              color: categoryColor,
+              size: 24,
+            ),
           ),
         ),
         title: Text(
@@ -141,7 +149,7 @@ class TransactionListTile extends ConsumerWidget {
           ),
         ),
         trailing: Text(
-          '${isIncome ? '+' : '-'}${currencyFormat.format(tx.amount)}',
+          '${isIncome ? '+' : '-'}${CurrencyEngine.formatCurrency(tx.amount, selectedCurrency)}',
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w900,
             color: isIncome ? Colors.green : Colors.red,

@@ -4,6 +4,14 @@ All notable changes to the **Project Wallet** will be documented in this file. �
 
 ---
 
+## [1.4.0] - 2026-04-02 💎
+- **NEW**: Expressive Hero animations for transactions.
+- **NEW**: Bill Splitter integration with Loans.
+- **NEW**: Person details profile editor & cropped images.
+- **NEW**: Smart Icon Search with keyword engine.
+- **FIXED**: Loan due date persistence bug.
+- **FIXED**: Empty person transaction history bug.
+
 ## [1.3.0] - 2026-03-31 💎
 
 ### ✨ Added

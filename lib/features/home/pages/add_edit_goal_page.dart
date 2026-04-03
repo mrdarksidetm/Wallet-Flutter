@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:flex_color_picker/flex_color_picker.dart';
 import '../../../core/database/models/auxiliary_models.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/widgets/icon_picker.dart';
@@ -48,6 +49,33 @@ class _AddEditGoalPageState extends ConsumerState<AddEditGoalPage> {
     super.dispose();
   }
 
+  Future<void> _pickColor(ThemeData theme, Color effectiveColor) async {
+    final Color newColor = await showColorPickerDialog(
+      context,
+      effectiveColor,
+      title: Text('Select Color', style: theme.textTheme.titleLarge),
+      width: 40,
+      height: 40,
+      spacing: 0,
+      runSpacing: 0,
+      borderRadius: 0,
+      wheelDiameter: 165,
+      enableOpacity: false,
+      showColorCode: true,
+      colorCodeHasColor: true,
+      pickersEnabled: const <ColorPickerType, bool>{
+        ColorPickerType.both: false,
+        ColorPickerType.primary: true,
+        ColorPickerType.accent: true,
+        ColorPickerType.bw: false,
+        ColorPickerType.custom: true,
+        ColorPickerType.wheel: true,
+      },
+    );
+    setState(() => _selectedColor =
+        '0x${newColor.value.toRadixString(16).toUpperCase()}');
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -66,12 +94,16 @@ class _AddEditGoalPageState extends ConsumerState<AddEditGoalPage> {
     }
 
     await ref.read(goalServiceProvider).saveGoal(goal);
-    
+
     if (mounted) context.pop();
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final effectiveColor = _selectedColor.parseHexColor();
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.goal == null ? 'Add Goal' : 'Edit Goal'),
@@ -95,7 +127,7 @@ class _AddEditGoalPageState extends ConsumerState<AddEditGoalPage> {
                     context: context,
                     builder: (context) => IconPickerWidget(
                       selectedIcon: _selectedIcon,
-                      selectedColor: _selectedColor.parseHexColor(),
+                      selectedColor: effectiveColor,
                       onIconSelected: (icon) {
                         setState(() => _selectedIcon = icon);
                         Navigator.pop(context);
@@ -108,18 +140,60 @@ class _AddEditGoalPageState extends ConsumerState<AddEditGoalPage> {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: _selectedColor.parseHexColor().withValues(alpha: 0.1),
+                    color: effectiveColor.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     AppIcons.getIcon(_selectedIcon),
                     size: 40,
-                    color: _selectedColor.parseHexColor(),
+                    color: effectiveColor,
                   ),
                 ),
               ),
             ),
             const SizedBox(height: 32),
+            Row(
+              children: [
+                Expanded(
+                  child: ListTile(
+                    onTap: () {
+                      showModalBottomSheet(
+                        context: context,
+                        builder: (context) => IconPickerWidget(
+                          selectedIcon: _selectedIcon,
+                          selectedColor: effectiveColor,
+                          onIconSelected: (icon) {
+                            setState(() => _selectedIcon = icon);
+                            Navigator.pop(context);
+                          },
+                        ),
+                      );
+                    },
+                    leading: Icon(AppIcons.getIcon(_selectedIcon),
+                        color: effectiveColor),
+                    title: const Text('Icon'),
+                    subtitle: Text(_selectedIcon),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)),
+                    tileColor: colorScheme.surfaceContainerLow,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ListTile(
+                    onTap: () => _pickColor(theme, effectiveColor),
+                    leading:
+                        CircleAvatar(backgroundColor: effectiveColor, radius: 12),
+                    title: const Text('Color'),
+                    subtitle: const Text('Goal Theme'),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)),
+                    tileColor: colorScheme.surfaceContainerLow,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
             TextFormField(
               controller: _nameController,
               decoration: const InputDecoration(

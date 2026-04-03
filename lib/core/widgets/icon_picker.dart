@@ -1,136 +1,45 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:material_symbols_icons/symbols_map.dart';
 import '../theme/personalization_provider.dart';
 
-class AppIcons {
-  static const Map<String, Map<String, IconData>> categories = {
-    'Finance': {
-      'account_balance': Symbols.account_balance,
-      'account_balance_wallet': Symbols.account_balance_wallet,
-      'add_card': Symbols.add_card,
-      'attach_money': Symbols.attach_money,
-      'credit_card': Symbols.credit_card,
-      'currency_exchange': Symbols.currency_exchange,
-      'currency_rupee': Symbols.currency_rupee,
-      'currency_yen': Symbols.currency_yen,
-      'currency_pound': Symbols.currency_pound,
-      'euro': Symbols.euro,
-      'monetization_on': Symbols.monetization_on,
-      'payments': Symbols.payments,
-      'pie_chart': Symbols.pie_chart,
-      'price_check': Symbols.price_check,
-      'receipt_long': Symbols.receipt_long,
-      'request_quote': Symbols.request_quote,
-      'savings': Symbols.savings,
-      'trending_down': Symbols.trending_down,
-      'trending_up': Symbols.trending_up,
-      'wallet': Symbols.wallet,
-    },
-    'Shopping': {
-      'barcode_scanner': Symbols.barcode_scanner,
-      'card_giftcard': Symbols.card_giftcard,
-      'confirmation_number': Symbols.confirmation_number,
-      'local_mall': Symbols.local_mall,
-      'redeem': Symbols.redeem,
-      'sell': Symbols.sell,
-      'shopping_bag': Symbols.shopping_bag,
-      'shopping_basket': Symbols.shopping_basket,
-      'shopping_cart': Symbols.shopping_cart,
-      'storefront': Symbols.storefront,
-    },
-    'Food': {
-      'bakery_dining': Symbols.bakery_dining,
-      'cake': Symbols.cake,
-      'coffee': Symbols.coffee,
-      'dinner_dining': Symbols.dinner_dining,
-      'egg': Symbols.egg,
-      'fastfood': Symbols.fastfood,
-      'icecream': Symbols.icecream,
-      'local_grocery_store': Symbols.local_grocery_store,
-      'local_pizza': Symbols.local_pizza,
-      'lunch_dining': Symbols.lunch_dining,
-      'restaurant': Symbols.restaurant,
-      'wine_bar': Symbols.wine_bar,
-    },
-    'Transportation': {
-      'commute': Symbols.commute,
-      'directions_bike': Symbols.directions_bike,
-      'directions_boat': Symbols.directions_boat,
-      'directions_bus': Symbols.directions_bus,
-      'directions_car': Symbols.directions_car,
-      'directions_railway': Symbols.directions_railway,
-      'ev_station': Symbols.ev_station,
-      'flight': Symbols.flight,
-      'local_shipping': Symbols.local_shipping,
-      'local_taxi': Symbols.local_taxi,
-    },
-    'Home': {
-      'bed': Symbols.bed,
-      'bolt': Symbols.bolt,
-      'chair': Symbols.chair,
-      'home': Symbols.home,
-      'kitchen': Symbols.kitchen,
-      'light': Symbols.light,
-      'local_laundry_service': Symbols.local_laundry_service,
-      'mop': Symbols.mop,
-      'phone_iphone': Symbols.phone_iphone,
-      'tv': Symbols.tv,
-      'water_drop': Symbols.water_drop,
-      'wifi': Symbols.wifi,
-    },
-    'Health': {
-      'fitness_center': Symbols.fitness_center,
-      'health_and_safety': Symbols.health_and_safety,
-      'medical_services': Symbols.medical_services,
-      'medication': Symbols.medication,
-      'psychology': Symbols.psychology,
-      'self_care': Symbols.self_care,
-      'spa': Symbols.spa,
-      'vaccines': Symbols.vaccines,
-    },
-    'Entertainment': {
-      'brush': Symbols.brush,
-      'movie': Symbols.movie,
-      'music_note': Symbols.music_note,
-      'palette': Symbols.palette,
-      'piano': Symbols.piano,
-      'sports_esports': Symbols.sports_esports,
-      'stadium': Symbols.stadium,
-      'theater_comedy': Symbols.theater_comedy,
-      'videogame_asset': Symbols.videogame_asset,
-    },
-    'Other': {
-      'auto_awesome': Symbols.auto_awesome,
-      'build': Symbols.build,
-      'category': Symbols.category,
-      'charity': Symbols.volunteer_activism,
-      'cloud': Symbols.cloud,
-      'eco': Symbols.eco,
-      'event': Symbols.event,
-      'group': Symbols.group,
-      'label': Symbols.label,
-      'person': Symbols.person,
-      'public': Symbols.public,
-      'security': Symbols.security,
-      'vibration': Symbols.vibration,
-      'work': Symbols.work,
-      'school': Symbols.school,
-      'pets': Symbols.pets,
-    },
-  };
+class IconMetadata {
+  final String name;
+  final List<String> categories;
+  final List<String> tags;
 
-  static Map<String, IconData> get allIcons {
-    final Map<String, IconData> all = {};
-    for (final category in categories.values) {
-      all.addAll(category);
-    }
-    return all;
+  IconMetadata({required this.name, required this.categories, required this.tags});
+
+  factory IconMetadata.fromJson(Map<String, dynamic> json) {
+    return IconMetadata(
+      name: json['name'] as String,
+      categories: List<String>.from(json['categories']),
+      tags: List<String>.from(json['tags']),
+    );
   }
+}
+
+class AppIcons {
+  static final Map<String, IconData> _iconCache = {};
 
   static IconData getIcon(String? name) {
-    if (name == null) return Symbols.category;
-    return allIcons[name] ?? Symbols.category;
+    if (name == null || name.isEmpty) return Symbols.category;
+    
+    // Check cache first
+    if (_iconCache.containsKey(name)) return _iconCache[name]!;
+
+    // materialSymbolsMap provides a direct string-to-IconData mapping
+    // for all icons in the package.
+    final icon = materialSymbolsMap[name];
+    if (icon != null) {
+      _iconCache[name] = icon;
+      return icon;
+    }
+
+    return Symbols.category;
   }
 }
 
@@ -154,6 +63,30 @@ class _IconPickerWidgetState extends State<IconPickerWidget> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   String _selectedCategory = 'All';
+  List<IconMetadata> _allIcons = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMetadata();
+  }
+
+  Future<void> _loadMetadata() async {
+    try {
+      final String response = await rootBundle.loadString('assets/metadata/icons.json');
+      final data = json.decode(response);
+      final List icons = data['icons'];
+      
+      setState(() {
+        _allIcons = icons.map((i) => IconMetadata.fromJson(i)).toList();
+        _isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Error loading icon metadata: $e');
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   void dispose() {
@@ -174,7 +107,6 @@ class _IconPickerWidgetState extends State<IconPickerWidget> {
       ),
       child: Column(
         children: [
-          // Drag Handle
           const SizedBox(height: 12),
           Container(
             width: 40,
@@ -185,8 +117,6 @@ class _IconPickerWidgetState extends State<IconPickerWidget> {
             ),
           ),
           const SizedBox(height: 20),
-
-          // Header & Search
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
@@ -203,7 +133,7 @@ class _IconPickerWidgetState extends State<IconPickerWidget> {
                 TextField(
                   controller: _searchController,
                   decoration: InputDecoration(
-                    hintText: 'Search icons...',
+                    hintText: 'Search 3,000+ icons (e.g. car, bill, bank)...',
                     prefixIcon: const Icon(Symbols.search),
                     suffixIcon: _searchQuery.isNotEmpty
                         ? IconButton(
@@ -227,119 +157,154 @@ class _IconPickerWidgetState extends State<IconPickerWidget> {
             ),
           ),
           const SizedBox(height: 16),
-
-          // Category Chips
-          SizedBox(
-            height: 40,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              children: [
-                'All',
-                ...AppIcons.categories.keys,
-              ].map((cat) {
-                final isSelected = _selectedCategory == cat;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: Text(cat),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      if (selected) setState(() => _selectedCategory = cat);
-                    },
-                    showCheckmark: false,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
+          if (!_isLoading) _buildCategoryChips(),
           const SizedBox(height: 16),
-
-          // Icon Grid
           Expanded(
-            child: Consumer(
-              builder: (context, ref, _) {
-                final fillIcons = ref.watch(personalizationProvider).fillIcons;
-                final filteredIcons = _getFilteredIcons();
-
-                if (filteredIcons.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Symbols.search_off, size: 48, color: colorScheme.outline),
-                        const SizedBox(height: 16),
-                        Text('No icons found for "$_searchQuery"', 
-                          style: textTheme.bodyLarge?.copyWith(color: colorScheme.outline)),
-                      ],
-                    ),
-                  );
-                }
-
-                return GridView.builder(
-                  padding: const EdgeInsets.all(24),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 5,
-                    mainAxisSpacing: 16,
-                    crossAxisSpacing: 16,
-                  ),
-                  itemCount: filteredIcons.length,
-                  itemBuilder: (context, index) {
-                    final entry = filteredIcons[index];
-                    final isSelected = widget.selectedIcon == entry.key;
-
-                    return InkWell(
-                      onTap: () => widget.onIconSelected(entry.key),
-                      borderRadius: BorderRadius.circular(16),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? widget.selectedColor.withValues(alpha: 0.15)
-                              : colorScheme.surfaceContainerLow,
-                          borderRadius: BorderRadius.circular(16),
-                          border: isSelected
-                              ? Border.all(color: widget.selectedColor, width: 2)
-                              : null,
-                        ),
-                        child: Icon(
-                          entry.value,
-                          color: isSelected ? widget.selectedColor : colorScheme.onSurface,
-                          fill: fillIcons ? 1.0 : 0.0,
-                          size: 28,
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
+            child: _isLoading 
+              ? const Center(child: CircularProgressIndicator())
+              : _buildIconGrid(colorScheme, textTheme),
           ),
         ],
       ),
     );
   }
 
-  List<MapEntry<String, IconData>> _getFilteredIcons() {
-    List<MapEntry<String, IconData>> icons = [];
+  Widget _buildCategoryChips() {
+    final categories = ['All', 'Action', 'Alert', 'Audio', 'Communication', 'Content', 'Device', 'Editor', 'File', 'Hardware', 'Home', 'Maps', 'Navigation', 'Notification', 'Photography', 'Places', 'Social', 'Sport', 'Transportation', 'Travel'];
+    
+    return SizedBox(
+      height: 40,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        itemCount: categories.length,
+        itemBuilder: (context, index) {
+          final cat = categories[index];
+          final isSelected = _selectedCategory == cat;
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: ChoiceChip(
+              label: Text(cat),
+              selected: isSelected,
+              onSelected: (selected) {
+                if (selected) setState(() => _selectedCategory = cat);
+              },
+              showCheckmark: false,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
 
-    if (_selectedCategory == 'All') {
-      icons = AppIcons.allIcons.entries.toList();
-    } else {
-      final catIcons = AppIcons.categories[_selectedCategory]!;
-      icons = catIcons.entries.toList();
+  Widget _buildIconGrid(ColorScheme colorScheme, TextTheme textTheme) {
+    final filteredIcons = _getFilteredIcons();
+
+    if (filteredIcons.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Symbols.search_off, size: 48, color: colorScheme.outline),
+            const SizedBox(height: 16),
+            Text('No icons found', style: textTheme.bodyLarge?.copyWith(color: colorScheme.outline)),
+          ],
+        ),
+      );
     }
 
-    if (_searchQuery.isNotEmpty) {
-      icons = icons
-          .where((e) => e.key.toLowerCase().contains(_searchQuery.toLowerCase()))
-          .toList();
-    }
+    return Consumer(
+      builder: (context, ref, _) {
+        final fillIcons = ref.watch(personalizationProvider).fillIcons;
+        return GridView.builder(
+          padding: const EdgeInsets.all(24),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 5,
+            mainAxisSpacing: 16,
+            crossAxisSpacing: 16,
+          ),
+          itemCount: filteredIcons.length,
+          itemBuilder: (context, index) {
+            final iconMeta = filteredIcons[index];
+            final isSelected = widget.selectedIcon == iconMeta.name;
+            final iconData = AppIcons.getIcon(iconMeta.name);
 
-    // Sort alphabetically for easier browsing
-    icons.sort((a, b) => a.key.compareTo(b.key));
-    return icons;
+            return InkWell(
+              onTap: () => widget.onIconSelected(iconMeta.name),
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? widget.selectedColor.withValues(alpha: 0.15)
+                      : colorScheme.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(16),
+                  border: isSelected
+                      ? Border.all(color: widget.selectedColor, width: 2)
+                      : null,
+                ),
+                child: Icon(
+                  iconData,
+                  color: isSelected ? widget.selectedColor : colorScheme.onSurface,
+                  fill: fillIcons ? 1.0 : 0.0,
+                  size: 28,
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  List<IconMetadata> _getFilteredIcons() {
+    final Map<String, List<String>> keywordMap = {
+      'car': ['transportation', 'auto', 'vehicle', 'drive', 'garage'],
+      'bill': ['editor', 'payment', 'receipt', 'invoice', 'money', 'finance'],
+      'bank': ['places', 'account', 'finance', 'money', 'safe', 'business'],
+      'food': ['places', 'restaurant', 'cafe', 'eat', 'dinner', 'lunch', 'dining'],
+      'shop': ['places', 'shopping', 'store', 'cart', 'buy', 'retail'],
+      'health': ['alert', 'medical', 'hospital', 'doctor', 'fitness', 'wellness'],
+      'home': ['home', 'house', 'living', 'building', 'room'],
+      'tech': ['device', 'computer', 'laptop', 'smartphone', 'electronics'],
+      'travel': ['travel', 'flight', 'airplane', 'hotel', 'trip', 'vacation'],
+      'social': ['social', 'people', 'friends', 'chat', 'message', 'group'],
+    };
+
+    return _allIcons.where((icon) {
+      // Filter by category
+      if (_selectedCategory != 'All' && !icon.categories.contains(_selectedCategory.toLowerCase())) {
+        return false;
+      }
+
+      // Filter by search query
+      if (_searchQuery.isNotEmpty) {
+        final query = _searchQuery.toLowerCase();
+        
+        // Exact name match or substring name match
+        if (icon.name.contains(query)) return true;
+        
+        // Check tags
+        if (icon.tags.any((tag) => tag.contains(query))) return true;
+
+        // Smart search using keyword mapping
+        for (var entry in keywordMap.entries) {
+          if (query.contains(entry.key)) {
+            // Check if icon has any of the mapped keywords in its name, categories or tags
+            for (var keyword in entry.value) {
+              if (icon.name.contains(keyword)) return true;
+              if (icon.categories.contains(keyword)) return true;
+              if (icon.tags.contains(keyword)) return true;
+            }
+          }
+        }
+
+        return false;
+      }
+
+      return true;
+    }).toList();
   }
 }

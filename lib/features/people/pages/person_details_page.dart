@@ -1,38 +1,223 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:flex_color_picker/flex_color_picker.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/auxiliary_models.dart';
 import '../../../core/database/models/transaction_model.dart';
 import '../../../core/widgets/transaction_list_tile.dart';
 import '../../../core/theme/color_extension.dart';
+import '../../../core/widgets/icon_picker.dart';
+import '../../../core/widgets/expressive_bottom_sheet.dart';
 
-class PersonDetailsPage extends ConsumerWidget {
+class PersonDetailsPage extends ConsumerStatefulWidget {
   final Person person;
   const PersonDetailsPage({super.key, required this.person});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PersonDetailsPage> createState() => _PersonDetailsPageState();
+}
+
+class _PersonDetailsPageState extends ConsumerState<PersonDetailsPage> {
+  late Person _person;
+
+  @override
+  void initState() {
+    super.initState();
+    _person = widget.person;
+  }
+
+  Future<void> _editPerson() async {
+    final nameController = TextEditingController(text: _person.name);
+    String selectedIcon = _person.avatar ?? 'person';
+    String? imagePath = _person.avatar?.startsWith('/') == true ? _person.avatar : null;
+    String selectedColor = _person.color;
+    
+    if (imagePath != null) selectedIcon = 'person';
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          final effectiveColor = selectedColor.parseHexColor();
+          
+          return ExpressiveBottomSheet(
+            title: 'Edit Profile',
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Center(
+                    child: Stack(
+                      alignment: Alignment.bottomRight,
+                      children: [
+                        GestureDetector(
+                          onTap: () async {
+                            final picker = ImagePicker();
+                            final image = await picker.pickImage(source: ImageSource.gallery);
+                            if (image != null) {
+                              final cropped = await ImageCropper().cropImage(
+                                sourcePath: image.path,
+                                aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+                                uiSettings: [
+                                  AndroidUiSettings(
+                                    toolbarTitle: 'Crop Image',
+                                    toolbarColor: Theme.of(context).colorScheme.primary,
+                                    toolbarWidgetColor: Colors.white,
+                                    initAspectRatio: CropAspectRatioPreset.square,
+                                    lockAspectRatio: true,
+                                  ),
+                                  IOSUiSettings(
+                                    title: 'Crop Image',
+                                  ),
+                                ],
+                              );
+                              if (cropped != null) {
+                                setModalState(() {
+                                  imagePath = cropped.path;
+                                });
+                              }
+                            }
+                          },
+                          child: CircleAvatar(
+                            radius: 50,
+                            backgroundColor: effectiveColor.withValues(alpha: 0.1),
+                            backgroundImage: imagePath != null ? FileImage(File(imagePath!)) : null,
+                            child: imagePath == null 
+                              ? Icon(AppIcons.getIcon(selectedIcon), size: 48, color: effectiveColor) 
+                              : null,
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Symbols.photo_camera, size: 16, color: Colors.white),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ListTile(
+                          onTap: () {
+                            showModalBottomSheet(
+                              context: context,
+                              builder: (context) => IconPickerWidget(
+                                selectedIcon: selectedIcon,
+                                selectedColor: effectiveColor,
+                                onIconSelected: (icon) {
+                                  setModalState(() {
+                                    selectedIcon = icon;
+                                    imagePath = null;
+                                  });
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            );
+                          },
+                          leading: Icon(AppIcons.getIcon(selectedIcon), color: effectiveColor),
+                          title: const Text('Icon'),
+                          subtitle: const Text('Symbols & Emojis'),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          tileColor: Theme.of(context).colorScheme.surfaceContainerLow,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ListTile(
+                          onTap: () async {
+                            final Color newColor = await showColorPickerDialog(
+                              context,
+                              effectiveColor,
+                              title: Text('Select Theme Color', style: Theme.of(context).textTheme.titleLarge),
+                              width: 40, height: 40, spacing: 0, runSpacing: 0, borderRadius: 0,
+                              wheelDiameter: 165, enableOpacity: false, showColorCode: true, colorCodeHasColor: true,
+                              pickersEnabled: const <ColorPickerType, bool>{
+                                ColorPickerType.both: false,
+                                ColorPickerType.primary: true,
+                                ColorPickerType.accent: true,
+                                ColorPickerType.bw: false,
+                                ColorPickerType.custom: true,
+                                ColorPickerType.wheel: true,
+                              },
+                            );
+                            setModalState(() => selectedColor = '0x${newColor.value.toRadixString(16).toUpperCase()}');
+                          },
+                          leading: CircleAvatar(backgroundColor: effectiveColor, radius: 12),
+                          title: const Text('Color'),
+                          subtitle: const Text('Theme'),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          tileColor: Theme.of(context).colorScheme.surfaceContainerLow,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  TextField(
+                    controller: nameController,
+                    decoration: InputDecoration(
+                      labelText: 'Name',
+                      prefixIcon: const Icon(Symbols.person),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                    textCapitalization: TextCapitalization.words,
+                  ),
+                  const SizedBox(height: 32),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: FilledButton(
+                      onPressed: () async {
+                        _person.name = nameController.text;
+                        _person.avatar = imagePath ?? selectedIcon;
+                        _person.color = selectedColor;
+                        _person.updatedAt = DateTime.now();
+                        await ref.read(personServiceProvider).savePerson(_person);
+                        setState(() {});
+                        if (context.mounted) Navigator.pop(context);
+                      },
+                      child: const Text('Save Profile', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color = person.color.parseHexColor();
+    final color = _person.color.parseHexColor();
     final currency = ref.watch(currencyProvider);
     final format = NumberFormat.simpleCurrency(name: currency);
 
     final loansAsync = ref.watch(loansStreamProvider);
-    final transactionsAsync = ref.watch(transactionsStreamProvider);
+    final transactionsAsync = ref.watch(personTransactionsProvider(_person.id));
 
     return Scaffold(
       body: CustomScrollView(
         slivers: [
           SliverAppBar.large(
-            title: Text(person.name),
+            title: Text(_person.name),
             actions: [
               IconButton(
                 icon: const Icon(Symbols.edit),
-                onPressed: () {
-                  // TODO: Implement edit person
-                },
+                onPressed: _editPerson,
               ),
               const SizedBox(width: 8),
             ],
@@ -53,14 +238,14 @@ class PersonDetailsPage extends ConsumerWidget {
                       CircleAvatar(
                         radius: 40,
                         backgroundColor: color.withValues(alpha: 0.2),
-                        child: Text(
-                          person.name[0].toUpperCase(),
-                          style: TextStyle(color: color, fontSize: 32, fontWeight: FontWeight.bold),
-                        ),
+                        backgroundImage: _person.avatar?.startsWith('/') == true ? FileImage(File(_person.avatar!)) : null,
+                        child: _person.avatar?.startsWith('/') != true 
+                          ? Icon(AppIcons.getIcon(_person.avatar ?? 'person'), color: color, size: 32)
+                          : null,
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        person.name,
+                        _person.name,
                         style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 24),
@@ -90,22 +275,36 @@ class PersonDetailsPage extends ConsumerWidget {
 
           transactionsAsync.when(
             data: (txs) {
-              final personTxs = txs.where((t) => t.person.value?.id == person.id).toList();
-              if (personTxs.isEmpty) {
+              
+              // Load links if needed (though usually we should rely on personId in txs)
+              // For history, we want ALL transactions and ALL loans related to this person.
+              final allLoans = (loansAsync.value ?? [])
+                  .where((l) => l.person.value?.id == _person.id)
+                  .toList();
+
+              if (txs.isEmpty && allLoans.isEmpty) {
                 return const SliverFillRemaining(
                   hasScrollBody: false,
-                  child: Center(child: Text('No transactions with this person')),
+                  child: Center(child: Text('No activity with this person')),
                 );
               }
+
               return SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
-                    (context, index) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: TransactionListTile(tx: personTxs[index]),
-                    ),
-                    childCount: personTxs.length,
+                    (context, index) {
+                      if (index < allLoans.length) {
+                        final loan = allLoans[index];
+                        return _buildLoanTile(context, loan, format);
+                      }
+                      final tx = txs[index - allLoans.length];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: TransactionListTile(tx: tx),
+                      );
+                    },
+                    childCount: txs.length + allLoans.length,
                   ),
                 ),
               );
@@ -120,8 +319,54 @@ class PersonDetailsPage extends ConsumerWidget {
     );
   }
 
+  Widget _buildLoanTile(BuildContext context, Loan loan, NumberFormat format) {
+    final color = loan.type == LoanType.lent ? Colors.green : Colors.red;
+    final isPaid = loan.isPaid;
+
+    return Opacity(
+      opacity: isPaid ? 0.6 : 1.0,
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 12),
+        elevation: isPaid ? 0 : 1,
+        child: ListTile(
+          leading: CircleAvatar(
+            backgroundColor: color.withValues(alpha: 0.1),
+            child: Icon(
+              isPaid 
+                ? Symbols.check_circle 
+                : (loan.type == LoanType.lent ? Symbols.arrow_upward : Symbols.arrow_downward), 
+              color: color
+            ),
+          ),
+          title: Text(
+            isPaid 
+              ? 'Settled Loan' 
+              : (loan.type == LoanType.lent ? 'You lent money' : 'You borrowed money'), 
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              decoration: isPaid ? TextDecoration.lineThrough : null,
+            )
+          ),
+          subtitle: Text(
+            isPaid 
+              ? 'Paid on ${DateFormat('MMM d').format(loan.updatedAt)}'
+              : (loan.dueDate != null ? 'Due ${DateFormat('MMM d').format(loan.dueDate!)}' : 'No due date')
+          ),
+          trailing: Text(
+            format.format(loan.amount), 
+            style: TextStyle(
+              fontWeight: FontWeight.w900, 
+              color: color.withValues(alpha: isPaid ? 0.5 : 1.0), 
+              fontSize: 16
+            )
+          ),
+        ),
+      ),
+    );
+  }
+
   double _calculateDebt(List<Loan> loans) {
-    final personLoans = loans.where((l) => l.person.value?.id == person.id && l.isActive && !l.isPaid);
+    final personLoans = loans.where((l) => l.person.value?.id == _person.id && l.isActive && !l.isPaid);
     double total = 0;
     for (var l in personLoans) {
       if (l.type == LoanType.lent) {
@@ -134,7 +379,7 @@ class PersonDetailsPage extends ConsumerWidget {
   }
 
   String _countTxs(List<TransactionModel> txs) {
-    return txs.where((t) => t.person.value?.id == person.id).length.toString();
+    return txs.length.toString();
   }
 
   Widget _buildStat(BuildContext context, String label, dynamic value, NumberFormat? format) {
@@ -160,3 +405,4 @@ class PersonDetailsPage extends ConsumerWidget {
     );
   }
 }
+

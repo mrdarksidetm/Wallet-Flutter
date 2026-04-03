@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../theme/colors.dart';
 
 class PrimaryAtelierButton extends StatelessWidget {
   final VoidCallback? onPressed;
@@ -19,14 +18,24 @@ class PrimaryAtelierButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       width: width,
       height: height,
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.primary, AppColors.primaryDim],
-          begin: Alignment(-0.8, -0.6), // Roughly 145 degrees
-          end: Alignment(0.8, 0.6),
+        // [ACTION]: Defining the main background for the primary interactive button.
+        // [M3 UPDATE]: Replacing hardcoded AppColors with a dynamic gradient derived from the seed.
+        // [WHY]: By using primary and primaryContainer, we ensure the button follows 
+        // the global blue hue or the user's dynamic color preference while maintaining 
+        // depth and an "Atelier" editorial feel.
+        gradient: LinearGradient(
+          colors: [
+            colorScheme.primary,
+            colorScheme.primary.withValues(alpha: 0.8),
+          ],
+          begin: const Alignment(-0.8, -0.6),
+          end: const Alignment(0.8, 0.6),
         ),
         borderRadius: BorderRadius.circular(height / 2),
       ),
@@ -38,7 +47,9 @@ class PrimaryAtelierButton extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(height / 2),
           ),
-          foregroundColor: Colors.white,
+          // [ACTION]: Setting the foreground color for text and icons.
+          // [M3 UPDATE]: Mapping directly to onPrimary to ensure WCAG-compliant contrast.
+          foregroundColor: colorScheme.onPrimary,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,

@@ -62,12 +62,12 @@ class PersonalizationPage extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'App\nCraft',
+          'App Craft',
           style: Theme.of(context).textTheme.displayLarge?.copyWith(
             color: Theme.of(context).colorScheme.primary,
             fontWeight: FontWeight.w900,
             height: 1.0,
-            fontSize: 64,
+            fontSize: 45,
             fontVariations: const [FontVariation('wdth', 120)],
           ),
         ),

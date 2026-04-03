@@ -98,6 +98,7 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 child: InkWell(
                   onTap: () => context.push('/person_details', extra: person),
+                  onLongPress: () => _showDeleteConfirmation(context, ref, person),
                   borderRadius: BorderRadius.circular(20),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -163,6 +164,26 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('Error: $err')),
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, WidgetRef ref, Person person) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Person?'),
+        content: Text('Are you sure you want to delete ${person.name}? This will NOT delete their transaction history.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () async {
+              await ref.read(personServiceProvider).deletePerson(person.id);
+              if (context.mounted) Navigator.pop(context);
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
       ),
     );
   }

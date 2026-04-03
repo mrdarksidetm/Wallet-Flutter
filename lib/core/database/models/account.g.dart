@@ -47,44 +47,49 @@ const AccountSchema = CollectionSchema(
       name: r'isArchived',
       type: IsarType.bool,
     ),
-    r'isDeleted': PropertySchema(
+    r'isDefault': PropertySchema(
       id: 6,
+      name: r'isDefault',
+      type: IsarType.bool,
+    ),
+    r'isDeleted': PropertySchema(
+      id: 7,
       name: r'isDeleted',
       type: IsarType.bool,
     ),
     r'isPredefined': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'isPredefined',
       type: IsarType.bool,
     ),
     r'name': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'name',
       type: IsarType.string,
     ),
     r'number': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'number',
       type: IsarType.string,
     ),
     r'order': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'order',
       type: IsarType.long,
     ),
     r'type': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'type',
       type: IsarType.string,
       enumMap: _AccounttypeEnumValueMap,
     ),
     r'updatedAt': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'validThru': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'validThru',
       type: IsarType.dateTime,
     )
@@ -170,14 +175,15 @@ void _accountSerialize(
   writer.writeDateTime(offsets[3], object.createdAt);
   writer.writeString(offsets[4], object.icon);
   writer.writeBool(offsets[5], object.isArchived);
-  writer.writeBool(offsets[6], object.isDeleted);
-  writer.writeBool(offsets[7], object.isPredefined);
-  writer.writeString(offsets[8], object.name);
-  writer.writeString(offsets[9], object.number);
-  writer.writeLong(offsets[10], object.order);
-  writer.writeString(offsets[11], object.type.name);
-  writer.writeDateTime(offsets[12], object.updatedAt);
-  writer.writeDateTime(offsets[13], object.validThru);
+  writer.writeBool(offsets[6], object.isDefault);
+  writer.writeBool(offsets[7], object.isDeleted);
+  writer.writeBool(offsets[8], object.isPredefined);
+  writer.writeString(offsets[9], object.name);
+  writer.writeString(offsets[10], object.number);
+  writer.writeLong(offsets[11], object.order);
+  writer.writeString(offsets[12], object.type.name);
+  writer.writeDateTime(offsets[13], object.updatedAt);
+  writer.writeDateTime(offsets[14], object.validThru);
 }
 
 Account _accountDeserialize(
@@ -194,16 +200,17 @@ Account _accountDeserialize(
   object.icon = reader.readString(offsets[4]);
   object.id = id;
   object.isArchived = reader.readBool(offsets[5]);
-  object.isDeleted = reader.readBool(offsets[6]);
-  object.isPredefined = reader.readBool(offsets[7]);
-  object.name = reader.readString(offsets[8]);
-  object.number = reader.readString(offsets[9]);
-  object.order = reader.readLong(offsets[10]);
+  object.isDefault = reader.readBool(offsets[6]);
+  object.isDeleted = reader.readBool(offsets[7]);
+  object.isPredefined = reader.readBool(offsets[8]);
+  object.name = reader.readString(offsets[9]);
+  object.number = reader.readString(offsets[10]);
+  object.order = reader.readLong(offsets[11]);
   object.type =
-      _AccounttypeValueEnumMap[reader.readStringOrNull(offsets[11])] ??
+      _AccounttypeValueEnumMap[reader.readStringOrNull(offsets[12])] ??
           AccountType.cash;
-  object.updatedAt = reader.readDateTime(offsets[12]);
-  object.validThru = reader.readDateTime(offsets[13]);
+  object.updatedAt = reader.readDateTime(offsets[13]);
+  object.validThru = reader.readDateTime(offsets[14]);
   return object;
 }
 
@@ -231,17 +238,19 @@ P _accountDeserializeProp<P>(
     case 7:
       return (reader.readBool(offset)) as P;
     case 8:
-      return (reader.readString(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 9:
       return (reader.readString(offset)) as P;
     case 10:
-      return (reader.readLong(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 11:
+      return (reader.readLong(offset)) as P;
+    case 12:
       return (_AccounttypeValueEnumMap[reader.readStringOrNull(offset)] ??
           AccountType.cash) as P;
-    case 12:
-      return (reader.readDateTime(offset)) as P;
     case 13:
+      return (reader.readDateTime(offset)) as P;
+    case 14:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -250,21 +259,13 @@ P _accountDeserializeProp<P>(
 
 const _AccounttypeEnumValueMap = {
   r'cash': r'cash',
-  r'bank': r'bank',
-  r'creditCard': r'creditCard',
-  r'wallet': r'wallet',
-  r'investment': r'investment',
-  r'asset': r'asset',
-  r'other': r'other',
+  r'card': r'card',
+  r'savings': r'savings',
 };
 const _AccounttypeValueEnumMap = {
   r'cash': AccountType.cash,
-  r'bank': AccountType.bank,
-  r'creditCard': AccountType.creditCard,
-  r'wallet': AccountType.wallet,
-  r'investment': AccountType.investment,
-  r'asset': AccountType.asset,
-  r'other': AccountType.other,
+  r'card': AccountType.card,
+  r'savings': AccountType.savings,
 };
 
 Id _accountGetId(Account object) {
@@ -1110,6 +1111,16 @@ extension AccountQueryFilter
     });
   }
 
+  QueryBuilder<Account, Account, QAfterFilterCondition> isDefaultEqualTo(
+      bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isDefault',
+        value: value,
+      ));
+    });
+  }
+
   QueryBuilder<Account, Account, QAfterFilterCondition> isDeletedEqualTo(
       bool value) {
     return QueryBuilder.apply(this, (query) {
@@ -1759,6 +1770,18 @@ extension AccountQuerySortBy on QueryBuilder<Account, Account, QSortBy> {
     });
   }
 
+  QueryBuilder<Account, Account, QAfterSortBy> sortByIsDefault() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isDefault', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Account, Account, QAfterSortBy> sortByIsDefaultDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isDefault', Sort.desc);
+    });
+  }
+
   QueryBuilder<Account, Account, QAfterSortBy> sortByIsDeleted() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isDeleted', Sort.asc);
@@ -1942,6 +1965,18 @@ extension AccountQuerySortThenBy
     });
   }
 
+  QueryBuilder<Account, Account, QAfterSortBy> thenByIsDefault() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isDefault', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Account, Account, QAfterSortBy> thenByIsDefaultDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isDefault', Sort.desc);
+    });
+  }
+
   QueryBuilder<Account, Account, QAfterSortBy> thenByIsDeleted() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isDeleted', Sort.asc);
@@ -2080,6 +2115,12 @@ extension AccountQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Account, Account, QDistinct> distinctByIsDefault() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isDefault');
+    });
+  }
+
   QueryBuilder<Account, Account, QDistinct> distinctByIsDeleted() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isDeleted');
@@ -2173,6 +2214,12 @@ extension AccountQueryProperty
   QueryBuilder<Account, bool, QQueryOperations> isArchivedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isArchived');
+    });
+  }
+
+  QueryBuilder<Account, bool, QQueryOperations> isDefaultProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isDefault');
     });
   }
 

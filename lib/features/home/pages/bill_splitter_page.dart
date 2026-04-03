@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/auxiliary_models.dart';
 import '../../../core/widgets/expressive_bottom_sheet.dart';
 import '../../../core/theme/color_extension.dart';
+import '../../../core/theme/personalization_provider.dart';
+import '../../../core/services/haptic_service.dart';
 
 class BillSplitterPage extends ConsumerStatefulWidget {
   const BillSplitterPage({super.key});
@@ -168,26 +171,92 @@ class _BillSplitterPageState extends ConsumerState<BillSplitterPage> {
   }
 
   Widget _buildPeopleList(ColorScheme colorScheme, NumberFormat currencyFormat) {
-    return ListView(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
+    return Column(
       children: [
-        ListTile(
-          leading: const CircleAvatar(child: Icon(Icons.person_rounded)),
-          title: const Text('You'),
-          subtitle: Text('Paying ${currencyFormat.format(_totalPerPerson)}'),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          tileColor: colorScheme.surfaceContainerLow,
+        ListView(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          children: [
+            ListTile(
+              leading: const CircleAvatar(child: Icon(Icons.person_rounded)),
+              title: const Text('You'),
+              subtitle: Text('Paying ${currencyFormat.format(_totalPerPerson)}'),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              tileColor: colorScheme.surfaceContainerLow,
+            ),
+            const SizedBox(height: 8),
+            ..._selectedPeople.map((p) => _buildPersonTile(p.name, p.color, () {
+              setState(() { _selectedPeople.remove(p); _calculate(); });
+            })),
+            ..._manualPeople.map((name) => _buildPersonTile(name, '0xFF9E9E9E', () {
+              setState(() { _manualPeople.remove(name); _calculate(); });
+            })),
+          ],
         ),
-        const SizedBox(height: 8),
-        ..._selectedPeople.map((p) => _buildPersonTile(p.name, p.color, () {
-          setState(() { _selectedPeople.remove(p); _calculate(); });
-        })),
-        ..._manualPeople.map((name) => _buildPersonTile(name, '0xFF9E9E9E', () {
-          setState(() { _manualPeople.remove(name); _calculate(); });
-        })),
+        if (_selectedPeople.isNotEmpty || _manualPeople.isNotEmpty) ...[
+          const SizedBox(height: 32),
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: FilledButton.icon(
+              onPressed: _finalizeSplit,
+              icon: const Icon(Icons.check_circle_rounded),
+              label: const Text('Finalize & Save as Loans', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ),
+        ],
       ],
     );
+  }
+
+  Future<void> _finalizeSplit() async {
+    if (_totalPerPerson <= 0) return;
+
+    try {
+      final loanService = ref.read(loanServiceProvider);
+      final personalization = ref.read(personalizationProvider);
+      final haptic = ref.read(hapticServiceProvider);
+      
+      // 1. Save selected people loans
+      for (var person in _selectedPeople) {
+        final loan = Loan()
+          ..amount = _totalPerPerson
+          ..type = LoanType.lent
+          ..note = 'Split: ${_amountController.text}'
+          ..createdAt = DateTime.now()
+          ..updatedAt = DateTime.now();
+        loan.person.value = person;
+        await loanService.saveLoan(loan);
+      }
+
+      // 2. Save manual people (create them first)
+      for (var name in _manualPeople) {
+        final loan = Loan()
+          ..amount = _totalPerPerson
+          ..type = LoanType.lent
+          ..note = 'Split: ${_amountController.text}'
+          ..createdAt = DateTime.now()
+          ..updatedAt = DateTime.now();
+        
+        // [Task 5]: LoanService.saveLoan with personName handles Person creation.
+        await loanService.saveLoan(loan, personName: name);
+      }
+
+      await haptic.transaction(personalization.vibrateOnTransaction);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Split saved to Loans & Debts')),
+        );
+        context.pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving split: $e')),
+        );
+      }
+    }
   }
 
   Widget _buildPersonTile(String name, String colorStr, VoidCallback onDelete) {

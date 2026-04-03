@@ -89,7 +89,7 @@ class AboutPage extends ConsumerWidget {
               onTap: () => showLicensePage(
                 context: context,
                 applicationName: 'Wallet',
-                applicationVersion: '1.3.0',
+                applicationVersion: '1.4.0',
               ),
             ),
             const SizedBox(height: 64),

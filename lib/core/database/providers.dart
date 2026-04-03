@@ -277,6 +277,12 @@ final accountTransactionsProvider =
   return repo.watchByAccount(accountId);
 });
 
+final personTransactionsProvider =
+    StreamProvider.family<List<TransactionModel>, Id>((ref, personId) {
+  final repo = ref.watch(transactionRepositoryProvider);
+  return repo.watchByPerson(personId);
+});
+
 final budgetsStreamProvider = StreamProvider<List<Budget>>((ref) {
   final repo = ref.watch(budgetRepositoryProvider);
   return repo.watchAll();

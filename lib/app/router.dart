@@ -166,12 +166,23 @@ Page _buildSharedAxisTransition(BuildContext context, GoRouterState state,
   return CustomTransitionPage(
     key: state.pageKey,
     child: child,
+    transitionDuration: const Duration(milliseconds: 600),
+    reverseTransitionDuration: const Duration(milliseconds: 450),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
       return SharedAxisTransition(
-          animation: animation,
-          secondaryAnimation: secondaryAnimation,
-          transitionType: type,
-          child: child);
+        animation: CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeInOutCubic,
+          reverseCurve: Curves.easeInOutCubic,
+        ),
+        secondaryAnimation: CurvedAnimation(
+          parent: secondaryAnimation,
+          curve: Curves.easeInOutCubic,
+          reverseCurve: Curves.easeInOutCubic,
+        ),
+        transitionType: type,
+        child: child,
+      );
     },
   );
 }

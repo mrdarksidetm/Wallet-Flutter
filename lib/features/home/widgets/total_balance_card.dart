@@ -1,23 +1,22 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/widgets/animated_counter.dart';
 import '../../../core/theme/personalization_provider.dart';
+import '../../../core/database/providers.dart';
+import '../../../core/services/currency_engine.dart';
 
 class TotalBalanceCard extends ConsumerWidget {
   final double totalBalance;
   final double monthlyIncome;
   final double monthlyExpense;
-  final NumberFormat format;
 
   const TotalBalanceCard({
     super.key,
     required this.totalBalance,
     required this.monthlyIncome,
     required this.monthlyExpense,
-    required this.format,
   });
 
   @override
@@ -26,6 +25,7 @@ class TotalBalanceCard extends ConsumerWidget {
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
     final isVisible = ref.watch(personalizationProvider.select((p) => p.isBalanceVisible));
+    final currency = ref.watch(currencyProvider);
 
     return Container(
       height: 220,
@@ -125,6 +125,7 @@ class TotalBalanceCard extends ConsumerWidget {
                       Colors.green,
                       Icons.arrow_downward,
                       isVisible,
+                      currency,
                     ),
                     const SizedBox(width: 32),
                     _buildStatItem(
@@ -134,6 +135,7 @@ class TotalBalanceCard extends ConsumerWidget {
                       Colors.red,
                       Icons.arrow_upward,
                       isVisible,
+                      currency,
                     ),
                   ],
                 ),
@@ -145,7 +147,7 @@ class TotalBalanceCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatItem(BuildContext context, String label, double amount, Color color, IconData icon, bool isVisible) {
+  Widget _buildStatItem(BuildContext context, String label, double amount, Color color, IconData icon, bool isVisible, String currency) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -173,7 +175,7 @@ class TotalBalanceCard extends ConsumerWidget {
         ),
         const SizedBox(height: 2),
         Text(
-          isVisible ? format.format(amount) : '•••',
+          isVisible ? CurrencyEngine.formatCurrency(amount, currency) : '•••',
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w900,
             color: colorScheme.onSurface,
