@@ -6,6 +6,7 @@ import '../../../core/database/models/auxiliary_models.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/theme/personalization_provider.dart';
 import '../../../core/services/haptic_service.dart';
+
 class AddEditLoanPage extends ConsumerStatefulWidget {
   final Loan? loan;
   const AddEditLoanPage({super.key, this.loan});
@@ -84,6 +85,8 @@ class _AddEditLoanPageState extends ConsumerState<AddEditLoanPage> {
 
   @override
   Widget build(BuildContext context) {
+    final currencySymbol = ref.watch(personalizationProvider).currencySymbol;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.loan == null ? 'Add Loan' : 'Edit Loan'),
@@ -112,9 +115,9 @@ class _AddEditLoanPageState extends ConsumerState<AddEditLoanPage> {
             const SizedBox(height: 32),
             TextFormField(
               controller: _amountController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Amount',
-                prefixIcon: Icon(Icons.currency_rupee_rounded),
+                prefixText: '$currencySymbol ',
               ),
               keyboardType: TextInputType.number,
               validator: (v) => v?.isEmpty ?? true ? 'Required' : null,
@@ -129,61 +132,54 @@ class _AddEditLoanPageState extends ConsumerState<AddEditLoanPage> {
               validator: (v) => v?.isEmpty ?? true ? 'Required' : null,
             ),
             const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: ListTile(
-                    onTap: () async {
-                      final date = await showDatePicker(
-                        context: context,
-                        initialDate: _selectedDate,
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2100),
-                      );
-                      if (date != null) setState(() => _selectedDate = date);
-                    },
-                    leading: const Icon(Icons.calendar_today_rounded),
-                    title: const Text('Taken Date'),
-                    subtitle: Text(DateFormat('MMM d').format(_selectedDate)),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16)),
-                    tileColor: Theme.of(context).colorScheme.surfaceContainerLow,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ListTile(
-                    onTap: () async {
-                      final date = await showDatePicker(
-                        context: context,
-                        initialDate: _dueDate ?? DateTime.now().add(const Duration(days: 30)),
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2100),
-                      );
-                      if (date != null) setState(() => _dueDate = date);
-                    },
-                    leading: const Icon(Icons.event_rounded),
-                    title: const Text('Due Date'),
-                    subtitle: Text(_dueDate != null ? DateFormat('MMM d').format(_dueDate!) : 'None'),
-                    trailing: _dueDate != null ? IconButton(
+            ListTile(
+              onTap: () async {
+                final date = await showDatePicker(
+                  context: context,
+                  initialDate: _selectedDate,
+                  firstDate: DateTime(2000),
+                  lastDate: DateTime(2100),
+                );
+                if (date != null) setState(() => _selectedDate = date);
+              },
+              leading: const Icon(Icons.calendar_today_rounded),
+              title: const Text('Taken Date'),
+              subtitle: Text(DateFormat('MMM d, yyyy').format(_selectedDate)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+              tileColor: Theme.of(context).colorScheme.surfaceContainerLow,
+            ),
+            const SizedBox(height: 16),
+            ListTile(
+              onTap: () async {
+                final date = await showDatePicker(
+                  context: context,
+                  initialDate: _dueDate ?? DateTime.now().add(const Duration(days: 30)),
+                  firstDate: DateTime(2000),
+                  lastDate: DateTime(2100),
+                );
+                if (date != null) setState(() => _dueDate = date);
+              },
+              leading: const Icon(Icons.event_rounded),
+              title: const Text('Due Date'),
+              subtitle: Text(_dueDate != null
+                  ? DateFormat('MMM d, yyyy').format(_dueDate!)
+                  : 'None'),
+              trailing: _dueDate != null
+                  ? IconButton(
                       icon: const Icon(Icons.close, size: 16),
                       onPressed: () => setState(() => _dueDate = null),
-                    ) : null,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16)),
-                    tileColor: Theme.of(context).colorScheme.surfaceContainerLow,
-                  ),
-                ),
-              ],
+                    )
+                  : null,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+              tileColor: Theme.of(context).colorScheme.surfaceContainerLow,
             ),
-            const SizedBox(height: 48),
+            const SizedBox(height: 32),
             FilledButton.icon(
               onPressed: _save,
               icon: const Icon(Icons.save_rounded),
               label: const Text('Save Loan'),
-              style: FilledButton.styleFrom(
-                minimumSize: const Size(double.infinity, 56),
-              ),
             ),
           ],
         ),

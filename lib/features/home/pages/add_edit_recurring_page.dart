@@ -7,6 +7,7 @@ import '../../../core/database/models/category.dart';
 import '../../../core/database/models/auxiliary_models.dart';
 import '../../../core/database/models/transaction_model.dart';
 import '../../../core/database/providers.dart';
+import '../../../core/theme/personalization_provider.dart';
 import '../../../core/widgets/icon_picker.dart';
 
 class AddEditRecurringPage extends ConsumerStatefulWidget {
@@ -22,7 +23,6 @@ class _AddEditRecurringPageState extends ConsumerState<AddEditRecurringPage> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _amountController;
-
   Account? _selectedAccount;
   Category? _selectedCategory;
   TransactionType _type = TransactionType.expense;
@@ -83,6 +83,7 @@ class _AddEditRecurringPageState extends ConsumerState<AddEditRecurringPage> {
   Widget build(BuildContext context) {
     final accountsAsync = ref.watch(accountsStreamProvider);
     final categoriesAsync = ref.watch(categoriesStreamProvider);
+    final currencySymbol = ref.watch(personalizationProvider).currencySymbol;
 
     return Scaffold(
       appBar: AppBar(
@@ -122,21 +123,21 @@ class _AddEditRecurringPageState extends ConsumerState<AddEditRecurringPage> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _amountController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Amount',
-                prefixIcon: Icon(Icons.currency_rupee_rounded),
+                prefixText: '$currencySymbol ',
               ),
               keyboardType: TextInputType.number,
               validator: (v) => v?.isEmpty ?? true ? 'Required' : null,
             ),
             const SizedBox(height: 24),
-            Text('Frequency', style: Theme.of(context).textTheme.titleMedium),
+            Text('Frequency', style: Theme.of(context).textTheme.titleSmall),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
               children: RecurrenceFrequency.values.map((f) {
                 return ChoiceChip(
-                  label: Text(f.name.toUpperCase()),
+                  label: Text(f.name[0].toUpperCase() + f.name.substring(1)),
                   selected: _frequency == f,
                   onSelected: (s) => setState(() => _frequency = f),
                 );
@@ -155,8 +156,7 @@ class _AddEditRecurringPageState extends ConsumerState<AddEditRecurringPage> {
             const SizedBox(height: 16),
             ListTile(
               onTap: () => _showCategoryPicker(categoriesAsync.value ?? []),
-              leading:
-                  Icon(AppIcons.getIcon(_selectedCategory?.icon ?? 'category')),
+              leading: const Icon(Icons.category_rounded),
               title: const Text('Category'),
               subtitle: Text(_selectedCategory?.name ?? 'Select Category'),
               shape: RoundedRectangleBorder(
@@ -181,13 +181,11 @@ class _AddEditRecurringPageState extends ConsumerState<AddEditRecurringPage> {
                   borderRadius: BorderRadius.circular(16)),
               tileColor: Theme.of(context).colorScheme.surfaceContainerLow,
             ),
-            const SizedBox(height: 48),
+            const SizedBox(height: 32),
             FilledButton.icon(
               onPressed: _save,
               icon: const Icon(Icons.save_rounded),
               label: const Text('Save Recurring'),
-              style: FilledButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 56)),
             ),
           ],
         ),
@@ -198,16 +196,22 @@ class _AddEditRecurringPageState extends ConsumerState<AddEditRecurringPage> {
   void _showAccountPicker(List<Account> accounts) {
     showModalBottomSheet(
       context: context,
-      builder: (context) => ListView.builder(
-        itemCount: accounts.length,
-        itemBuilder: (context, index) => ListTile(
-          title: Text(accounts[index].name),
-          onTap: () {
-            setState(() => _selectedAccount = accounts[index]);
-            Navigator.pop(context);
+      builder: (context) {
+        return ListView.builder(
+          itemCount: accounts.length,
+          itemBuilder: (context, index) {
+            final account = accounts[index];
+            return ListTile(
+              leading: Icon(AppIcons.getIcon(account.icon)),
+              title: Text(account.name),
+              onTap: () {
+                setState(() => _selectedAccount = account);
+                Navigator.pop(context);
+              },
+            );
           },
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -215,18 +219,19 @@ class _AddEditRecurringPageState extends ConsumerState<AddEditRecurringPage> {
     showModalBottomSheet(
       context: context,
       builder: (context) {
-        final filtered =
-            categories.where((c) => c.type.name == _type.name).toList();
         return ListView.builder(
-          itemCount: filtered.length,
-          itemBuilder: (context, index) => ListTile(
-            leading: Icon(AppIcons.getIcon(filtered[index].icon)),
-            title: Text(filtered[index].name),
-            onTap: () {
-              setState(() => _selectedCategory = filtered[index]);
-              Navigator.pop(context);
-            },
-          ),
+          itemCount: categories.length,
+          itemBuilder: (context, index) {
+            final category = categories[index];
+            return ListTile(
+              leading: Icon(AppIcons.getIcon(category.icon)),
+              title: Text(category.name),
+              onTap: () {
+                setState(() => _selectedCategory = category);
+                Navigator.pop(context);
+              },
+            );
+          },
         );
       },
     );

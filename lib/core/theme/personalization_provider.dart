@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:convert';
 import 'dart:async';
 import '../database/providers.dart';
+import '../services/currency_engine.dart';
 
 class PersonalizationState {
   final double grade;
@@ -23,6 +24,8 @@ class PersonalizationState {
   final bool useGoogleSansFlex;
 
   final bool useDynamicColor;
+
+  String get currencySymbol => CurrencyEngine.getSymbol(defaultCurrency ?? 'INR');
 
   PersonalizationState({
     this.grade = 50,

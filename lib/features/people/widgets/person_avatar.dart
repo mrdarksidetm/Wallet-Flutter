@@ -8,12 +8,14 @@ class PersonAvatar extends StatelessWidget {
   final Person person;
   final double radius;
   final double? fontSize;
+  final VoidCallback? onTap;
 
   const PersonAvatar({
     super.key,
     required this.person,
     this.radius = 28,
     this.fontSize,
+    this.onTap,
   });
 
   @override
@@ -21,21 +23,24 @@ class PersonAvatar extends StatelessWidget {
     final color = person.color.parseHexColor();
     final avatar = person.avatar;
 
+    Widget child;
+
     // 1. Check if it's a file path
     if (avatar != null && avatar.startsWith('/')) {
       final file = File(avatar);
       if (file.existsSync()) {
-        return CircleAvatar(
+        child = CircleAvatar(
           radius: radius,
           backgroundImage: FileImage(file),
           backgroundColor: color.withValues(alpha: 0.1),
         );
+      } else {
+        child = _buildFallback(color);
       }
     }
-
     // 2. Check if it's an icon name
-    if (avatar != null && avatar.isNotEmpty && !avatar.startsWith('/')) {
-      return CircleAvatar(
+    else if (avatar != null && avatar.isNotEmpty && !avatar.startsWith('/')) {
+      child = CircleAvatar(
         radius: radius,
         backgroundColor: color.withValues(alpha: 0.1),
         child: Icon(
@@ -45,8 +50,23 @@ class PersonAvatar extends StatelessWidget {
         ),
       );
     }
-
     // 3. Fallback to First Letter
+    else {
+      child = _buildFallback(color);
+    }
+
+    if (onTap != null) {
+      return InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(radius),
+        child: child,
+      );
+    }
+
+    return child;
+  }
+
+  Widget _buildFallback(Color color) {
     return CircleAvatar(
       radius: radius,
       backgroundColor: color.withValues(alpha: 0.1),

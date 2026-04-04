@@ -13,26 +13,23 @@ Live tracking of the **Project Wallet** development lifecycle. 📈🏦
 
 ---
 
-## 🚀 Implementation Status (v1.4.0 Audit)
+## 🚀 Implementation Status (v1.5.0 Update)
 
 ### **💾 1. Database & Core (100%)**
 - [x] Isar Database implementation. 📁
-- [x] **NEW**: Added `personId` to `TransactionModel` for high-performance filtering. ⚡
-- [x] **UPDATED**: Loan model now correctly persists `dueDate`. ⏳
-- [x] **UPDATED**: `TransactionService` now atomically syncs `personId` on all writes. ⛓️
+- [x] **UPDATED**: Loan model and UI now correctly handle dynamic currency symbols. 💱
 
 ### **📱 2. UI & Navigation (100%)**
-- [x] **NEW**: `Hero` animations for transaction icons and category elements. 🦸‍♂️
-- [x] **NEW**: Smart Search in `IconPickerWidget` with keyword-to-icon mapping. 🔍
-- [x] **NEW**: Person Profile Editor with name editing and image cropping. 👤
-- [x] **NEW**: Tap-and-hold (Long Press) to delete contacts in People tab. 🗑️
+- [x] **NEW**: Conditional header icons (Hidden on Reports). 🙈
+- [x] **NEW**: Home screen Activity Heatmap and Expense/Income Trends line chart. 📊
+- [x] **IMPROVED**: Loan Page layout with multi-line date pickers. 📅
+- [x] **IMPROVED**: Reports page overhauled with M3 components, date-range filtering, and horizontal month selection. 📈
 
 ### **✨ 3. Features (100%)**
-- [x] **NEW**: Bill Splitter -> Loan Integration. Finalize splits directly into debt entries. 💸
-- [x] **NEW**: Goal styling with custom color pickers and smart icons. 🎨
-- [x] **FIXED**: Loan Due Date bug - now correctly saved and displayed. 📅
-- [x] **FIXED**: Person Transaction History - now correctly loads and merges both loans and transactions. 📊
-- [x] **IMPROVED**: "Choose Icon" experience with better search and Material 3 iconography. ✨
+- [x] **NEW**: Small Window / Split-screen support for Android (resizeableActivity). 📱
+- [x] **FIXED**: Hardcoded currency symbols replaced with dynamic `personalizationProvider` values. 💰
+- [x] **FIXED**: Total Balance card info symbol now toggles visibility on click. ℹ️
+- [x] **FIXED**: Reports page dead screen replaced with a functional, reactive dashboard. ✨
 
 ---
 

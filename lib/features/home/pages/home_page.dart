@@ -1,357 +1,292 @@
-import 'dart:io';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
 import '../../../core/database/providers.dart';
-import '../../../core/widgets/transaction_list_tile.dart';
-import '../../../core/services/currency_engine.dart';
+import '../../../core/database/models/transaction_model.dart';
 import '../../../core/theme/personalization_provider.dart';
+import '../widgets/home_header.dart';
+import '../widgets/total_balance_card.dart';
 import '../widgets/animated_balance_hero.dart';
-import '../widgets/overview_card.dart';
+import '../../transactions/pages/add_transaction_page.dart';
+import '../../people/widgets/person_avatar.dart';
+import '../widgets/home_insights_section.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
-  String _getGreeting() {
-    final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good Morning';
-    if (hour < 17) return 'Good Afternoon';
-    return 'Good Evening';
-  }
-
-  Widget _buildDynamicShadowLogo() {
-    const double logoSize = 32.0;
-    const String logoPath = 'assets/images/logo.svg';
-
-    return Stack(
-      children: [
-        Transform.translate(
-          offset: const Offset(0, 3),
-          child: ImageFiltered(
-            imageFilter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-            child: Opacity(
-              opacity: 0.3,
-              child: SvgPicture.asset(
-                logoPath,
-                width: logoSize,
-                height: logoSize,
-              ),
-            ),
-          ),
-        ),
-        SvgPicture.asset(
-          logoPath,
-          width: logoSize,
-          height: logoSize,
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
-    
     final personalization = ref.watch(personalizationProvider);
-    final userName = personalization.userName ?? 'User';
-    
-    final backgroundColor = isDark ? colorScheme.surface : const Color(0xFFF7F7F9);
+    final personsAsync = ref.watch(personsStreamProvider);
+    final transactionsAsync = ref.watch(transactionsStreamProvider);
 
-    return Container(
-      color: backgroundColor,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // SCROLLABLE CONTENT
-          Expanded(
-            child: AnimationLimiter(
-              child: CustomScrollView(
-                physics: const BouncingScrollPhysics(),
-                slivers: [
-                  // FIXED HEADER
-                  SliverAppBar(
-                    pinned: true,
-                    floating: true,
-                    backgroundColor: backgroundColor,
-                    surfaceTintColor: backgroundColor,
-                    elevation: 0,
-                    leadingWidth: 72,
-                    leading: Padding(
-                      padding: const EdgeInsets.only(left: 24),
-                      child: Center(child: _buildDynamicShadowLogo()),
-                    ),
-                    actions: [
-                      IconButton(
-                        icon: const Icon(Symbols.settings),
-                        onPressed: () => context.push('/settings'),
-                        visualDensity: VisualDensity.compact,
-                      ),
-                      const SizedBox(width: 8),
-                      GestureDetector(
-                        onTap: () => context.push('/edit_profile'),
-                        child: CircleAvatar(
-                          radius: 18,
-                          backgroundColor: colorScheme.surfaceContainerHighest,
-                          backgroundImage: personalization.userPhoto != null 
-                              ? FileImage(File(personalization.userPhoto!)) 
-                              : null,
-                          child: personalization.userPhoto == null
-                              ? Icon(
-                                  Symbols.person,
-                                  size: 18,
-                                  color: colorScheme.onSurfaceVariant,
-                                )
-                              : null,
-                        ),
-                      ),
-                      const SizedBox(width: 24),
-                    ],
-                  ),
+    return Scaffold(
+      body: RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(accountsStreamProvider);
+          ref.invalidate(transactionsStreamProvider);
+          ref.invalidate(personsStreamProvider);
+        },
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            SliverToBoxAdapter(
+              child: SafeArea(
+                bottom: false,
+                child: HomeHeader(
+                  userName: personalization.userName ?? 'User',
+                  greeting: _getGreeting(),
+                  userPhoto: personalization.userPhoto,
+                ),
+              ),
+            ),
 
-                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
+            SliverToBoxAdapter(
+              child: transactionsAsync.when(
+                data: (txs) {
+                  final now = DateTime.now();
+                  final thisMonth = txs.where((t) => t.createdAt.month == now.month && t.createdAt.year == now.year).toList();
                   
-                  // SCROLLABLE GREETING
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                      child: Text(
-                        '${_getGreeting()}, $userName',
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: -1.0,
-                        ),
-                      ),
-                    ),
-                  ),
+                  final totalIncome = txs.where((t) => t.type == TransactionType.income).fold(0.0, (s, t) => s + t.amount);
+                  final totalExpense = txs.where((t) => t.type == TransactionType.expense).fold(0.0, (s, t) => s + t.amount);
+                  
+                  final monthlyIncome = thisMonth.where((t) => t.type == TransactionType.income).fold(0.0, (s, t) => s + t.amount);
+                  final monthlyExpense = thisMonth.where((t) => t.type == TransactionType.expense).fold(0.0, (s, t) => s + t.amount);
 
-                  const SliverToBoxAdapter(child: _HomeBalanceSection()),
-                  const _SectionHeader(title: 'Overview'),
-                  const _HomeFinanceGrid(),
-                  const SliverToBoxAdapter(child: SizedBox(height: 32)),
-                  const _SectionHeader(title: 'Recent Transactions'),
-                  const _HomeRecentTransactions(),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-                      child: FilledButton.tonal(
-                        onPressed: () => context.push('/all_transactions'),
-                        style: FilledButton.styleFrom(
-                          minimumSize: const Size.fromHeight(56),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                          backgroundColor: colorScheme.primaryContainer.withValues(alpha: 0.4),
-                          foregroundColor: colorScheme.primary,
+                  return AnimatedBalanceHero(
+                    totalBalance: totalIncome - totalExpense,
+                    monthlyIncome: monthlyIncome,
+                    monthlyExpense: monthlyExpense,
+                  );
+                },
+                loading: () => const SizedBox(height: 240, child: Center(child: CircularProgressIndicator())),
+                error: (_, __) => const SizedBox(height: 240),
+              ),
+            ),
+
+            const SliverToBoxAdapter(child: SizedBox(height: 24)),
+
+            SliverToBoxAdapter(
+              child: transactionsAsync.when(
+                data: (txs) {
+                  final balance = txs.fold(0.0, (sum, tx) {
+                    return tx.type == TransactionType.income 
+                        ? sum + tx.amount 
+                        : sum - tx.amount;
+                  });
+                  return TotalBalanceCard(balance: balance);
+                },
+                loading: () => const TotalBalanceCard(balance: 0),
+                error: (_, __) => const TotalBalanceCard(balance: 0),
+              ),
+            ),
+
+            const SliverToBoxAdapter(child: SizedBox(height: 32)),
+
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    _buildQuickAction(
+                      context,
+                      icon: Symbols.settings_applications,
+                      label: 'Bill Splitter',
+                      onTap: () => context.push('/bill-splitter'),
+                    ),
+                    const SizedBox(width: 12),
+                    _buildQuickAction(
+                      context,
+                      icon: Symbols.account_balance_wallet,
+                      label: 'Accounts',
+                      onTap: () => context.push('/accounts'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SliverToBoxAdapter(child: SizedBox(height: 32)),
+
+            SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'People',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                        child: const Text(
-                          'View All Transactions',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                        TextButton(
+                          onPressed: () => context.push('/people'),
+                          child: const Text('View All'),
                         ),
-                      ),
+                      ],
                     ),
                   ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 100,
+                    child: personsAsync.when(
+                      data: (persons) => ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        scrollDirection: Axis.horizontal,
+                        itemCount: persons.length,
+                        itemBuilder: (context, index) {
+                          final person = persons[index];
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            child: PersonAvatar(
+                              person: person,
+                              onTap: () => context.push('/people/${person.id}'),
+                            ),
+                          );
+                        },
+                      ),
+                      loading: () => const Center(child: CircularProgressIndicator()),
+                      error: (_, __) => const SizedBox.shrink(),
+                    ),
+                  ),
                 ],
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
-class _SectionHeader extends StatelessWidget {
-  final String title;
-  const _SectionHeader({required this.title});
+            const SliverToBoxAdapter(child: SizedBox(height: 32)),
 
-  @override
-  Widget build(BuildContext context) {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 32, 24, 16),
-        child: Text(
-          title,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w900,
-            letterSpacing: -0.5,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _HomeBalanceSection extends ConsumerWidget {
-  const _HomeBalanceSection();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final totalBalanceAsync = ref.watch(totalBalanceProvider);
-    final monthlyStatsAsync = ref.watch(monthlyStatsProvider);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: totalBalanceAsync.when(
-        data: (total) => monthlyStatsAsync.when(
-          data: (stats) => AnimatedBalanceHero(
-            totalBalance: total,
-            monthlyIncome: stats['income'] ?? 0.0,
-            monthlyExpense: stats['expense'] ?? 0.0,
-          ),
-          loading: () => const _LoadingBalance(),
-          error: (_, __) => const _LoadingBalance(),
-        ),
-        loading: () => const _LoadingBalance(),
-        error: (_, __) => const _LoadingBalance(),
-      ),
-    );
-  }
-}
-
-class _LoadingBalance extends StatelessWidget {
-  const _LoadingBalance();
-  @override
-  Widget build(BuildContext context) => const AnimatedBalanceHero(
-      totalBalance: 0, monthlyIncome: 0, monthlyExpense: 0);
-}
-
-class _HomeFinanceGrid extends ConsumerWidget {
-  const _HomeFinanceGrid();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final totalAssetBalanceAsync = ref.watch(totalAssetBalanceProvider);
-    // Watch accountsStreamProvider to ensure the grid updates when accounts change
-    ref.watch(accountsStreamProvider);
-    final selectedCurrency = ref.watch(currencyProvider);
-
-    return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      sliver: SliverGrid(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: 1.3,
-        ),
-        delegate: SliverChildListDelegate([
-          OverviewCard(
-            icon: Symbols.account_balance,
-            title: 'Accounts',
-            subtitle: totalAssetBalanceAsync.when(
-              data: (v) => '${CurrencyEngine.formatCurrency(v, selectedCurrency)} total',
-              loading: () => '...',
-              error: (_, __) => 'Error',
+            const SliverToBoxAdapter(
+              child: HomeInsightsSection(),
             ),
-            onTap: () => context.go('/accounts'),
-          ),
-          OverviewCard(
-            icon: Symbols.pie_chart,
-            title: 'Budgets',
-            subtitle: 'Track spending',
-            onTap: () => context.push('/budgets'),
-          ),
-          OverviewCard(
-            icon: Symbols.flag,
-            title: 'Goals',
-            subtitle: 'Savings targets',
-            onTap: () => context.push('/goals'),
-          ),
-          OverviewCard(
-            icon: Symbols.front_loader,
-            title: 'Loans',
-            subtitle: 'Debts & lending',
-            onTap: () => context.push('/loans'),
-          ),
-          OverviewCard(
-            icon: Symbols.event_repeat,
-            title: 'Recurring',
-            subtitle: 'Subscription & bills',
-            onTap: () => context.push('/recurring'),
-          ),
-          OverviewCard(
-            icon: Symbols.category,
-            title: 'Categories',
-            subtitle: 'Manage groups',
-            onTap: () => context.push('/categories'),
-          ),
-          OverviewCard(
-            icon: Symbols.call_split,
-            title: 'Bill Splitter',
-            subtitle: 'Shared expenses',
-            onTap: () => context.push('/bill_splitter'),
-          ),
-          OverviewCard(
-            icon: Symbols.group,
-            title: 'People',
-            subtitle: 'Friends & contacts',
-            onTap: () => context.push('/people'),
-          ),
-        ]),
-      ),
-    );
-  }
-}
 
-class _HomeRecentTransactions extends ConsumerWidget {
-  const _HomeRecentTransactions();
+            const SliverToBoxAdapter(child: SizedBox(height: 32)),
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final transactionsAsync = ref.watch(transactionsStreamProvider);
-
-    return transactionsAsync.when(
-      data: (transactions) {
-        if (transactions.isEmpty) {
-          return const SliverToBoxAdapter(
-            child: Center(
+            SliverToBoxAdapter(
               child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 32),
-                child: Text('No activity found'),
-              ),
-            ),
-          );
-        }
-
-        final recentTxs = transactions.take(10).toList();
-        return SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          sliver: SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) => AnimationConfiguration.staggeredList(
-                position: index,
-                duration: const Duration(milliseconds: 375),
-                child: SlideAnimation(
-                  verticalOffset: 50.0,
-                  child: FadeInAnimation(
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: TransactionListTile(
-                        tx: recentTxs[index],
-                        onTap: () {
-                          
-                          context.push('/add_transaction',
-                              extra: recentTxs[index]);
-                        },
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Recent Activity',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
+                    TextButton(
+                      onPressed: () => context.push('/transactions'),
+                      child: const Text('See More'),
+                    ),
+                  ],
                 ),
               ),
-              childCount: recentTxs.length,
+            ),
+
+            transactionsAsync.when(
+              data: (txs) {
+                final recent = txs.take(10).toList();
+                return SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final tx = recent[index];
+                      return _buildTransactionTile(context, tx);
+                    },
+                    childCount: recent.length,
+                  ),
+                );
+              },
+              loading: () => const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator())),
+              error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+            ),
+
+            const SliverToBoxAdapter(child: SizedBox(height: 100)),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton.large(
+        onPressed: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (context) => const AddTransactionPage(),
+          );
+        },
+        child: const Icon(Symbols.add),
+      ),
+    );
+  }
+
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  }
+
+  Widget _buildQuickAction(BuildContext context,
+      {required IconData icon, required String label, required VoidCallback? onTap}) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Expanded(
+      child: Material(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(24),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(24),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: Column(
+              children: [
+                Icon(icon, color: colorScheme.primary),
+                const SizedBox(height: 8),
+                Text(
+                  label,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+              ],
             ),
           ),
-        );
-      },
-      loading: () => const SliverToBoxAdapter(
-          child: Center(child: CircularProgressIndicator())),
-      error: (err, _) =>
-          SliverToBoxAdapter(child: Center(child: Text('Error: $err'))),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTransactionTile(BuildContext context, TransactionModel tx) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isExpense = tx.type == TransactionType.expense;
+
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+      leading: CircleAvatar(
+        backgroundColor: colorScheme.surfaceContainerHighest,
+        child: Icon(
+          isExpense ? Symbols.keyboard_arrow_down : Symbols.keyboard_arrow_up,
+          color: isExpense ? Colors.red : Colors.green,
+        ),
+      ),
+      title: Text(
+        tx.category.value?.name ?? 'Uncategorized',
+        style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+      ),
+      subtitle: Text(DateFormat('MMM d, h:mm a').format(tx.createdAt)),
+      trailing: Text(
+        '${isExpense ? "-" : "+"}${tx.amount.toStringAsFixed(2)}',
+        style: theme.textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w900,
+          color: isExpense ? Colors.red : Colors.green,
+        ),
+      ),
     );
   }
 }

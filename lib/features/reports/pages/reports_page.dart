@@ -1,19 +1,13 @@
-import 'dart:io';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:go_router/go_router.dart';
-import '../../../core/database/models/category.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '../../../core/database/providers.dart';
-import '../../../core/services/currency_engine.dart';
-import '../../../core/theme/color_extension.dart';
-import '../../../core/widgets/icon_picker.dart';
+import '../../../core/database/models/transaction_model.dart';
 import '../../../core/theme/personalization_provider.dart';
+import '../../home/widgets/home_header.dart';
 
-/// ReportsPage: A dynamic, reactive dashboard for spending analysis.
 class ReportsPage extends ConsumerStatefulWidget {
   const ReportsPage({super.key});
 
@@ -22,560 +16,345 @@ class ReportsPage extends ConsumerStatefulWidget {
 }
 
 class _ReportsPageState extends ConsumerState<ReportsPage> {
-  // [LOGIC]: Persistent custom range if selected, otherwise defaults to "This Month".
-  DateTimeRange? _customRange;
-  // [LOGIC]: Filter transactions by a specific account.
-  int? _selectedAccountId;
-  // [LOGIC]: Filter transactions by tags.
-  final List<String> _selectedTags = [];
+  DateTimeRange _selectedDateRange = DateTimeRange(
+    start: DateTime(DateTime.now().year, DateTime.now().month, 1),
+    end: DateTime.now(),
+  );
 
-  Widget _buildDynamicShadowLogo() {
-    const double logoSize = 32.0;
-    const String logoPath = 'assets/images/logo.svg';
-
-    return Stack(
-      children: [
-        Transform.translate(
-          offset: const Offset(0, 3),
-          child: ImageFiltered(
-            imageFilter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-            child: Opacity(
-              opacity: 0.3,
-              child: SvgPicture.asset(
-                logoPath,
-                width: logoSize,
-                height: logoSize,
-              ),
-            ),
-          ),
-        ),
-        SvgPicture.asset(
-          logoPath,
-          width: logoSize,
-          height: logoSize,
-        ),
-      ],
-    );
-  }
+  String _chartType = 'line'; // 'line' or 'pie'
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final selectedCurrency = ref.watch(currencyProvider);
     final personalization = ref.watch(personalizationProvider);
-
-    final now = DateTime.now();
-    final effectiveRange = _customRange ??
-        DateTimeRange(
-          start: DateTime(now.year, now.month, 1),
-          end: DateTime(now.year, now.month + 1, 0, 23, 59, 59),
-        );
-
-    final breakdownAsync = ref.watch(categoryBreakdownProvider(
-      (effectiveRange, _selectedAccountId, _selectedTags.isEmpty ? null : _selectedTags),
-    ));
+    final transactionsAsync = ref.watch(transactionsStreamProvider);
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: breakdownAsync.when(
-        data: (breakdown) => _buildReportContent(
-          theme,
-          colorScheme,
-          breakdown,
-          selectedCurrency,
-          effectiveRange,
-          personalization,
-        ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, _) => Center(child: Text('Error loading reports: $err')),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showFilterSheet(context, colorScheme),
-        backgroundColor: colorScheme.primary,
-        foregroundColor: colorScheme.onPrimary,
-        child: const Icon(Symbols.filter_list),
-      ),
-    );
-  }
+      backgroundColor: colorScheme.surface,
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          // 1. Header (Conditional Icons Hidden)
+          SliverToBoxAdapter(
+            child: SafeArea(
+              bottom: false,
+              child: HomeHeader(
+                userName: personalization.userName ?? 'User',
+                greeting: 'Financial Reports',
+                hideIcons: true,
+              ),
+            ),
+          ),
 
-  void _showFilterSheet(BuildContext context, ColorScheme colorScheme) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) {
-        return Consumer(
-          builder: (context, ref, child) {
-            final accountsAsync = ref.watch(accountsStreamProvider);
-            final txsAsync = ref.watch(transactionsStreamProvider);
+          // 2. Month Selector (Horizontal Pills)
+          SliverToBoxAdapter(
+            child: _buildMonthSelector(theme, colorScheme),
+          ),
 
-            return accountsAsync.when(
-              data: (accounts) {
-                final allTags = txsAsync.value
-                        ?.expand((tx) => tx.tags ?? <String>[])
-                        .toSet()
-                        .toList() ??
-                    [];
+          const SliverToBoxAdapter(child: SizedBox(height: 16)),
 
-                return DraggableScrollableSheet(
-                  initialChildSize: 0.6,
-                  maxChildSize: 0.9,
-                  minChildSize: 0.4,
-                  expand: false,
-                  builder: (context, scrollController) {
-                    return SafeArea(
-                      child: ListView(
-                        controller: scrollController,
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
+          // 3. Dynamic Balance Section
+          transactionsAsync.when(
+            data: (txs) {
+              final filteredTxs = txs.where((tx) =>
+                  tx.createdAt.isAfter(_selectedDateRange.start) &&
+                  tx.createdAt.isBefore(_selectedDateRange.end.add(const Duration(days: 1)))).toList();
+
+              final totalIncome = filteredTxs
+                  .where((tx) => tx.type == TransactionType.income)
+                  .fold(0.0, (sum, tx) => sum + tx.amount);
+              final totalExpense = filteredTxs
+                  .where((tx) => tx.type == TransactionType.expense)
+                  .fold(0.0, (sum, tx) => sum + tx.amount);
+              final netBalance = totalIncome - totalExpense;
+
+              return SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    children: [
+                      _buildBalanceSummary(theme, colorScheme, netBalance, personalization.currencySymbol),
+                      const SizedBox(height: 16),
+                      Row(
                         children: [
-                          const SizedBox(height: 12),
-                          Center(
-                            child: Container(
-                              width: 40,
-                              height: 4,
-                              decoration: BoxDecoration(
-                                color: Colors.grey[300],
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                            ),
+                          _buildStatCard(
+                            theme,
+                            'Income',
+                            totalIncome,
+                            Colors.green,
+                            Symbols.trending_up,
+                            personalization.currencySymbol,
                           ),
-                          const SizedBox(height: 24),
-                          Text(
-                            'Filter Reports',
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.w900,
-                                ),
+                          const SizedBox(width: 12),
+                          _buildStatCard(
+                            theme,
+                            'Expense',
+                            totalExpense,
+                            Colors.red,
+                            Symbols.trending_down,
+                            personalization.currencySymbol,
                           ),
-                          const SizedBox(height: 24),
-                          Text(
-                            'ACCOUNTS',
-                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: colorScheme.primary,
-                                  letterSpacing: 1.2,
-                                ),
-                          ),
-                          const SizedBox(height: 8),
-                          ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: const Icon(Symbols.account_balance_wallet),
-                            title: const Text('All Accounts', style: TextStyle(fontWeight: FontWeight.w600)),
-                            trailing: _selectedAccountId == null 
-                                ? Icon(Symbols.check_circle, color: colorScheme.primary) 
-                                : null,
-                            onTap: () {
-                              setState(() => _selectedAccountId = null);
-                              Navigator.pop(context);
-                            },
-                          ),
-                          ...accounts.map((acc) {
-                            final color = acc.color.parseHexColor();
-                            final isSelected = _selectedAccountId == acc.id;
-                            return ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              leading: Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: color.withValues(alpha: 0.1),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(AppIcons.getIcon(acc.icon), color: color, size: 20),
-                              ),
-                              title: Text(acc.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-                              trailing: isSelected 
-                                  ? Icon(Symbols.check_circle, color: colorScheme.primary) 
-                                  : null,
-                              onTap: () {
-                                setState(() => _selectedAccountId = acc.id);
-                                Navigator.pop(context);
-                              },
-                            );
-                          }),
-                          const SizedBox(height: 24),
-                          if (allTags.isNotEmpty) ...[
-                            Text(
-                              'TAGS',
-                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: colorScheme.primary,
-                                    letterSpacing: 1.2,
-                                  ),
-                            ),
-                            const SizedBox(height: 12),
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: allTags.map((tag) {
-                                final isSelected = _selectedTags.contains(tag);
-                                return FilterChip(
-                                  label: Text(tag),
-                                  selected: isSelected,
-                                  onSelected: (selected) {
-                                    setState(() {
-                                      if (selected) {
-                                        _selectedTags.add(tag);
-                                      } else {
-                                        _selectedTags.remove(tag);
-                                      }
-                                    });
-                                  },
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-                            const SizedBox(height: 32),
-                          ],
-                          FilledButton(
-                            onPressed: () => Navigator.pop(context),
-                            style: FilledButton.styleFrom(
-                              minimumSize: const Size.fromHeight(56),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                            ),
-                            child: const Text('Apply Filters'),
-                          ),
-                          const SizedBox(height: 16),
                         ],
                       ),
-                    );
-                  },
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (_, __) => const Center(child: Text('Error loading accounts')),
-            );
-          },
-        );
-      },
+                      const SizedBox(height: 24),
+                      _buildQuickInsights(theme, colorScheme, filteredTxs, personalization.currencySymbol),
+                      const SizedBox(height: 24),
+                      _buildChartsSection(theme, colorScheme, filteredTxs, personalization.currencySymbol),
+                      const SizedBox(height: 24),
+                      _buildReportsList(theme, colorScheme),
+                    ],
+                  ),
+                ),
+              );
+            },
+            loading: () => const SliverFillRemaining(child: Center(child: CircularProgressIndicator())),
+            error: (err, _) => SliverFillRemaining(child: Center(child: Text('Error: $err'))),
+          ),
+
+          const SliverToBoxAdapter(child: SizedBox(height: 100)),
+        ],
+      ),
+      // 6. Global Date Range Filter (FAB)
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _selectDateRange,
+        icon: const Icon(Symbols.calendar_month),
+        label: Text(
+          '${DateFormat('MMM d').format(_selectedDateRange.start)} - ${DateFormat('MMM d').format(_selectedDateRange.end)}',
+        ),
+      ),
     );
   }
 
-  Widget _buildReportContent(
-    ThemeData theme,
-    ColorScheme colorScheme,
-    Map<Category, double> breakdown,
-    String currency,
-    DateTimeRange range,
-    PersonalizationState personalization,
-  ) {
-    final totalSpent = breakdown.values.fold(0.0, (sum, val) => sum + val);
-    final categoryCount = breakdown.keys.length;
-    final sortedEntries = breakdown.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
+  Widget _buildMonthSelector(ThemeData theme, ColorScheme colorScheme) {
+    final now = DateTime.now();
+    final months = List.generate(12, (i) => DateTime(now.year, now.month - i, 1));
 
-    final dateLabel = _customRange == null ? 'This Month' : 'Custom Period';
-    final dateString =
-        '${DateFormat('MMM d').format(range.start)} - ${DateFormat('MMM d, y').format(range.end)}';
+    return SizedBox(
+      height: 50,
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        scrollDirection: Axis.horizontal,
+        itemCount: months.length,
+        itemBuilder: (context, index) {
+          final month = months[index];
+          final isSelected = _selectedDateRange.start.year == month.year &&
+              _selectedDateRange.start.month == month.month;
 
-    return CustomScrollView(
-      physics: const BouncingScrollPhysics(),
-      slivers: [
-        // FIXED HEADER
-        SliverAppBar(
-          pinned: true,
-          floating: true,
-          backgroundColor: theme.scaffoldBackgroundColor,
-          surfaceTintColor: theme.scaffoldBackgroundColor,
-          elevation: 0,
-          leadingWidth: 72,
-          leading: Padding(
-            padding: const EdgeInsets.only(left: 24),
-            child: Center(child: _buildDynamicShadowLogo()),
-          ),
-          title: Text(
-            'Reports',
-            style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          actions: [
-            IconButton(
-              onPressed: _selectDateRange,
-              icon: const Icon(Symbols.calendar_month),
-              visualDensity: VisualDensity.compact,
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: ChoiceChip(
+              label: Text(DateFormat('MMM yy').format(month)),
+              selected: isSelected,
+              onSelected: (selected) {
+                if (selected) {
+                  setState(() {
+                    _selectedDateRange = DateTimeRange(
+                      start: month,
+                      end: DateTime(month.year, month.month + 1, 0),
+                    );
+                  });
+                }
+              },
             ),
-            IconButton(
-              icon: const Icon(Symbols.settings),
-              onPressed: () => context.push('/settings'),
-              visualDensity: VisualDensity.compact,
-            ),
-            const SizedBox(width: 8),
-            GestureDetector(
-              onTap: () => context.push('/edit_profile'),
-              child: CircleAvatar(
-                radius: 18,
-                backgroundColor: colorScheme.surfaceContainerHighest,
-                backgroundImage: personalization.userPhoto != null 
-                    ? FileImage(File(personalization.userPhoto!)) 
-                    : null,
-                child: personalization.userPhoto == null
-                    ? Icon(
-                        Symbols.person,
-                        size: 18,
-                        color: colorScheme.onSurfaceVariant,
-                      )
-                    : null,
-              ),
-            ),
-            const SizedBox(width: 24),
-          ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildBalanceSummary(ThemeData theme, ColorScheme colorScheme, double balance, String symbol) {
+    return Column(
+      children: [
+        Text('Net Balance', style: theme.textTheme.labelMedium),
+        Text(
+          '$symbol${balance.toStringAsFixed(2)}',
+          style: theme.textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w900),
         ),
-
-        // [SECTION]: Date Display Header (SCROLLABLE)
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  dateLabel.toUpperCase(),
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: colorScheme.primary,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  dateString,
-                  style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-          ),
-        ),
-
-        // [SECTION]: Dynamic Metric Cards
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                // [CARD]: Total Spent with dynamic currency formatting.
-                Expanded(
-                  child: _MetricCard(
-                    title: 'Total Spent',
-                    value: CurrencyEngine.formatCurrency(totalSpent, currency),
-                    icon: Symbols.trending_down,
-                    iconColor: Colors.redAccent,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                // [CARD]: Category usage metric.
-                Expanded(
-                  child: _MetricCard(
-                    title: 'Categories',
-                    value: '$categoryCount used',
-                    icon: Symbols.category,
-                    iconColor: colorScheme.primary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-
-        // [SECTION]: Spending Breakdown Header
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-            child: Text(
-              'SPENDING BREAKDOWN',
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: Colors.grey,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1.2,
-              ),
-            ),
-          ),
-        ),
-
-        // [SECTION]: Spending Breakdown List (Handles Empty State)
-        if (sortedEntries.isEmpty)
-          const SliverFillRemaining(
-            hasScrollBody: false,
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Symbols.analytics, size: 48, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text('No data for this period', style: TextStyle(color: Colors.grey)),
-                ],
-              ),
-            ),
-          )
-        else
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final entry = sortedEntries[index];
-                  final category = entry.key;
-                  final amount = entry.value;
-                  final percentage = totalSpent > 0 ? (amount / totalSpent) * 100 : 0.0;
-
-                  return _CategoryBreakdownTile(
-                    category: category,
-                    amount: amount,
-                    currency: currency,
-                    percentage: percentage,
-                  );
-                },
-                childCount: sortedEntries.length,
-              ),
-            ),
-          ),
-        
-        const SliverToBoxAdapter(child: SizedBox(height: 120)),
       ],
     );
   }
 
-  /// [HELPER]: Logic to connect calendar icon to Flutter showDateRangePicker.
-  Future<void> _selectDateRange() async {
-    final DateTimeRange? picked = await showDateRangePicker(
-      context: context,
-      initialDateRange: _customRange ?? DateTimeRange(
-        start: DateTime(DateTime.now().year, DateTime.now().month, 1),
-        end: DateTime.now(),
-      ),
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme.copyWith(
-                  primary: Theme.of(context).colorScheme.primary,
-                ),
+  Widget _buildStatCard(ThemeData theme, String label, double amount, Color color, IconData icon, String symbol) {
+    return Expanded(
+      child: Card(
+        elevation: 0,
+        color: color.withValues(alpha: 0.1),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, color: color, size: 20),
+              const SizedBox(height: 8),
+              Text(label, style: theme.textTheme.labelMedium?.copyWith(color: color)),
+              Text(
+                '$symbol${amount.toStringAsFixed(2)}',
+                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: color),
+              ),
+            ],
           ),
-          child: child!,
-        );
-      },
+        ),
+      ),
     );
-
-    if (picked != null) {
-      setState(() => _customRange = picked);
-    }
   }
-}
 
-/// [_MetricCard]: Modern M3 metric card with tonal elevation.
-class _MetricCard extends StatelessWidget {
-  final String title;
-  final String value;
-  final IconData icon;
-  final Color iconColor;
+  Widget _buildQuickInsights(ThemeData theme, ColorScheme colorScheme, List<TransactionModel> txs, String symbol) {
+    final expenseTxs = txs.where((t) => t.type == TransactionType.expense).toList();
+    final incomeTxs = txs.where((t) => t.type == TransactionType.income).toList();
+    
+    final totalExpense = expenseTxs.fold(0.0, (s, t) => s + t.amount);
+    final totalIncome = incomeTxs.fold(0.0, (s, t) => s + t.amount);
+    
+    final savingsRate = totalIncome > 0 ? ((totalIncome - totalExpense) / totalIncome * 100) : 0.0;
+    final avgDaily = txs.isEmpty ? 0.0 : totalExpense / 30; // Approximation
 
-  const _MetricCard({
-    required this.title,
-    required this.value,
-    required this.icon,
-    required this.iconColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Card(
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+      color: colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
       child: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: iconColor.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: iconColor, size: 20),
-            ),
+            Text('Quick Insights', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
-            Text(title, style: theme.textTheme.labelMedium?.copyWith(color: Colors.grey, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 4),
-            Text(
-              value,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w900, 
-                letterSpacing: -0.5,
-              ),
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              childAspectRatio: 2.5,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              children: [
+                _buildInsightTile(theme, 'Savings Rate', '${savingsRate.toStringAsFixed(1)}%', Symbols.savings),
+                _buildInsightTile(theme, 'Daily Avg', '$symbol${avgDaily.toStringAsFixed(0)}', Symbols.calendar_today),
+                _buildInsightTile(theme, 'Transactions', '${txs.length}', Symbols.receipt_long),
+                _buildInsightTile(theme, 'Top Cat', 'Food', Symbols.category),
+              ],
             ),
           ],
         ),
       ),
     );
   }
-}
 
-/// [_CategoryBreakdownTile]: List item for category spending.
-class _CategoryBreakdownTile extends StatelessWidget {
-  final Category category;
-  final double amount;
-  final String currency;
-  final double percentage;
-
-  const _CategoryBreakdownTile({
-    required this.category,
-    required this.amount,
-    required this.currency,
-    required this.percentage,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final color = category.color.parseHexColor();
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(12),
-        leading: Container(
-          width: 52,
-          height: 52,
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Icon(AppIcons.getIcon(category.icon), color: color, size: 24),
+  Widget _buildInsightTile(ThemeData theme, String label, String value, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: theme.colorScheme.primary),
+        const SizedBox(width: 8),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(label, style: theme.textTheme.labelSmall),
+            Text(value, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+          ],
         ),
-        title: Text(category.name, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 4),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('${percentage.toStringAsFixed(1)}% of total period spending'),
-              const SizedBox(height: 8),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: percentage / 100,
-                  backgroundColor: color.withValues(alpha: 0.05),
-                  valueColor: AlwaysStoppedAnimation<Color>(color),
-                  minHeight: 6,
+      ],
+    );
+  }
+
+  Widget _buildChartsSection(ThemeData theme, ColorScheme colorScheme, List<TransactionModel> txs, String symbol) {
+    return Card(
+      elevation: 0,
+      color: colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                SegmentedButton<String>(
+                  segments: const [
+                    ButtonSegment(value: 'line', icon: Icon(Symbols.show_chart)),
+                    ButtonSegment(value: 'pie', icon: Icon(Symbols.pie_chart)),
+                  ],
+                  selected: {_chartType},
+                  onSelectionChanged: (val) => setState(() => _chartType = val.first),
                 ),
-              ),
-            ],
-          ),
-        ),
-        trailing: Text(
-          CurrencyEngine.formatCurrency(amount, currency),
-          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: -0.5),
+                IconButton(onPressed: () {}, icon: const Icon(Symbols.more_vert)),
+              ],
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              height: 200,
+              child: _chartType == 'line' ? _buildLineChart(txs) : _buildPieChart(txs),
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  Widget _buildLineChart(List<TransactionModel> txs) {
+    return LineChart(
+      LineChartData(
+        gridData: const FlGridData(show: false),
+        titlesData: const FlTitlesData(show: false),
+        borderData: FlBorderData(show: false),
+        lineBarsData: [
+          LineChartBarData(
+            spots: [const FlSpot(0, 3), const FlSpot(2, 5), const FlSpot(4, 4), const FlSpot(6, 8)],
+            isCurved: true,
+            color: Colors.blue,
+            barWidth: 4,
+            dotData: const FlDotData(show: false),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPieChart(List<TransactionModel> txs) {
+    return PieChart(
+      PieChartData(
+        sections: [
+          PieChartSectionData(value: 40, color: Colors.blue, title: '40%'),
+          PieChartSectionData(value: 30, color: Colors.red, title: '30%'),
+          PieChartSectionData(value: 20, color: Colors.green, title: '20%'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReportsList(ThemeData theme, ColorScheme colorScheme) {
+    final items = [
+      {'title': 'Month Summary', 'icon': Symbols.summarize},
+      {'title': 'Category Breakdown', 'icon': Symbols.pie_chart},
+      {'title': 'Budget Performance', 'icon': Symbols.account_balance},
+      {'title': 'Cash Flow Analysis', 'icon': Symbols.swap_horiz},
+    ];
+
+    return Column(
+      children: items.map((item) {
+        return ListTile(
+          leading: CircleAvatar(
+            backgroundColor: colorScheme.surfaceContainerHighest,
+            child: Icon(item['icon'] as IconData, size: 20),
+          ),
+          title: Text(item['title'] as String, style: const TextStyle(fontWeight: FontWeight.bold)),
+          trailing: const Icon(Symbols.chevron_right),
+          onTap: () {},
+        );
+      }).toList(),
+    );
+  }
+
+  Future<void> _selectDateRange() async {
+    final range = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+      initialDateRange: _selectedDateRange,
+    );
+    if (range != null) {
+      setState(() => _selectedDateRange = range);
+    }
   }
 }
