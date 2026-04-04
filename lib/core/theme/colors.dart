@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   // --- Atelier Design Tokens (Editorial System - Light) ---
-  static const Color primary = Color(0xFF5D5E61); // Muted slate
-  static const Color primaryDim = Color(0xFF515255); // For gradients
-  static const Color tertiary = Color(0xFF026595); // Subtle Accent
+  static const Color primary = Color(0xFF0061A4); // Material 3 Blue
+  static const Color primaryDim = Color(0xFF004689); // For gradients
+  static const Color tertiary = Color(0xFF535F7E); // Blue-grey Accent
 
   // Surface Philosophy (Light)
   static const Color surface = Color(0xFFFBF9F9); // Warm off-white
@@ -15,23 +15,23 @@ class AppColors {
   static const Color onSurface = Color(0xFF313234); // Atelier curated text
   static const Color backgroundLight = surface;
 
-  // --- Dark Mode Specifics (Refined Sage/Teal Palette) ---
+  // --- Dark Mode Specifics (Refined Blue Palette) ---
   static const Color backgroundDark = Color(0xFF1A1C1E);
   static const Color surfaceDark = Color(0xFF1A1C1E);
-  static const Color onSurfaceDark = Color(0xFFE1E2E1);
+  static const Color onSurfaceDark = Color(0xFFE2E2E6);
 
-  static const Color primaryDark = Color(0xFFB1CCBE); // Teal/Sage
-  static const Color onPrimaryDark = Color(0xFF1B352E);
-  static const Color primaryContainerDark = Color(0xFF334B46);
-  static const Color onPrimaryContainerDark = Color(0xFFCCE8DB);
+  static const Color primaryDark = Color(0xFFA9C7FF); // Primary Blue
+  static const Color onPrimaryDark = Color(0xFF003062);
+  static const Color primaryContainerDark = Color(0xFF004689);
+  static const Color onPrimaryContainerDark = Color(0xFFD6E3FF);
 
-  static const Color secondaryDark = Color(0xFFB0CCC5);
-  static const Color tertiaryDark = Color(0xFFB5CAD6);
+  static const Color secondaryDark = Color(0xFFBEC6DC);
+  static const Color tertiaryDark = Color(0xFFDDBCE0);
 
-  static const Color cardDark = Color(0xFF212523);
-  static const Color surfaceContainerDark = Color(0xFF2C312E);
-  static const Color surfaceContainerHighestDark = Color(0xFF363B39);
-  static const Color outlineDark = Color(0xFF89938F);
+  static const Color cardDark = Color(0xFF1F1F23);
+  static const Color surfaceContainerDark = Color(0xFF1F1F23);
+  static const Color surfaceContainerHighestDark = Color(0xFF2A2A2E);
+  static const Color outlineDark = Color(0xFF8E9099);
 
   // --- Utility Colors ---
   static const Color income = Color(0xFF10B981);

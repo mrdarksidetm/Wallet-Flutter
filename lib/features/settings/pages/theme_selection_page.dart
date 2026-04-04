@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/theme/theme_provider.dart';
 import '../../../core/theme/personalization_provider.dart';
+
 class ThemeSelectionPage extends ConsumerWidget {
   const ThemeSelectionPage({super.key});
 
@@ -46,20 +47,65 @@ class ThemeSelectionPage extends ConsumerWidget {
             currentMode: themeState.themeMode,
             onTap: () => themeNotifier.setThemeMode(ThemeMode.dark),
           ),
-          if (themeState.useMaterialYou) ...[
-            const Divider(indent: 24, endIndent: 24, height: 32),
-            _buildSectionHeader(context, 'Dynamic Color Style'),
-            _buildVariantTile(context, ref, 'Tonal Spot', 'tonalSpot'),
-            _buildVariantTile(context, ref, 'Vibrant', 'vibrant'),
-            _buildVariantTile(context, ref, 'Expressive', 'expressive'),
-            _buildVariantTile(context, ref, 'Monochrome', 'monochrome'),
-            _buildVariantTile(context, ref, 'Neutral', 'neutral'),
-            _buildVariantTile(context, ref, 'Content', 'content'),
-            _buildVariantTile(context, ref, 'Fidelity', 'fidelity'),
-            _buildVariantTile(context, ref, 'Rainbow', 'rainbow'),
-            _buildVariantTile(context, ref, 'Fruit Salad', 'fruitSalad'),
-          ],
+          const Divider(indent: 24, endIndent: 24, height: 32),
+          _buildSectionHeader(context, 'Dynamic Color Style'),
+          _buildVariantInfo(context, themeState.useMaterialYou),
+          _buildVariantTile(context, ref, 'Tonal Spot', 'tonalSpot',
+              enabled: themeState.useMaterialYou),
+          _buildVariantTile(context, ref, 'Vibrant', 'vibrant',
+              enabled: themeState.useMaterialYou),
+          _buildVariantTile(context, ref, 'Expressive', 'expressive',
+              enabled: themeState.useMaterialYou),
+          _buildVariantTile(context, ref, 'Monochrome', 'monochrome',
+              enabled: themeState.useMaterialYou),
+          _buildVariantTile(context, ref, 'Neutral', 'neutral',
+              enabled: themeState.useMaterialYou),
+          _buildVariantTile(context, ref, 'Content', 'content',
+              enabled: themeState.useMaterialYou),
+          _buildVariantTile(context, ref, 'Fidelity', 'fidelity',
+              enabled: themeState.useMaterialYou),
+          _buildVariantTile(context, ref, 'Rainbow', 'rainbow',
+              enabled: themeState.useMaterialYou),
+          _buildVariantTile(context, ref, 'Fruit Salad', 'fruitSalad',
+              enabled: themeState.useMaterialYou),
         ],
+      ),
+    );
+  }
+
+  Widget _buildVariantInfo(BuildContext context, bool enabled) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Symbols.info_rounded,
+              size: 18,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                enabled
+                    ? 'Dynamic Color is on. Select a variant to tune your palette style.'
+                    : 'These variants are available only when Dynamic Color is enabled.',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      height: 1.35,
+                    ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -78,25 +124,37 @@ class ThemeSelectionPage extends ConsumerWidget {
   }
 
   Widget _buildVariantTile(
-      BuildContext context, WidgetRef ref, String title, String variant) {
+    BuildContext context,
+    WidgetRef ref,
+    String title,
+    String variant, {
+    required bool enabled,
+  }) {
     final personalization = ref.watch(personalizationProvider);
     final isSelected = personalization.colorSchemeVariant == variant;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return ListTile(
-      onTap: () async {
-        
-        ref
-            .read(personalizationProvider.notifier)
-            .updateColorSchemeVariant(variant);
-      },
-      contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-      title: Text(title,
+    return Opacity(
+      opacity: enabled ? 1.0 : 0.5,
+      child: ListTile(
+        onTap: enabled
+            ? () {
+                ref
+                    .read(personalizationProvider.notifier)
+                    .updateColorSchemeVariant(variant);
+              }
+            : null,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+        title: Text(
+          title,
           style: TextStyle(
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
-      trailing: isSelected
-          ? Icon(Symbols.check_circle, color: colorScheme.primary, fill: 1)
-          : null,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+        trailing: isSelected
+            ? Icon(Symbols.check_circle, color: colorScheme.primary, fill: 1)
+            : null,
+      ),
     );
   }
 

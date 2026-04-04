@@ -4,16 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
+
 class HomeHeader extends StatelessWidget {
   final String? userPhoto;
   final String userName;
   final String greeting;
+  final bool hideIcons;
 
   const HomeHeader({
     super.key,
     this.userPhoto,
     required this.userName,
     required this.greeting,
+    this.hideIcons = false,
   });
 
   @override
@@ -26,42 +29,57 @@ class HomeHeader extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Left Side: Dynamic Shadow Logo
-          _buildDynamicShadowLogo(),
-
-          // Right Side: Settings & Profile
-          Row(
+          // Left Side: Logo & Greeting
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // Settings Icon
-              IconButton(
-                icon: const Icon(Symbols.settings),
-                onPressed: () {
-                  context.push('/settings');
-                },
-                visualDensity: VisualDensity.compact,
-              ),
-              const SizedBox(width: 8),
-
-              // User Profile Avatar
-              GestureDetector(
-                onTap: () {
-                  context.push('/edit_profile');
-                },
-                child: CircleAvatar(
-                  radius: 20,
-                  backgroundColor: colorScheme.surfaceContainerHighest,
-                  backgroundImage: userPhoto != null ? FileImage(File(userPhoto!)) : null,
-                  child: userPhoto == null
-                      ? Icon(
-                          Symbols.person,
-                          size: 20,
-                          color: colorScheme.onSurfaceVariant,
-                        )
-                      : null,
+              if (!hideIcons) _buildDynamicShadowLogo(),
+              const SizedBox(height: 8),
+              Text(
+                '$greeting, $userName',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: -0.5,
                 ),
               ),
             ],
           ),
+
+          // Right Side: Settings & Profile
+          if (!hideIcons)
+            Row(
+              children: [
+                // Settings Icon
+                IconButton(
+                  icon: const Icon(Symbols.settings),
+                  onPressed: () {
+                    context.push('/settings');
+                  },
+                  visualDensity: VisualDensity.compact,
+                ),
+                const SizedBox(width: 8),
+
+                // User Profile Avatar
+                GestureDetector(
+                  onTap: () {
+                    context.push('/settings/profile');
+                  },
+                  child: CircleAvatar(
+                    radius: 20,
+                    backgroundColor: colorScheme.surfaceContainerHighest,
+                    backgroundImage: userPhoto != null ? FileImage(File(userPhoto!)) : null,
+                    child: userPhoto == null
+                        ? Icon(
+                            Symbols.person,
+                            size: 20,
+                            color: colorScheme.onSurfaceVariant,
+                          )
+                        : null,
+                  ),
+                ),
+              ],
+            ),
         ],
       ),
     );

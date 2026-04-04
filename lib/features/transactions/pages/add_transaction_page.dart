@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 
@@ -16,6 +15,7 @@ import '../../../core/widgets/primary_atelier_button.dart';
 import '../../../core/theme/color_extension.dart';
 import '../../../core/database/models/auxiliary_models.dart';
 import '../../../core/widgets/expressive_bottom_sheet.dart';
+import '../../../core/services/currency_engine.dart';
 
 class AddTransactionPage extends ConsumerStatefulWidget {
   final TransactionModel? transaction;
@@ -47,17 +47,47 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
     if (widget.transaction != null) {
       _isLoading = true;
       _initializeData();
+    } else {
+      _loadDefaultAccount();
+    }
+  }
+
+  Future<void> _loadDefaultAccount() async {
+    final accountRepo = ref.read(accountRepositoryProvider);
+    final defaultAcc = await accountRepo.getDefaultAccount();
+    if (mounted && defaultAcc != null) {
+      setState(() {
+        _selectedAccount = defaultAcc;
+      });
     }
   }
 
   Future<void> _initializeData() async {
     final tx = widget.transaction!;
     
-    // Ensure links are loaded
-    await tx.account.load();
-    await tx.category.load();
-    await tx.transferAccount.load();
-    await tx.person.load();
+    // [ACTION]: Robustly loading all linked entities for editing.
+    // [M3 UPDATE]: We ensure links are loaded from Isar, but use ID fallbacks 
+    // from the transaction record if the link returns null.
+    // [WHY]: This prevents the "forgotten fields" bug where links might not 
+    // be eagerly loaded, ensuring icon, category, color, person, and accounts 
+    // are all correctly restored in the UI.
+
+    await Future.wait([
+      tx.account.load(),
+      tx.category.load(),
+      tx.transferAccount.load(),
+      tx.person.load(),
+    ]);
+
+    Account? acc = tx.account.value;
+    if (acc == null && tx.accountId != 0) {
+      acc = await ref.read(accountRepositoryProvider).getById(tx.accountId);
+    }
+
+    Category? cat = tx.category.value;
+    if (cat == null && tx.categoryId != 0) {
+      cat = await ref.read(categoryRepositoryProvider).getById(tx.categoryId);
+    }
 
     if (mounted) {
       setState(() {
@@ -66,8 +96,8 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
         _noteController.text = tx.note ?? '';
         _selectedIcon = tx.icon;
         _selectedColor = tx.color;
-        _selectedAccount = tx.account.value;
-        _selectedCategory = tx.category.value;
+        _selectedAccount = acc;
+        _selectedCategory = cat;
         _selectedTransferAccount = tx.transferAccount.value;
         _selectedPerson = tx.person.value;
         _isLoading = false;
@@ -171,6 +201,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
   }
 
   Widget _buildAmountInput(ThemeData theme, Color effectiveColor) {
+    final selectedCurrency = ref.watch(currencyProvider);
     return TextField(
       controller: _amountController,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -181,7 +212,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
       textAlign: TextAlign.center,
       decoration: InputDecoration(
         hintText: '0.00',
-        prefixText: '${NumberFormat.simpleCurrency(name: ref.watch(currencyProvider)).currencySymbol} ',
+        prefixText: '${CurrencyEngine.getSymbol(selectedCurrency)} ',
         prefixStyle: theme.textTheme.displaySmall?.copyWith(color: theme.colorScheme.outline),
         border: InputBorder.none,
         enabledBorder: InputBorder.none,
@@ -218,13 +249,16 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
     return Row(
       children: [
         Expanded(
-          child: ListTile(
-            onTap: () => _pickIcon(effectiveIcon, effectiveColor),
-            leading: Icon(AppIcons.getIcon(effectiveIcon), color: effectiveColor),
-            title: const Text('Icon'),
-            subtitle: Text(_selectedIcon == null ? 'Default' : 'Custom'),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            tileColor: colorScheme.surfaceContainerLow,
+          child: Hero(
+            tag: widget.transaction != null ? 'tx_icon_${widget.transaction!.id}' : 'new_tx_icon',
+            child: ListTile(
+              onTap: () => _pickIcon(effectiveIcon, effectiveColor),
+              leading: Icon(AppIcons.getIcon(effectiveIcon), color: effectiveColor),
+              title: const Text('Icon'),
+              subtitle: Text(_selectedIcon == null ? 'Default' : 'Custom'),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              tileColor: colorScheme.surfaceContainerLow,
+            ),
           ),
         ),
         const SizedBox(width: 12),
@@ -360,9 +394,9 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
 
     // Overbudget Check
     if (_transactionType == TransactionType.expense && _selectedCategory!.budgetLimit != null) {
-      final stats = ref.read(budgetStatsProvider).value;
-      final categoryStat = stats?.firstWhere((s) => s['categoryId'] == _selectedCategory!.id, orElse: () => {});
-      if (categoryStat != null && categoryStat.isNotEmpty) {
+      final stats = await ref.read(statisticsServiceProvider).watchBudgets().first;
+      final categoryStat = stats.firstWhere((s) => s['categoryId'] == _selectedCategory!.id, orElse: () => {});
+      if (categoryStat.isNotEmpty) {
         final spent = categoryStat['spent'] as double;
         final limit = _selectedCategory!.budgetLimit!;
         if (spent + amount > limit) {
@@ -370,7 +404,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
             context: context,
             builder: (context) => AlertDialog(
               title: const Text('Over Budget Warning'),
-              content: Text('This transaction will exceed your budget for ${_selectedCategory!.name}.\n\nLimit: $limit\nCurrently Spent: $spent\nNew Total: ${spent + amount}\n\nDo you want to continue?'),
+              content: Text('This transaction will exceed your monthly budget for ${_selectedCategory!.name}.\n\nLimit: $limit\nCurrently Spent: $spent\nNew Total: ${spent + amount}\n\nDo you want to continue?'),
               actions: [
                 TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
                 TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Continue')),
@@ -515,13 +549,13 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
             return ListTile(
               leading: Icon(AppIcons.getIcon(cat.icon), color: cat.color.parseHexColor()),
               title: Text(cat.name),
+              trailing: _selectedCategory?.id == cat.id ? const Icon(Icons.check_circle, color: Colors.green) : null,
               onTap: () {
                 setState(() {
-                  if (_selectedCategory?.id != cat.id) {
-                    _selectedCategory = cat;
-                    _selectedIcon = null;
-                    _selectedColor = null;
-                  }
+                  _selectedCategory = cat;
+                  // [SMOOTHNESS]: Automatically sync icon and color from category
+                  _selectedIcon = cat.icon;
+                  _selectedColor = cat.color;
                 });
                 Navigator.pop(context);
               },
@@ -533,7 +567,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
   }
 
   void _showAccountPicker(List<Account> accounts, {bool isTransfer = false}) {
-    final currencyFormat = NumberFormat.simpleCurrency(name: ref.read(currencyProvider));
+    final selectedCurrency = ref.read(currencyProvider);
     showModalBottomSheet(
       context: context,
       builder: (context) => ListView.builder(
@@ -542,7 +576,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
           final acc = accounts[index];
           return ListTile(
             title: Text(acc.name),
-            subtitle: Text('Balance: ${currencyFormat.format(acc.balance)}'),
+            subtitle: Text('Balance: ${CurrencyEngine.formatCurrency(acc.balance, selectedCurrency)}'),
             onTap: () {
               setState(() {
                 if (isTransfer) {

@@ -6,7 +6,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/auxiliary_models.dart';
 import '../../../core/providers/fab_action_provider.dart';
-import '../../../core/theme/color_extension.dart';
+import '../widgets/person_avatar.dart';
 
 class PeoplePage extends ConsumerStatefulWidget {
   const PeoplePage({super.key});
@@ -91,25 +91,20 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
               final personTxs = txs.where((t) => t.person.value?.id == person.id);
               final txCount = personTxs.length;
 
-              final color = person.color.parseHexColor();
-
               return Card(
                 margin: const EdgeInsets.only(bottom: 12),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 child: InkWell(
                   onTap: () => context.push('/person_details', extra: person),
+                  onLongPress: () => _showDeleteConfirmation(context, ref, person),
                   borderRadius: BorderRadius.circular(20),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Row(
                       children: [
-                        CircleAvatar(
+                        PersonAvatar(
+                          person: person,
                           radius: 28,
-                          backgroundColor: color.withValues(alpha: 0.1),
-                          child: Text(
-                            person.name[0].toUpperCase(),
-                            style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 20),
-                          ),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
@@ -163,6 +158,26 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('Error: $err')),
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, WidgetRef ref, Person person) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Person?'),
+        content: Text('Are you sure you want to delete ${person.name}? This will NOT delete their transaction history.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () async {
+              await ref.read(personServiceProvider).deletePerson(person.id);
+              if (context.mounted) Navigator.pop(context);
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
       ),
     );
   }

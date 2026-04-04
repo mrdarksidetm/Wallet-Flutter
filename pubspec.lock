@@ -422,6 +422,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.5.0"
+  flutter_heatmap_calendar:
+    dependency: "direct main"
+    description:
+      name: flutter_heatmap_calendar
+      sha256: "2cf1f7f00598544861d68e3f1dd972f594c7c4977cb2de010c34cb94422a5dc5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
   flutter_launcher_icons:
     dependency: "direct dev"
     description:

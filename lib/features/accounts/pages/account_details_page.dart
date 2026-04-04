@@ -8,6 +8,7 @@ import '../../../core/database/models/account.dart';
 import '../../../core/database/models/transaction_model.dart';
 import '../../../core/widgets/icon_picker.dart';
 import '../../../core/theme/color_extension.dart';
+import '../../../core/services/currency_engine.dart';
 
 class AccountDetailsPage extends ConsumerWidget {
   final Account account;
@@ -20,7 +21,6 @@ class AccountDetailsPage extends ConsumerWidget {
     final color = account.color.parseHexColor();
 
     final selectedCurrency = ref.watch(currencyProvider);
-    final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
 
     // Optimized: Watch transactions for this account specifically using ID filter in DB
     final transactionsAsync =
@@ -84,7 +84,7 @@ class AccountDetailsPage extends ConsumerWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    currencyFormat.format(account.balance),
+                    CurrencyEngine.formatCurrency(account.balance, selectedCurrency),
                     style: theme.textTheme.displayMedium?.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.w900,
@@ -134,7 +134,7 @@ class AccountDetailsPage extends ConsumerWidget {
                                 const TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Text(DateFormat.yMMMd().format(tx.date)),
                         trailing: Text(
-                          '${isIncome ? '+' : '-'}${currencyFormat.format(tx.amount)}',
+                          '${isIncome ? '+' : '-'}${CurrencyEngine.formatCurrency(tx.amount, selectedCurrency)}',
                           style: TextStyle(
                             fontWeight: FontWeight.w900,
                             color: isIncome ? Colors.green : colorScheme.error,

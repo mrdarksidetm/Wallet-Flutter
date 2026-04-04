@@ -1,13 +1,13 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/theme/personalization_provider.dart';
 import '../../../core/theme/color_extension.dart';
 import '../../../core/database/models/account.dart';
 import '../../../core/widgets/icon_picker.dart';
+import '../../../core/services/currency_engine.dart';
 
 class AccountCard extends ConsumerStatefulWidget {
   final Account account;
@@ -47,7 +47,6 @@ class _AccountCardState extends ConsumerState<AccountCard> with SingleTickerProv
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
     final currency = ref.watch(currencyProvider);
-    final format = NumberFormat.simpleCurrency(name: currency);
     final isVisible = ref.watch(personalizationProvider.select((p) => p.isBalanceVisible));
 
     final color = widget.account.color.parseHexColor();
@@ -173,16 +172,8 @@ class _AccountCardState extends ConsumerState<AccountCard> with SingleTickerProv
                         duration: const Duration(milliseconds: 1500),
                         curve: Curves.easeOutCubic,
                         builder: (context, value, child) {
-                          final isNegative = value < 0;
-                          final absValue = value.abs();
-                          
-                          final formattedNumber = absValue.toStringAsFixed(2).replaceAllMapped(
-                            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), 
-                            (Match m) => '${m[1]},'
-                          );
-
                           return Text(
-                            '${isNegative ? '-' : ''}${format.currencySymbol}$formattedNumber',
+                            CurrencyEngine.formatCurrency(value, currency),
                             style: theme.textTheme.displaySmall?.copyWith(
                               fontWeight: FontWeight.w900,
                               color: colorScheme.onSurface,

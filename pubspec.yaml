@@ -2,7 +2,7 @@ name: wallet
 description: A new Flutter project.
 publish_to: 'none'
 
-version: 1.3.0+1
+version: 1.4.0+1
 
 environment:
   sdk: ">=3.5.0 <4.0.0"
@@ -69,6 +69,7 @@ dependencies:
   package_info_plus: ^9.0.0
   restart_app: ^1.7.3
   smooth_page_indicator: ^2.0.1
+  flutter_heatmap_calendar: 1.0.1
 
 dev_dependencies:
   flutter_test:
@@ -91,7 +92,9 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/images/blueprint.svg
     - assets/icon/
+    - assets/metadata/
 
   fonts:
     - family: GoogleSansFlex
@@ -105,7 +108,7 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/icon/Original.png"
+  image_path: "assets/icon/original.png"
   adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "assets/icon/Original.png"
-  adaptive_icon_monochrome: "assets/icon/Monochrome.png"
+  adaptive_icon_foreground: "assets/icon/original.png"
+  adaptive_icon_monochrome: "assets/icon/monochrome.png"

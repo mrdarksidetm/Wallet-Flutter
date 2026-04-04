@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../../../core/theme/color_extension.dart';
+import '../../../core/services/currency_engine.dart';
 
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/account.dart';
@@ -37,7 +37,6 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
     final colorScheme = Theme.of(context).colorScheme;
     final accountsAsync = ref.watch(accountsStreamProvider);
     final currency = ref.watch(currencyProvider);
-    final format = NumberFormat.simpleCurrency(name: currency);
 
     return Scaffold(
       backgroundColor: Theme.of(context).brightness == Brightness.dark 
@@ -48,7 +47,10 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
         actions: [
           IconButton(
             icon: const Icon(Symbols.reorder),
-            onPressed: () => _showReorderBottomSheet(context, accountsAsync.value ?? []),
+            onPressed: () {
+              final accounts = accountsAsync.value?.toList() ?? <Account>[];
+              _showReorderBottomSheet(context, accounts);
+            },
           ),
           const SizedBox(width: 8),
         ],
@@ -78,7 +80,8 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
                         itemBuilder: (context, index) {
                           return AccountCard(
                             account: accounts[index],
-                            onEdit: () => context.push('/add-account', extra: accounts[index]),
+                            onEdit: () => context.push('/add_account', extra: accounts[index]),
+
                           );
                         },
                       ),
@@ -105,7 +108,7 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
                   builder: (context, ref, _) {
                     final txsAsync = ref.watch(accountTransactionsProvider(currentAccount.id));
                     return txsAsync.when(
-                      data: (txs) => _buildStatsSection(context, txs, format),
+                      data: (txs) => _buildStatsSection(context, txs, currency),
                       loading: () => const SizedBox(height: 200, child: Center(child: CircularProgressIndicator())),
                       error: (_, __) => const SizedBox.shrink(),
                     );
@@ -137,7 +140,7 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
                       }
                       return SliverList(
                         delegate: SliverChildBuilderDelegate(
-                          (context, index) => _buildTransactionItem(context, txs[index], format),
+                          (context, index) => _buildTransactionItem(context, txs[index]),
                           childCount: txs.length,
                         ),
                       );
@@ -157,7 +160,7 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
     );
   }
 
-  Widget _buildStatsSection(BuildContext context, List<TransactionModel> txs, NumberFormat format) {
+  Widget _buildStatsSection(BuildContext context, List<TransactionModel> txs, String currency) {
     double tempIncome = 0;
     double tempExpense = 0;
     final Map<int, double> categoryExpenses = {};
@@ -195,9 +198,9 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
         children: [
           Row(
             children: [
-              _buildStatCard(context, 'Income', totalIncome, Colors.green, Symbols.trending_up),
+              _buildStatCard(context, 'Income', totalIncome, Colors.green, Symbols.trending_up, currency),
               const SizedBox(width: 16),
-              _buildStatCard(context, 'Expense', totalExpense, Colors.red, Symbols.trending_down),
+              _buildStatCard(context, 'Expense', totalExpense, Colors.red, Symbols.trending_down, currency),
             ],
           ),
           const SizedBox(height: 32),
@@ -226,9 +229,7 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
     );
   }
 
-  Widget _buildStatCard(BuildContext context, String label, double amount, Color color, IconData icon) {
-    final format = NumberFormat.simpleCurrency(name: ref.watch(currencyProvider));
-
+  Widget _buildStatCard(BuildContext context, String label, double amount, Color color, IconData icon, String currency) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -249,7 +250,7 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
             ),
             const SizedBox(height: 8),
             Text(
-              format.format(amount),
+              CurrencyEngine.formatCurrency(amount, currency),
               style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
             ),
           ],
@@ -258,7 +259,7 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
     );
   }
 
-  Widget _buildTransactionItem(BuildContext context, TransactionModel tx, NumberFormat format) {
+  Widget _buildTransactionItem(BuildContext context, TransactionModel tx) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: TransactionListTile(

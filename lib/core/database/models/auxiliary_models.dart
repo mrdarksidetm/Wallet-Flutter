@@ -100,6 +100,8 @@ class Goal {
   String color = '0xFF2196F3';
   String? icon;
 
+  final account = IsarLink<Account>();
+
   bool isCompleted = false;
   DateTime createdAt = DateTime.now();
   DateTime updatedAt = DateTime.now();

@@ -29,8 +29,12 @@ class AppTheme {
     }
   }
 
-  static ThemeData getTheme(PersonalizationState state, Brightness brightness,
-      {ColorScheme? dynamicColorScheme}) {
+  static ThemeData getTheme(
+    PersonalizationState state,
+    Brightness brightness, {
+    ColorScheme? dynamicColorScheme,
+    bool useDynamicVariant = true,
+  }) {
     final bool isDark = brightness == Brightness.dark;
 
     final List<FontVariation> variations = [
@@ -42,19 +46,16 @@ class AppTheme {
       FontVariation('opsz', state.opticalSize),
     ];
 
-    // Using DynamicColorScheme to support variants manually if needed,
-    // but ColorScheme.fromSeed is standard now in Flutter 3.22+
-    // If 'variant' is not found, it might be a version mismatch.
-    // In Flutter 3.22+, it is available.
-
     final Color seedColor = isDark ? AppColors.primaryDark : AppColors.primary;
+    final Color effectiveSeedColor = dynamicColorScheme?.primary ?? seedColor;
 
-    final colorScheme = dynamicColorScheme ??
-        ColorScheme.fromSeed(
-          seedColor: seedColor,
-          brightness: brightness,
-          dynamicSchemeVariant: _getVariant(state.colorSchemeVariant),
-        );
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: effectiveSeedColor,
+      brightness: brightness,
+      dynamicSchemeVariant: useDynamicVariant
+          ? _getVariant(state.colorSchemeVariant)
+          : DynamicSchemeVariant.tonalSpot,
+    );
 
     final baseTextStyle = TextStyle(
       fontFamily: 'GoogleSansFlex',
@@ -109,8 +110,8 @@ class AppTheme {
       ),
       iconTheme: IconThemeData(
         fill: state.fillIcons ? 1.0 : 0.0,
-        weight: 500, // Medium weight for better presence
-        grade: 0.25, // Slightly heavier grade for visual clarity
+        weight: 500,
+        grade: 0.25,
         opticalSize: 24,
         color: colorScheme.onSurface,
       ),
@@ -126,7 +127,7 @@ class AppTheme {
         centerTitle: false,
         iconTheme: IconThemeData(
           color: colorScheme.onSurface,
-          weight: 600, // Heavier icons for AppBar
+          weight: 600,
           opticalSize: 24,
         ),
         titleTextStyle: baseTextStyle.copyWith(
@@ -143,11 +144,12 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        // Dark mode uses semi-transparent fill to blend with layered surfaces.
-        // Light mode uses a fully opaque tonal surface for higher contrast on white backgrounds.
-        fillColor: isDark
-            ? AppColors.surfaceContainerDark.withValues(alpha: 0.5)
-            : AppColors.surfaceContainer,
+        // [ACTION]: Assigning background color for the input fields.
+        // [M3 UPDATE]: Using colorScheme.surfaceContainerHighest here instead of 
+        // deprecated surfaceVariant or hardcoded translucent blacks/whites.
+        // [WHY]: This ensures the input fields have a subtle, dynamic hue from the 
+        // primary seed, providing visibility and depth without clashing with the main background.
+        fillColor: colorScheme.surfaceContainerHighest,
         border: OutlineInputBorder(
           borderRadius: borderRadius,
           borderSide: BorderSide.none,
@@ -160,6 +162,10 @@ class AppTheme {
           borderRadius: borderRadius,
           borderSide: BorderSide.none,
         ),
+        // [ACTION]: Ensuring label and hint text use appropriate contrast.
+        // [M3 UPDATE]: Using onSurfaceVariant for secondary/utility text on top of containers.
+        hintStyle: baseTextStyle.copyWith(color: colorScheme.onSurfaceVariant),
+        labelStyle: baseTextStyle.copyWith(color: colorScheme.onSurfaceVariant),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
@@ -172,38 +178,67 @@ class AppTheme {
         style: OutlinedButton.styleFrom(
           shape: shape,
           side: BorderSide.none,
-          backgroundColor: isDark
-              ? colorScheme.surfaceContainerHigh
-              : colorScheme.surfaceContainerHigh,
-          foregroundColor: colorScheme.onSurface,
+          // [ACTION]: Refactoring outlined button background for a subtle separation.
+          // [M3 UPDATE]: Using surfaceContainerHighest for a dynamic, non-white/non-grey neutral background.
+          backgroundColor: colorScheme.surfaceContainerHighest,
+          // [ACTION]: Ensuring icons and text on the button are clearly legible.
+          // [M3 UPDATE]: Using onSurfaceVariant for secondary foreground elements.
+          foregroundColor: colorScheme.onSurfaceVariant,
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: colorScheme.surface,
+        // [ACTION]: Applying the unified surface hierarchy to the navigation bar.
+        // [M3 UPDATE]: Replacing hardcoded surface or background with surfaceContainer.
+        backgroundColor: colorScheme.surfaceContainer,
         indicatorColor: colorScheme.primaryContainer,
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return const IconThemeData(
-              weight: 700, // Very heavy for selected tab
+            return IconThemeData(
+              weight: 700,
               opticalSize: 24,
               grade: 0.25,
+              color: colorScheme.onPrimaryContainer,
             );
           }
-          return const IconThemeData(
-            weight: 400, // Standard for unselected
+          return IconThemeData(
+            weight: 400,
             opticalSize: 24,
             grade: 0,
+            color: colorScheme.onSurfaceVariant,
           );
         }),
-        labelTextStyle: WidgetStateProperty.all(
-            baseTextStyle.copyWith(fontSize: 12, fontWeight: FontWeight.w500)),
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          final color = states.contains(WidgetState.selected)
+              ? colorScheme.onSurface
+              : colorScheme.onSurfaceVariant;
+          return baseTextStyle.copyWith(
+              fontSize: 12, fontWeight: FontWeight.w500, color: color);
+        }),
       ),
-      scaffoldBackgroundColor:
-          isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
+      scaffoldBackgroundColor: colorScheme.surface,
       cardTheme: CardThemeData(
         shape: shape,
         elevation: 0,
-        color: isDark ? AppColors.cardDark : AppColors.surfaceContainerLowest,
+        // [ACTION]: Assigning the background color for all cards globally.
+        // [M3 UPDATE]: We use colorScheme.surfaceContainerHighest here instead of 
+        // the deprecated surfaceVariant or a hardcoded grey/white. 
+        // [WHY]: This provides a prominent, dynamic hue that visually separates 
+        // cards from the base surface without relying on shadows, 
+        // working perfectly across both light and dark dynamic themes.
+        color: colorScheme.surfaceContainerHighest,
+      ),
+      switchTheme: SwitchThemeData(
+        thumbIcon: WidgetStateProperty.resolveWith<Icon?>((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const Icon(Icons.check, size: 16);
+          }
+          return const Icon(Icons.close, size: 16);
+        }),
+        // [ACTION]: Refinement for the switch track to follow dynamic hues.
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) return colorScheme.primary;
+          return colorScheme.surfaceContainerHighest;
+        }),
       ),
     );
   }

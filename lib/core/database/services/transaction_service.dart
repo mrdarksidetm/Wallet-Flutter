@@ -46,8 +46,8 @@ class TransactionService {
         ..date = date
         ..type = type
         ..note = note
-        ..icon = icon
-        ..color = color
+        ..icon = icon ?? category.icon // Inherit category icon if null
+        ..color = color ?? category.color // Inherit category color if null
         ..tags = tags
         ..createdAt = DateTime.now()
         ..updatedAt = DateTime.now();
@@ -59,6 +59,7 @@ class TransactionService {
       // Sync IDs for faster querying without loading links
       transaction.accountId = account.id;
       transaction.categoryId = category.id;
+      transaction.personId = person?.id ?? 0;
 
       // 2. Update Balance
       if (type == TransactionType.income) {
@@ -72,12 +73,24 @@ class TransactionService {
         await isar.accounts.put(transferAccount);
       }
 
+      // [ACTION]: Sync with Goals if account is a Savings account
+      if (account.type == AccountType.savings) {
+        final linkedGoals = await isar.goals.filter().account((q) => q.idEqualTo(account.id)).findAll();
+        for (var goal in linkedGoals) {
+          if (type == TransactionType.income) {
+            goal.currentAmount += amount;
+          } else if (type == TransactionType.expense) {
+            goal.currentAmount -= amount;
+          }
+          goal.isCompleted = goal.currentAmount >= goal.targetAmount;
+          goal.updatedAt = DateTime.now();
+          await isar.goals.put(goal);
+        }
+      }
+
       // 3. Save
       await isar.accounts.put(account);
       await isar.transactionModels.put(transaction);
-      // Links are saved automatically when the object is put (if they are IsarLinks)
-      // or we just need to ensure the IDs are set, which .value = ... does.
-      // Explicit .save() starts a new transaction, causing a crash.
     });
   }
 
@@ -85,90 +98,137 @@ class TransactionService {
   Future<void> updateTransaction(
       TransactionModel oldTransaction, TransactionModel newTransaction) async {
     await isar.writeTxn(() async {
-      // Ensure links are loaded for reverting balances
-      await oldTransaction.account.load();
-      await oldTransaction.category.load();
-      await oldTransaction.transferAccount.load();
+      // 1. Fetch a fresh copy of the old transaction to ensure links can be loaded
+      final txToRevert = await isar.transactionModels.get(oldTransaction.id);
+      if (txToRevert == null) return;
 
-      final account = oldTransaction.account.value;
-      final category = oldTransaction.category.value;
-      final transferAccount = oldTransaction.transferAccount.value;
+      await txToRevert.account.load();
+      await txToRevert.transferAccount.load();
 
-      if (account == null || category == null) return;
+      final oldAcc = txToRevert.account.value;
+      final oldTransferAcc = txToRevert.transferAccount.value;
 
-      // 1. Revert Old Balance
-      if (oldTransaction.type == TransactionType.income) {
-        account.balance -= oldTransaction.amount;
-      } else if (oldTransaction.type == TransactionType.expense) {
-        account.balance += oldTransaction.amount;
-      } else if (oldTransaction.type == TransactionType.transfer &&
-          transferAccount != null) {
-        account.balance += oldTransaction.amount;
-        transferAccount.balance -= oldTransaction.amount;
-        await isar.accounts.put(transferAccount);
+      // 2. Revert Old Balance
+      if (oldAcc != null) {
+        if (txToRevert.type == TransactionType.income) {
+          oldAcc.balance -= txToRevert.amount;
+        } else if (txToRevert.type == TransactionType.expense) {
+          oldAcc.balance += txToRevert.amount;
+        } else if (txToRevert.type == TransactionType.transfer && oldTransferAcc != null) {
+          oldAcc.balance += txToRevert.amount;
+          oldTransferAcc.balance -= txToRevert.amount;
+          await isar.accounts.put(oldTransferAcc);
+        }
+
+        // [ACTION]: Revert Goal progress
+        if (oldAcc.type == AccountType.savings) {
+          final linkedGoals = await isar.goals.filter().account((q) => q.idEqualTo(oldAcc.id)).findAll();
+          for (var goal in linkedGoals) {
+            if (txToRevert.type == TransactionType.income) {
+              goal.currentAmount -= txToRevert.amount;
+            } else if (txToRevert.type == TransactionType.expense) {
+              goal.currentAmount += txToRevert.amount;
+            }
+            goal.isCompleted = goal.currentAmount >= goal.targetAmount;
+            await isar.goals.put(goal);
+          }
+        }
+        await isar.accounts.put(oldAcc);
       }
 
-      // 2. Apply New Balance (assuming account/type might have changed)
-      final newAcc = newTransaction.account.value ?? account;
-      final newAmount = newTransaction.amount;
-      final newType = newTransaction.type;
+      // 3. Apply New Balance
+      final newAcc = newTransaction.account.value;
       final newTransferAcc = newTransaction.transferAccount.value;
 
-      if (newType == TransactionType.income) {
-        newAcc.balance += newAmount;
-      } else if (newType == TransactionType.expense) {
-        newAcc.balance -= newAmount;
-      } else if (newType == TransactionType.transfer &&
-          newTransferAcc != null) {
-        newAcc.balance -= newAmount;
-        newTransferAcc.balance += newAmount;
-        await isar.accounts.put(newTransferAcc);
+      if (newAcc != null) {
+        if (newTransaction.type == TransactionType.income) {
+          newAcc.balance += newTransaction.amount;
+        } else if (newTransaction.type == TransactionType.expense) {
+          newAcc.balance -= newTransaction.amount;
+        } else if (newTransaction.type == TransactionType.transfer && newTransferAcc != null) {
+          newAcc.balance -= newTransaction.amount;
+          newTransferAcc.balance += newTransaction.amount;
+          await isar.accounts.put(newTransferAcc);
+        }
+
+        // [ACTION]: Apply New Goal progress
+        if (newAcc.type == AccountType.savings) {
+          final linkedGoals = await isar.goals.filter().account((q) => q.idEqualTo(newAcc.id)).findAll();
+          for (var goal in linkedGoals) {
+            if (newTransaction.type == TransactionType.income) {
+              goal.currentAmount += newTransaction.amount;
+            } else if (newTransaction.type == TransactionType.expense) {
+              goal.currentAmount -= newTransaction.amount;
+            }
+            goal.isCompleted = goal.currentAmount >= goal.targetAmount;
+            await isar.goals.put(goal);
+          }
+        }
+        await isar.accounts.put(newAcc);
       }
 
-      // 3. Save Changes
-      if (account.id != newAcc.id) {
-        await isar.accounts.put(account); // Save the reverted one
+      // 4. Inherit category icon/color if null
+      final newCategory = newTransaction.category.value;
+      if (newCategory != null) {
+        newTransaction.icon ??= newCategory.icon;
+        newTransaction.color ??= newCategory.color;
       }
-      await isar.accounts.put(newAcc);
-
-      // Update the person link and custom icon
-      newTransaction.person.value = newTransaction.person.value;
 
       // Sync IDs
-      newTransaction.accountId = newAcc.id;
+      newTransaction.accountId = newAcc?.id ?? oldTransaction.accountId;
       newTransaction.categoryId =
-          newTransaction.category.value?.id ?? category.id;
+          newTransaction.category.value?.id ?? oldTransaction.categoryId;
+      newTransaction.personId = newTransaction.person.value?.id ?? 0;
 
       newTransaction.updatedAt = DateTime.now();
       await isar.transactionModels.put(newTransaction);
     });
   }
 
-  /// Deletes a transaction (soft delete) and restores account balances.
+  /// Deletes a transaction and restores account balances (HARD DELETE).
   Future<void> deleteTransaction(TransactionModel transaction) async {
     await isar.writeTxn(() async {
-      final account = transaction.account.value;
-      final transferAccount = transaction.transferAccount.value;
+      // 1. Fetch a fresh, attached copy inside the transaction
+      final tx = await isar.transactionModels.get(transaction.id);
+      if (tx == null) return;
 
-      if (account == null) return;
+      // 2. Load links on the attached copy
+      await tx.account.load();
+      await tx.transferAccount.load();
 
-      // 1. Restore Balance
-      if (transaction.type == TransactionType.income) {
-        account.balance -= transaction.amount;
-      } else if (transaction.type == TransactionType.expense) {
-        account.balance += transaction.amount;
-      } else if (transaction.type == TransactionType.transfer &&
-          transferAccount != null) {
-        account.balance += transaction.amount;
-        transferAccount.balance -= transaction.amount;
-        await isar.accounts.put(transferAccount);
+      final account = tx.account.value;
+      final transferAccount = tx.transferAccount.value;
+
+      // 3. Revert balance if account exists
+      if (account != null) {
+        if (tx.type == TransactionType.income) {
+          account.balance -= tx.amount;
+        } else if (tx.type == TransactionType.expense) {
+          account.balance += tx.amount;
+        } else if (tx.type == TransactionType.transfer && transferAccount != null) {
+          account.balance += tx.amount;
+          transferAccount.balance -= tx.amount;
+          await isar.accounts.put(transferAccount);
+        }
+
+        // [ACTION]: Revert Goal progress
+        if (account.type == AccountType.savings) {
+          final linkedGoals = await isar.goals.filter().account((q) => q.idEqualTo(account.id)).findAll();
+          for (var goal in linkedGoals) {
+            if (tx.type == TransactionType.income) {
+              goal.currentAmount -= tx.amount;
+            } else if (tx.type == TransactionType.expense) {
+              goal.currentAmount += tx.amount;
+            }
+            goal.isCompleted = goal.currentAmount >= goal.targetAmount;
+            await isar.goals.put(goal);
+          }
+        }
+        await isar.accounts.put(account);
       }
 
-      // 2. Mark as deleted and save
-      transaction.isDeleted = true;
-      transaction.updatedAt = DateTime.now();
-      await isar.accounts.put(account);
-      await isar.transactionModels.put(transaction);
+      // 4. ALWAYS Hard Delete the transaction to ensure it's gone
+      await isar.transactionModels.delete(tx.id);
     });
   }
 

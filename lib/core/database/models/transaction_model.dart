@@ -26,6 +26,9 @@ class TransactionModel {
   @Index()
   int categoryId = 0;
 
+  @Index()
+  int personId = 0;
+
   String? icon;
   String? color;
   List<String>? tags;

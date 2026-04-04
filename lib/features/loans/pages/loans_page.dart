@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/auxiliary_models.dart';
+import '../../people/widgets/person_avatar.dart';
+
 class LoansPage extends ConsumerWidget {
   const LoansPage({super.key});
 
@@ -155,14 +157,16 @@ class LoansPage extends ConsumerWidget {
                       .withValues(alpha: 0.5)
                   : null,
               child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: color.withValues(alpha: isPaid ? 0.05 : 0.1),
-                  child: Icon(
-                      item.type == LoanType.lent
-                          ? Icons.arrow_upward_rounded
-                          : Icons.arrow_downward_rounded,
-                      color: isPaid ? color.withValues(alpha: 0.5) : color),
-                ),
+                leading: item.person.value != null
+                    ? PersonAvatar(person: item.person.value!, radius: 24)
+                    : CircleAvatar(
+                        backgroundColor: color.withValues(alpha: isPaid ? 0.05 : 0.1),
+                        child: Icon(
+                            item.type == LoanType.lent
+                                ? Icons.arrow_upward_rounded
+                                : Icons.arrow_downward_rounded,
+                            color: isPaid ? color.withValues(alpha: 0.5) : color),
+                      ),
                 title: Text(
                   personName,
                   style: TextStyle(

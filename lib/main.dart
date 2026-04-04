@@ -72,9 +72,11 @@ class WalletApp extends ConsumerWidget {
         }
 
         final lightTheme = AppTheme.getTheme(personalization, Brightness.light,
-            dynamicColorScheme: lightScheme);
+          dynamicColorScheme: lightScheme,
+          useDynamicVariant: themeState.useMaterialYou);
         final darkTheme = AppTheme.getTheme(personalization, Brightness.dark,
-            dynamicColorScheme: darkScheme);
+          dynamicColorScheme: darkScheme,
+          useDynamicVariant: themeState.useMaterialYou);
 
         return MaterialApp.router(
           title: 'Wallet',

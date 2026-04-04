@@ -195,8 +195,8 @@ final currencyProvider = Provider<String>((ref) {
   final personalization = ref.watch(personalizationProvider);
   final currency = personalization.defaultCurrency;
   if (currency == null) {
-    // This should never happen if onboarding is completed
-    throw UnimplementedError('Default currency not selected during onboarding');
+    // Return a default currency symbol to avoid app crash
+    return 'USD';
   }
   return currency;
 });
@@ -232,17 +232,24 @@ final recentStatsProvider = StreamProvider<Map<String, double>>((ref) {
 });
 
 final categoryBreakdownProvider =
-    FutureProvider.family<Map<Category, double>, DateTimeRange?>(
-        (ref, range) async {
+    FutureProvider.family<Map<Category, double>, (DateTimeRange?, int?, List<String>?)>(
+        (ref, params) async {
+  final range = params.$1;
+  final accountId = params.$2;
+  final tags = params.$3;
   if (range == null) return {};
+  // Watch transactions to force rebuild when data changes
+  ref.watch(transactionsStreamProvider);
   final service = ref.watch(statisticsServiceProvider);
-  return await service.getCategoryBreakdown(range.start, range.end);
+  return await service.getCategoryBreakdown(range.start, range.end, accountId: accountId, tags: tags);
 });
 
 final dailyStatsProvider =
     FutureProvider.family<List<MapEntry<DateTime, double>>, DateTimeRange?>(
         (ref, range) async {
   if (range == null) return [];
+  // Watch transactions to force rebuild when data changes
+  ref.watch(transactionsStreamProvider);
   final service = ref.watch(statisticsServiceProvider);
   return await service.getDailyStats(range.start, range.end);
 });
@@ -275,6 +282,12 @@ final accountTransactionsProvider =
     StreamProvider.family<List<TransactionModel>, Id>((ref, accountId) {
   final repo = ref.watch(transactionRepositoryProvider);
   return repo.watchByAccount(accountId);
+});
+
+final personTransactionsProvider =
+    StreamProvider.family<List<TransactionModel>, Id>((ref, personId) {
+  final repo = ref.watch(transactionRepositoryProvider);
+  return repo.watchByPerson(personId);
 });
 
 final budgetsStreamProvider = StreamProvider<List<Budget>>((ref) {

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:convert';
 import 'dart:async';
 import '../database/providers.dart';
+import '../services/currency_engine.dart';
 
 class PersonalizationState {
   final double grade;
@@ -22,6 +23,10 @@ class PersonalizationState {
   final bool vibrateOnTransaction;
   final bool useGoogleSansFlex;
 
+  final bool useDynamicColor;
+
+  String get currencySymbol => CurrencyEngine.getSymbol(defaultCurrency ?? 'INR');
+
   PersonalizationState({
     this.grade = 50,
     this.weight = 400,
@@ -34,6 +39,7 @@ class PersonalizationState {
     this.shouldRestartOnCurrencyChange = true,
     this.colorSchemeVariant = 'tonalSpot',
     this.isOnboardingComplete = false,
+    this.useDynamicColor = true,
     this.userName,
     this.userPhoto,
     this.defaultCurrency,
@@ -54,6 +60,7 @@ class PersonalizationState {
     bool? shouldRestartOnCurrencyChange,
     String? colorSchemeVariant,
     bool? isOnboardingComplete,
+    bool? useDynamicColor,
     String? userName,
     String? userPhoto,
     String? defaultCurrency,
@@ -73,6 +80,7 @@ class PersonalizationState {
       shouldRestartOnCurrencyChange: shouldRestartOnCurrencyChange ?? this.shouldRestartOnCurrencyChange,
       colorSchemeVariant: colorSchemeVariant ?? this.colorSchemeVariant,
       isOnboardingComplete: isOnboardingComplete ?? this.isOnboardingComplete,
+      useDynamicColor: useDynamicColor ?? this.useDynamicColor,
       userName: userName ?? this.userName,
       userPhoto: userPhoto ?? this.userPhoto,
       defaultCurrency: defaultCurrency ?? this.defaultCurrency,
@@ -95,6 +103,7 @@ class PersonalizationState {
       'shouldRestartOnCurrencyChange': shouldRestartOnCurrencyChange,
       'colorSchemeVariant': colorSchemeVariant,
       'isOnboardingComplete': isOnboardingComplete,
+      'useDynamicColor': useDynamicColor,
       'userName': userName,
       'userPhoto': userPhoto,
       'defaultCurrency': defaultCurrency,
@@ -117,6 +126,7 @@ class PersonalizationState {
       shouldRestartOnCurrencyChange: map['shouldRestartOnCurrencyChange'] as bool? ?? true,
       colorSchemeVariant: map['colorSchemeVariant'] as String? ?? 'tonalSpot',
       isOnboardingComplete: map['isOnboardingComplete'] as bool? ?? false,
+      useDynamicColor: map['useDynamicColor'] as bool? ?? true,
       userName: map['userName'] as String?,
       userPhoto: map['userPhoto'] as String?,
       defaultCurrency: map['defaultCurrency'] as String?,
@@ -211,6 +221,19 @@ class PersonalizationNotifier extends Notifier<PersonalizationState> {
   void updateFontRoundness(double v) { state = state.copyWith(fontRoundness: v); _save(); }
   void updateOpticalSize(double v) { state = state.copyWith(opticalSize: v); _save(); }
   
+  void resetTypography() {
+    state = state.copyWith(
+      grade: 50,
+      weight: 400,
+      slant: 0,
+      width: 100,
+      roundness: 28,
+      fontRoundness: 0,
+      opticalSize: 12,
+    );
+    _save();
+  }
+
   void reset() {
     state = PersonalizationState();
     _save();

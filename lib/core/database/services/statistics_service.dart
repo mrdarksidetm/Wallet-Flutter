@@ -105,22 +105,50 @@ class StatisticsService {
   }
 
   Future<Map<Category, double>> getCategoryBreakdown(
-      DateTime start, DateTime end) async {
-    final transactions = await isar.transactionModels
+      DateTime start, DateTime end, {int? accountId, List<String>? tags}) async {
+    var query = isar.transactionModels
         .filter()
         .isDeletedEqualTo(false)
         .isArchivedEqualTo(false)
         .typeEqualTo(TransactionType.expense)
-        .dateBetween(start, end)
-        .findAll();
+        .dateBetween(start, end);
 
-    final Map<Category, double> breakdown = {};
+    if (accountId != null) {
+      query = query.accountIdEqualTo(accountId);
+    }
+
+    final transactions = await query.findAll();
+
+    final Map<int, double> categoryIdToAmount = {};
+    final Map<int, Category> categoryIdToCategory = {};
+
     for (var tx in transactions) {
-      final category = tx.category.value;
-      if (category != null) {
-        breakdown[category] = (breakdown[category] ?? 0) + tx.amount;
+      // Manual tag filtering since Isar 3.x filter on List<String> can be tricky without part-of-tag
+      if (tags != null && tags.isNotEmpty) {
+        final txTags = tx.tags ?? [];
+        if (!tags.any((t) => txTags.contains(t))) continue;
+      }
+
+      final categoryId = tx.categoryId;
+      categoryIdToAmount[categoryId] = (categoryIdToAmount[categoryId] ?? 0) + tx.amount;
+      
+      if (!categoryIdToCategory.containsKey(categoryId)) {
+        await tx.category.load();
+        final category = tx.category.value;
+        if (category != null) {
+          categoryIdToCategory[categoryId] = category;
+        }
       }
     }
+
+    final Map<Category, double> breakdown = {};
+    categoryIdToAmount.forEach((id, amount) {
+      final category = categoryIdToCategory[id];
+      if (category != null) {
+        breakdown[category] = amount;
+      }
+    });
+
     return breakdown;
   }
 

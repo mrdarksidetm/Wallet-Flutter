@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import '../database/providers.dart';
+import '../services/currency_engine.dart';
 
 /// Phase 52: Dynamic Number Counting (Odometer Effect)
 ///
@@ -17,17 +17,16 @@ class AnimatedCounter extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedCurrency = ref.watch(currencyProvider);
-    final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
 
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: 0, end: amount),
       duration: const Duration(milliseconds: 1500),
       curve: Curves.easeOutCubic,
       builder: (context, value, child) {
-        // String formatting is generated dynamically per frame
-        final formatted = currencyFormat.format(value);
+        // [ACTION]: Generating localized currency string per frame.
+        // [M3 UPDATE]: Using CurrencyEngine.formatCurrency for region-specific numbering.
         return Text(
-          formatted,
+          CurrencyEngine.formatCurrency(value, selectedCurrency),
           style: style,
         );
       },
