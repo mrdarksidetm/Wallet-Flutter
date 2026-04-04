@@ -1,15 +1,19 @@
+import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/database/models/category.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/services/currency_engine.dart';
 import '../../../core/theme/color_extension.dart';
 import '../../../core/widgets/icon_picker.dart';
+import '../../../core/theme/personalization_provider.dart';
 
 /// ReportsPage: A dynamic, reactive dashboard for spending analysis.
-/// It uses Riverpod to watch the database and automatically update metrics.
 class ReportsPage extends ConsumerStatefulWidget {
   const ReportsPage({super.key});
 
@@ -20,38 +24,60 @@ class ReportsPage extends ConsumerStatefulWidget {
 class _ReportsPageState extends ConsumerState<ReportsPage> {
   // [LOGIC]: Persistent custom range if selected, otherwise defaults to "This Month".
   DateTimeRange? _customRange;
+  // [LOGIC]: Filter transactions by a specific account.
+  int? _selectedAccountId;
+  // [LOGIC]: Filter transactions by tags.
+  final List<String> _selectedTags = [];
+
+  Widget _buildDynamicShadowLogo() {
+    const double logoSize = 32.0;
+    const String logoPath = 'assets/images/logo.svg';
+
+    return Stack(
+      children: [
+        Transform.translate(
+          offset: const Offset(0, 3),
+          child: ImageFiltered(
+            imageFilter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+            child: Opacity(
+              opacity: 0.3,
+              child: SvgPicture.asset(
+                logoPath,
+                width: logoSize,
+                height: logoSize,
+              ),
+            ),
+          ),
+        ),
+        SvgPicture.asset(
+          logoPath,
+          width: logoSize,
+          height: logoSize,
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final selectedCurrency = ref.watch(currencyProvider);
+    final personalization = ref.watch(personalizationProvider);
 
-    // [LOGIC]: Calculate the effective range (either custom or current month).
     final now = DateTime.now();
     final effectiveRange = _customRange ??
         DateTimeRange(
           start: DateTime(now.year, now.month, 1),
-          end: DateTime(now.year, now.month + 1, 0),
+          end: DateTime(now.year, now.month + 1, 0, 23, 59, 59),
         );
 
-    // [REACTIVE DATA]: Watch the breakdown provider for the effective range.
-    // Because we added ref.watch(transactionsStreamProvider) in providers.dart,
-    // this will rebuild the UI whenever ANY transaction is added, edited, or deleted.
-    final breakdownAsync = ref.watch(categoryBreakdownProvider(effectiveRange));
+    final breakdownAsync = ref.watch(categoryBreakdownProvider(
+      (effectiveRange, _selectedAccountId, _selectedTags.isEmpty ? null : _selectedTags),
+    ));
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: const Text('Reports', style: TextStyle(fontWeight: FontWeight.bold)),
-        actions: [
-          IconButton(
-            onPressed: _selectDateRange,
-            icon: const Icon(Symbols.calendar_month),
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
       body: breakdownAsync.when(
         data: (breakdown) => _buildReportContent(
           theme,
@@ -59,18 +85,13 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
           breakdown,
           selectedCurrency,
           effectiveRange,
+          personalization,
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => Center(child: Text('Error loading reports: $err')),
       ),
-      // [FEATURE]: Filter FAB positioned above navigation.
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Placeholder for future advanced filters (by Account, Tags, etc.)
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Advanced filtering by account coming soon!')),
-          );
-        },
+        onPressed: () => _showFilterSheet(context, colorScheme),
         backgroundColor: colorScheme.primary,
         foregroundColor: colorScheme.onPrimary,
         child: const Icon(Symbols.filter_list),
@@ -78,19 +99,171 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
     );
   }
 
-  /// [UI BLOCK]: Main scrollable content using Sliver architecture for fluid motion.
+  void _showFilterSheet(BuildContext context, ColorScheme colorScheme) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return Consumer(
+          builder: (context, ref, child) {
+            final accountsAsync = ref.watch(accountsStreamProvider);
+            final txsAsync = ref.watch(transactionsStreamProvider);
+
+            return accountsAsync.when(
+              data: (accounts) {
+                final allTags = txsAsync.value
+                        ?.expand((tx) => tx.tags ?? <String>[])
+                        .toSet()
+                        .toList() ??
+                    [];
+
+                return DraggableScrollableSheet(
+                  initialChildSize: 0.6,
+                  maxChildSize: 0.9,
+                  minChildSize: 0.4,
+                  expand: false,
+                  builder: (context, scrollController) {
+                    return SafeArea(
+                      child: ListView(
+                        controller: scrollController,
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        children: [
+                          const SizedBox(height: 12),
+                          Center(
+                            child: Container(
+                              width: 40,
+                              height: 4,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            'Filter Reports',
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                ),
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            'ACCOUNTS',
+                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.primary,
+                                  letterSpacing: 1.2,
+                                ),
+                          ),
+                          const SizedBox(height: 8),
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: const Icon(Symbols.account_balance_wallet),
+                            title: const Text('All Accounts', style: TextStyle(fontWeight: FontWeight.w600)),
+                            trailing: _selectedAccountId == null 
+                                ? Icon(Symbols.check_circle, color: colorScheme.primary) 
+                                : null,
+                            onTap: () {
+                              setState(() => _selectedAccountId = null);
+                              Navigator.pop(context);
+                            },
+                          ),
+                          ...accounts.map((acc) {
+                            final color = acc.color.parseHexColor();
+                            final isSelected = _selectedAccountId == acc.id;
+                            return ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: color.withValues(alpha: 0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(AppIcons.getIcon(acc.icon), color: color, size: 20),
+                              ),
+                              title: Text(acc.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+                              trailing: isSelected 
+                                  ? Icon(Symbols.check_circle, color: colorScheme.primary) 
+                                  : null,
+                              onTap: () {
+                                setState(() => _selectedAccountId = acc.id);
+                                Navigator.pop(context);
+                              },
+                            );
+                          }),
+                          const SizedBox(height: 24),
+                          if (allTags.isNotEmpty) ...[
+                            Text(
+                              'TAGS',
+                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: colorScheme.primary,
+                                    letterSpacing: 1.2,
+                                  ),
+                            ),
+                            const SizedBox(height: 12),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: allTags.map((tag) {
+                                final isSelected = _selectedTags.contains(tag);
+                                return FilterChip(
+                                  label: Text(tag),
+                                  selected: isSelected,
+                                  onSelected: (selected) {
+                                    setState(() {
+                                      if (selected) {
+                                        _selectedTags.add(tag);
+                                      } else {
+                                        _selectedTags.remove(tag);
+                                      }
+                                    });
+                                  },
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                            const SizedBox(height: 32),
+                          ],
+                          FilledButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: FilledButton.styleFrom(
+                              minimumSize: const Size.fromHeight(56),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            ),
+                            child: const Text('Apply Filters'),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (_, __) => const Center(child: Text('Error loading accounts')),
+            );
+          },
+        );
+      },
+    );
+  }
+
   Widget _buildReportContent(
     ThemeData theme,
     ColorScheme colorScheme,
     Map<Category, double> breakdown,
     String currency,
     DateTimeRange range,
+    PersonalizationState personalization,
   ) {
-    // [CALCULATION]: Iterating through filtered transactions (via provider) to sum metrics.
     final totalSpent = breakdown.values.fold(0.0, (sum, val) => sum + val);
     final categoryCount = breakdown.keys.length;
-
-    // [CALCULATION]: Grouping and sorting expenses by category amount (highest to lowest).
     final sortedEntries = breakdown.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
@@ -101,7 +274,56 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
     return CustomScrollView(
       physics: const BouncingScrollPhysics(),
       slivers: [
-        // [SECTION]: Date Display Header
+        // FIXED HEADER
+        SliverAppBar(
+          pinned: true,
+          floating: true,
+          backgroundColor: theme.scaffoldBackgroundColor,
+          surfaceTintColor: theme.scaffoldBackgroundColor,
+          elevation: 0,
+          leadingWidth: 72,
+          leading: Padding(
+            padding: const EdgeInsets.only(left: 24),
+            child: Center(child: _buildDynamicShadowLogo()),
+          ),
+          title: Text(
+            'Reports',
+            style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          actions: [
+            IconButton(
+              onPressed: _selectDateRange,
+              icon: const Icon(Symbols.calendar_month),
+              visualDensity: VisualDensity.compact,
+            ),
+            IconButton(
+              icon: const Icon(Symbols.settings),
+              onPressed: () => context.push('/settings'),
+              visualDensity: VisualDensity.compact,
+            ),
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: () => context.push('/edit_profile'),
+              child: CircleAvatar(
+                radius: 18,
+                backgroundColor: colorScheme.surfaceContainerHighest,
+                backgroundImage: personalization.userPhoto != null 
+                    ? FileImage(File(personalization.userPhoto!)) 
+                    : null,
+                child: personalization.userPhoto == null
+                    ? Icon(
+                        Symbols.person,
+                        size: 18,
+                        color: colorScheme.onSurfaceVariant,
+                      )
+                    : null,
+              ),
+            ),
+            const SizedBox(width: 24),
+          ],
+        ),
+
+        // [SECTION]: Date Display Header (SCROLLABLE)
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),

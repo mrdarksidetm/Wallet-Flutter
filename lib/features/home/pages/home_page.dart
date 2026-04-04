@@ -1,15 +1,17 @@
+import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/widgets/transaction_list_tile.dart';
 import '../../../core/services/currency_engine.dart';
 import '../../../core/theme/personalization_provider.dart';
 import '../widgets/animated_balance_hero.dart';
 import '../widgets/overview_card.dart';
-import '../widgets/home_header.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -19,6 +21,35 @@ class HomePage extends ConsumerWidget {
     if (hour < 12) return 'Good Morning';
     if (hour < 17) return 'Good Afternoon';
     return 'Good Evening';
+  }
+
+  Widget _buildDynamicShadowLogo() {
+    const double logoSize = 32.0;
+    const String logoPath = 'assets/images/logo.svg';
+
+    return Stack(
+      children: [
+        Transform.translate(
+          offset: const Offset(0, 3),
+          child: ImageFiltered(
+            imageFilter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+            child: Opacity(
+              opacity: 0.3,
+              child: SvgPicture.asset(
+                logoPath,
+                width: logoSize,
+                height: logoSize,
+              ),
+            ),
+          ),
+        ),
+        SvgPicture.asset(
+          logoPath,
+          width: logoSize,
+          height: logoSize,
+        ),
+      ],
+    );
   }
 
   @override
@@ -43,14 +74,59 @@ class HomePage extends ConsumerWidget {
               child: CustomScrollView(
                 physics: const BouncingScrollPhysics(),
                 slivers: [
+                  // FIXED HEADER
+                  SliverAppBar(
+                    pinned: true,
+                    floating: true,
+                    backgroundColor: backgroundColor,
+                    surfaceTintColor: backgroundColor,
+                    elevation: 0,
+                    leadingWidth: 72,
+                    leading: Padding(
+                      padding: const EdgeInsets.only(left: 24),
+                      child: Center(child: _buildDynamicShadowLogo()),
+                    ),
+                    actions: [
+                      IconButton(
+                        icon: const Icon(Symbols.settings),
+                        onPressed: () => context.push('/settings'),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () => context.push('/edit_profile'),
+                        child: CircleAvatar(
+                          radius: 18,
+                          backgroundColor: colorScheme.surfaceContainerHighest,
+                          backgroundImage: personalization.userPhoto != null 
+                              ? FileImage(File(personalization.userPhoto!)) 
+                              : null,
+                          child: personalization.userPhoto == null
+                              ? Icon(
+                                  Symbols.person,
+                                  size: 18,
+                                  color: colorScheme.onSurfaceVariant,
+                                )
+                              : null,
+                        ),
+                      ),
+                      const SizedBox(width: 24),
+                    ],
+                  ),
+
                   const SliverToBoxAdapter(child: SizedBox(height: 16)),
                   
-                  // [ACTION]: Header with Logo and Dynamic Greeting
+                  // SCROLLABLE GREETING
                   SliverToBoxAdapter(
-                    child: HomeHeader(
-                      userName: userName,
-                      greeting: _getGreeting(),
-                      userPhoto: personalization.userPhoto,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                      child: Text(
+                        '${_getGreeting()}, $userName',
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -1.0,
+                        ),
+                      ),
                     ),
                   ),
 

@@ -232,13 +232,16 @@ final recentStatsProvider = StreamProvider<Map<String, double>>((ref) {
 });
 
 final categoryBreakdownProvider =
-    FutureProvider.family<Map<Category, double>, DateTimeRange?>(
-        (ref, range) async {
+    FutureProvider.family<Map<Category, double>, (DateTimeRange?, int?, List<String>?)>(
+        (ref, params) async {
+  final range = params.$1;
+  final accountId = params.$2;
+  final tags = params.$3;
   if (range == null) return {};
   // Watch transactions to force rebuild when data changes
   ref.watch(transactionsStreamProvider);
   final service = ref.watch(statisticsServiceProvider);
-  return await service.getCategoryBreakdown(range.start, range.end);
+  return await service.getCategoryBreakdown(range.start, range.end, accountId: accountId, tags: tags);
 });
 
 final dailyStatsProvider =

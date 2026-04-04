@@ -52,7 +52,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             context,
             icon: Symbols.settings_suggest_rounded,
             title: 'Preferences',
-            subtitle: 'Theme, typography, and feedback behavior',
+            subtitle: 'Theme, dynamic color, typography, and behavior',
             onTap: () {
               context.push('/personalization');
             },

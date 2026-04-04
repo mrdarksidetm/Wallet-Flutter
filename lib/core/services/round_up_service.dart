@@ -1,4 +1,5 @@
 import 'package:isar/isar.dart';
+import '../database/models/account.dart';
 import '../database/models/transaction_model.dart';
 
 /// Phase 49: Simulated "Round-Up" Savings Goals
@@ -31,12 +32,23 @@ class RoundUpService {
             ..note = "Round-up from ${expense.note ?? 'expense'}"
             ..date = expense.date
             ..type = TransactionType.transfer
+            ..accountId = expense.accountId // Link to the original account for context
             ..createdAt = DateTime.now()
             ..updatedAt = DateTime.now();
 
-          // Note: In a real implementation, we would set the IsarLinks for category and account here.
-          // roundUpTransfer.account.value = savingsAccount;
-          // roundUpTransfer.category.value = expense.category.value;
+          // Properly set IsarLinks
+          roundUpTransfer.account.value = expense.account.value;
+          roundUpTransfer.category.value = expense.category.value;
+          
+          // Set the target transfer account
+          final savingsAccount = await isar.accounts.get(savingsAccountId);
+          if (savingsAccount != null) {
+            roundUpTransfer.transferAccount.value = savingsAccount;
+            
+            // Atomically update savings account balance
+            savingsAccount.balance += difference;
+            await isar.accounts.put(savingsAccount);
+          }
 
           await isar.transactionModels.put(roundUpTransfer);
         }

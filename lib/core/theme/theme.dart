@@ -29,8 +29,12 @@ class AppTheme {
     }
   }
 
-  static ThemeData getTheme(PersonalizationState state, Brightness brightness,
-      {ColorScheme? dynamicColorScheme}) {
+  static ThemeData getTheme(
+    PersonalizationState state,
+    Brightness brightness, {
+    ColorScheme? dynamicColorScheme,
+    bool useDynamicVariant = true,
+  }) {
     final bool isDark = brightness == Brightness.dark;
 
     final List<FontVariation> variations = [
@@ -43,13 +47,15 @@ class AppTheme {
     ];
 
     final Color seedColor = isDark ? AppColors.primaryDark : AppColors.primary;
+    final Color effectiveSeedColor = dynamicColorScheme?.primary ?? seedColor;
 
-    final colorScheme = dynamicColorScheme ??
-        ColorScheme.fromSeed(
-          seedColor: seedColor,
-          brightness: brightness,
-          dynamicSchemeVariant: _getVariant(state.colorSchemeVariant),
-        );
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: effectiveSeedColor,
+      brightness: brightness,
+      dynamicSchemeVariant: useDynamicVariant
+          ? _getVariant(state.colorSchemeVariant)
+          : DynamicSchemeVariant.tonalSpot,
+    );
 
     final baseTextStyle = TextStyle(
       fontFamily: 'GoogleSansFlex',

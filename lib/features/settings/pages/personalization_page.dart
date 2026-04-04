@@ -113,7 +113,9 @@ class PersonalizationPage extends ConsumerWidget {
         // 2. Color Scheme Variant
         _buildSectionTitle(context, 'COLOR SCHEME VARIANT'),
         const SizedBox(height: 16),
-        _buildVariantSelector(context, themeState, themeNotifier),
+        _buildVariantSelector(context, state, notifier, themeState),
+        const SizedBox(height: 12),
+        _buildVariantInfo(context),
         const SizedBox(height: 48),
 
         // 3. Live Preview (Card Sample)
@@ -235,27 +237,76 @@ class PersonalizationPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildVariantSelector(BuildContext context, ThemeState state, ThemeController notifier) {
+  Widget _buildVariantSelector(
+    BuildContext context,
+    PersonalizationState state,
+    PersonalizationNotifier notifier,
+    ThemeState themeState,
+  ) {
+    final bool variantsEnabled = themeState.useMaterialYou;
     final variants = [
-      {'variant': ColorSchemeVariant.tonalSpot, 'label': 'Tonal Spot'},
-      {'variant': ColorSchemeVariant.vibrant, 'label': 'Vibrant'},
-      {'variant': ColorSchemeVariant.expressive, 'label': 'Expressive'},
-      {'variant': ColorSchemeVariant.fruitSalad, 'label': 'Fruit Salad'},
+      {'variant': 'monochrome', 'label': 'Monochrome'},
+      {'variant': 'neutral', 'label': 'Neutral'},
+      {'variant': 'tonalSpot', 'label': 'Tonal Spot'},
+      {'variant': 'vibrant', 'label': 'Vibrant'},
+      {'variant': 'expressive', 'label': 'Expressive'},
+      {'variant': 'content', 'label': 'Content'},
+      {'variant': 'fidelity', 'label': 'Fidelity'},
+      {'variant': 'rainbow', 'label': 'Rainbow'},
+      {'variant': 'fruitSalad', 'label': 'Fruit Salad'},
     ];
 
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: variants.map((v) {
-        final isSelected = state.variant == v['variant'];
-        return ChoiceChip(
-          label: Text(v['label'] as String),
-          selected: isSelected,
-          onSelected: (selected) {
-            if (selected) notifier.setVariant(v['variant'] as ColorSchemeVariant);
-          },
-        );
-      }).toList(),
+    return Opacity(
+      opacity: variantsEnabled ? 1.0 : 0.5,
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: variants.map((v) {
+          final variant = v['variant'] as String;
+          final isSelected = state.colorSchemeVariant == variant;
+          return ChoiceChip(
+            label: Text(v['label'] as String),
+            selected: isSelected,
+            onSelected: variantsEnabled
+                ? (selected) {
+                    if (selected) notifier.updateColorSchemeVariant(variant);
+                  }
+                : null,
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildVariantInfo(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Symbols.info_rounded,
+            size: 18,
+            color: colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Color scheme variants are used only when Dynamic Color is enabled.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    height: 1.35,
+                  ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
