@@ -312,4 +312,62 @@ class StatisticsService {
     }
     return heatmap;
   }
+
+  Future<Map<String, dynamic>> getQuickInsights(DateTime start, DateTime end) async {
+    final transactions = await isar.transactionModels
+        .filter()
+        .isDeletedEqualTo(false)
+        .isArchivedEqualTo(false)
+        .dateBetween(start, end)
+        .findAll();
+
+    double totalIncome = 0;
+    double totalExpense = 0;
+    final int transactionCount = transactions.length;
+    final Map<int, double> categorySpending = {};
+    TransactionModel? largestExpense;
+
+    for (var tx in transactions) {
+      if (tx.type == TransactionType.income) {
+        totalIncome += tx.amount;
+      } else if (tx.type == TransactionType.expense) {
+        totalExpense += tx.amount;
+        categorySpending[tx.categoryId] = (categorySpending[tx.categoryId] ?? 0) + tx.amount;
+        if (largestExpense == null || tx.amount > largestExpense.amount) {
+          largestExpense = tx;
+        }
+      }
+    }
+
+    final double savingsRate = totalIncome > 0 ? ((totalIncome - totalExpense) / totalIncome) * 100 : 0;
+    final int days = end.difference(start).inDays + 1;
+    final double avgDailySpend = days > 0 ? totalExpense / days : 0;
+
+    int topCategoryId = -1;
+    double topCategoryAmount = 0;
+    categorySpending.forEach((id, amount) {
+      if (amount > topCategoryAmount) {
+        topCategoryAmount = amount;
+        topCategoryId = id;
+      }
+    });
+
+    String topCategoryName = 'None';
+    if (topCategoryId != -1) {
+      final cat = await isar.categorys.get(topCategoryId);
+      topCategoryName = cat?.name ?? 'Unknown';
+    }
+
+    return {
+      'totalIncome': totalIncome,
+      'totalExpense': totalExpense,
+      'savingsRate': savingsRate,
+      'avgDailySpend': avgDailySpend,
+      'transactionCount': transactionCount,
+      'topCategory': topCategoryName,
+      'topCategoryPercentage': totalExpense > 0 ? (topCategoryAmount / totalExpense) * 100 : 0,
+      'largestExpense': largestExpense?.note ?? 'None',
+      'largestExpenseAmount': largestExpense?.amount ?? 0,
+    };
+  }
 }

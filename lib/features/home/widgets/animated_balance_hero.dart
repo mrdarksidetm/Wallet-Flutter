@@ -132,8 +132,33 @@ class _AnimatedBalanceHeroState extends ConsumerState<AnimatedBalanceHero>
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Icon(Symbols.info, size: 18, color: colorScheme.onSurface.withValues(alpha: 0.5)),
+                          const SizedBox(width: 4),
+                          IconButton(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('Total Balance'),
+                                  content: const Text(
+                                      'This is the sum of all your accounts including cash, bank, and investments. It reflects your overall net worth in the app.'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: const Text('Got it'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                            icon: Icon(
+                              Symbols.info,
+                              size: 18,
+                              color: colorScheme.onSurface.withValues(alpha: 0.5),
+                            ),
+                            visualDensity: VisualDensity.compact,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
                         ],
                       ),
                       IconButton(

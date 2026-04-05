@@ -254,6 +254,16 @@ final dailyStatsProvider =
   return await service.getDailyStats(range.start, range.end);
 });
 
+final quickInsightsProvider =
+    FutureProvider.family<Map<String, dynamic>, DateTimeRange?>(
+        (ref, range) async {
+  if (range == null) return {};
+  // Watch transactions to force rebuild when data changes
+  ref.watch(transactionsStreamProvider);
+  final service = ref.watch(statisticsServiceProvider);
+  return await service.getQuickInsights(range.start, range.end);
+});
+
 final categoryMonthlyStatsProvider =
     FutureProvider.family<List<MapEntry<DateTime, double>>, int>(
         (ref, categoryId) async {

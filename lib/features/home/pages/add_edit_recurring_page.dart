@@ -8,6 +8,7 @@ import '../../../core/database/models/auxiliary_models.dart';
 import '../../../core/database/models/transaction_model.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/widgets/icon_picker.dart';
+import '../../../core/services/currency_engine.dart';
 
 class AddEditRecurringPage extends ConsumerStatefulWidget {
   final Recurring? recurring;
@@ -81,8 +82,11 @@ class _AddEditRecurringPageState extends ConsumerState<AddEditRecurringPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final accountsAsync = ref.watch(accountsStreamProvider);
     final categoriesAsync = ref.watch(categoriesStreamProvider);
+    final selectedCurrency = ref.watch(currencyProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -122,15 +126,26 @@ class _AddEditRecurringPageState extends ConsumerState<AddEditRecurringPage> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _amountController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Amount',
-                prefixIcon: Icon(Icons.currency_rupee_rounded),
+                prefixIcon: Container(
+                  width: 48,
+                  height: 48,
+                  alignment: Alignment.center,
+                  child: Text(
+                    CurrencyEngine.getSymbol(selectedCurrency),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
               ),
               keyboardType: TextInputType.number,
               validator: (v) => v?.isEmpty ?? true ? 'Required' : null,
             ),
             const SizedBox(height: 24),
-            Text('Frequency', style: Theme.of(context).textTheme.titleMedium),
+            Text('Frequency', style: theme.textTheme.titleMedium),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -150,7 +165,7 @@ class _AddEditRecurringPageState extends ConsumerState<AddEditRecurringPage> {
               subtitle: Text(_selectedAccount?.name ?? 'Select Account'),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16)),
-              tileColor: Theme.of(context).colorScheme.surfaceContainerLow,
+              tileColor: theme.colorScheme.surfaceContainerLow,
             ),
             const SizedBox(height: 16),
             ListTile(
@@ -161,7 +176,7 @@ class _AddEditRecurringPageState extends ConsumerState<AddEditRecurringPage> {
               subtitle: Text(_selectedCategory?.name ?? 'Select Category'),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16)),
-              tileColor: Theme.of(context).colorScheme.surfaceContainerLow,
+              tileColor: theme.colorScheme.surfaceContainerLow,
             ),
             const SizedBox(height: 16),
             ListTile(
@@ -179,7 +194,7 @@ class _AddEditRecurringPageState extends ConsumerState<AddEditRecurringPage> {
               subtitle: Text(DateFormat('MMM d, yyyy').format(_nextDate)),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16)),
-              tileColor: Theme.of(context).colorScheme.surfaceContainerLow,
+              tileColor: theme.colorScheme.surfaceContainerLow,
             ),
             const SizedBox(height: 48),
             FilledButton.icon(
@@ -194,6 +209,7 @@ class _AddEditRecurringPageState extends ConsumerState<AddEditRecurringPage> {
       ),
     );
   }
+
 
   void _showAccountPicker(List<Account> accounts) {
     showModalBottomSheet(

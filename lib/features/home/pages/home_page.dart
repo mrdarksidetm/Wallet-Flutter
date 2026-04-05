@@ -6,10 +6,13 @@ import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_heatmap_calendar/flutter_heatmap_calendar.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/widgets/transaction_list_tile.dart';
 import '../../../core/services/currency_engine.dart';
 import '../../../core/theme/personalization_provider.dart';
+import '../../../core/database/models/transaction_model.dart';
 import '../widgets/animated_balance_hero.dart';
 import '../widgets/overview_card.dart';
 
@@ -134,6 +137,8 @@ class HomePage extends ConsumerWidget {
                   const _SectionHeader(title: 'Overview'),
                   const _HomeFinanceGrid(),
                   const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                  const _SectionHeader(title: 'Activity Insights'),
+                  const SliverToBoxAdapter(child: _HomeChartsSection()),
                   const _SectionHeader(title: 'Recent Transactions'),
                   const _HomeRecentTransactions(),
                   SliverToBoxAdapter(
@@ -298,6 +303,157 @@ class _HomeFinanceGrid extends ConsumerWidget {
   }
 }
 
+class _HomeChartsSection extends ConsumerWidget {
+  const _HomeChartsSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final transactionsAsync = ref.watch(transactionsStreamProvider);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return transactionsAsync.when(
+      data: (transactions) {
+        if (transactions.isEmpty) return const SizedBox.shrink();
+
+        // --- Process Data for Heatmap ---
+        final Map<DateTime, int> heatmapData = {};
+        for (var tx in transactions) {
+          final date = DateTime(tx.date.year, tx.date.month, tx.date.day);
+          heatmapData[date] = (heatmapData[date] ?? 0) + 1;
+        }
+
+        // --- Process Data for Line Chart (Last 30 days) ---
+        final now = DateTime.now();
+        final last30Days = List.generate(30, (index) {
+          return DateTime(now.year, now.month, now.day).subtract(Duration(days: 29 - index));
+        });
+
+        final Map<DateTime, double> incomeByDate = {};
+        final Map<DateTime, double> expenseByDate = {};
+
+        for (var date in last30Days) {
+          incomeByDate[date] = 0;
+          expenseByDate[date] = 0;
+        }
+
+        for (var tx in transactions) {
+          final txDate = DateTime(tx.date.year, tx.date.month, tx.date.day);
+          if (incomeByDate.containsKey(txDate)) {
+            if (tx.type == TransactionType.income) {
+              incomeByDate[txDate] = (incomeByDate[txDate] ?? 0) + tx.amount;
+            } else if (tx.type == TransactionType.expense) {
+              expenseByDate[txDate] = (expenseByDate[txDate] ?? 0) + tx.amount;
+            }
+          }
+        }
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            children: [
+              // --- HEATMAP ---
+              Card(
+                elevation: 0,
+                color: theme.colorScheme.surfaceContainerLow,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Transaction Frequency',
+                        style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 16),
+                      HeatMap(
+                        datasets: heatmapData,
+                        colorMode: ColorMode.opacity,
+                        showText: false,
+                        scrollable: true,
+                        colorsets: {
+                          1: colorScheme.primary,
+                        },
+                        onClick: (value) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(value.toString())));
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // --- LINE CHART ---
+              Card(
+                elevation: 0,
+                color: theme.colorScheme.surfaceContainerLow,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Income vs Expense (Last 30 Days)',
+                        style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 32),
+                      SizedBox(
+                        height: 200,
+                        child: LineChart(
+                          LineChartData(
+                            gridData: const FlGridData(show: false),
+                            titlesData: const FlTitlesData(show: false),
+                            borderData: FlBorderData(show: false),
+                            lineBarsData: [
+                              LineChartBarData(
+                                spots: last30Days.asMap().entries.map((e) {
+                                  return FlSpot(e.key.toDouble(), incomeByDate[e.value] ?? 0);
+                                }).toList(),
+                                isCurved: true,
+                                color: Colors.green,
+                                barWidth: 3,
+                                isStrokeCapRound: true,
+                                dotData: const FlDotData(show: false),
+                                belowBarData: BarAreaData(
+                                  show: true,
+                                  color: Colors.green.withValues(alpha: 0.1),
+                                ),
+                              ),
+                              LineChartBarData(
+                                spots: last30Days.asMap().entries.map((e) {
+                                  return FlSpot(e.key.toDouble(), expenseByDate[e.value] ?? 0);
+                                }).toList(),
+                                isCurved: true,
+                                color: Colors.red,
+                                barWidth: 3,
+                                isStrokeCapRound: true,
+                                dotData: const FlDotData(show: false),
+                                belowBarData: BarAreaData(
+                                  show: true,
+                                  color: Colors.red.withValues(alpha: 0.1),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+}
+
 class _HomeRecentTransactions extends ConsumerWidget {
   const _HomeRecentTransactions();
 
@@ -355,3 +511,4 @@ class _HomeRecentTransactions extends ConsumerWidget {
     );
   }
 }
+
