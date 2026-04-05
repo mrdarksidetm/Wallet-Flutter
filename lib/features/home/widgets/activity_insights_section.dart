@@ -86,11 +86,16 @@ class _ActivityInsightsSectionState extends ConsumerState<ActivityInsightsSectio
   }
 
   Widget _buildHeatmapCard(ThemeData theme, ColorScheme colorScheme, Map<DateTime, double> aggregatedData) {
+    final isDark = theme.brightness == Brightness.dark;
     return Container(
-      padding: const EdgeInsets.all(20.0),
+      padding: const EdgeInsets.all(24.0),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLow,
+        color: isDark ? colorScheme.surfaceContainer : Colors.white,
         borderRadius: BorderRadius.circular(28.0),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+          width: 1,
+        ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -104,15 +109,16 @@ class _ActivityInsightsSectionState extends ConsumerState<ActivityInsightsSectio
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   letterSpacing: -0.5,
+                  color: colorScheme.onSurface,
                 ),
               ),
               const Spacer(),
-              Icon(Symbols.chevron_right_rounded, color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
+              Icon(Symbols.chevron_right_rounded, color: colorScheme.onSurface.withValues(alpha: 0.3), size: 16),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           Divider(color: colorScheme.outlineVariant.withValues(alpha: 0.5), height: 1),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           Text(
             DateFormat('MMMM yyyy').format(_currentMonth),
             style: theme.textTheme.labelLarge?.copyWith(
@@ -140,8 +146,8 @@ class _ActivityInsightsSectionState extends ConsumerState<ActivityInsightsSectio
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 7,
-        mainAxisSpacing: 8.0,
-        crossAxisSpacing: 8.0,
+        mainAxisSpacing: 10.0,
+        crossAxisSpacing: 10.0,
         childAspectRatio: 1.0,
       ),
       itemCount: totalCells,
@@ -173,7 +179,7 @@ class _ActivityInsightsSectionState extends ConsumerState<ActivityInsightsSectio
               borderRadius: BorderRadius.circular(12.0),
               border: isSelected 
                   ? Border.all(color: colorScheme.primary, width: 2.0)
-                  : null, 
+                  : Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.3), width: 1.0), 
             ),
             alignment: Alignment.center,
             child: Text(
@@ -191,7 +197,7 @@ class _ActivityInsightsSectionState extends ConsumerState<ActivityInsightsSectio
   }
 
   Color _getHeatColor(ColorScheme colorScheme, double value) {
-    if (value == 0) return colorScheme.surfaceContainerHighest.withValues(alpha: 0.3);
+    if (value == 0) return Colors.transparent;
     
     // Intensity based on amount
     if (value < 500) return colorScheme.primaryContainer.withValues(alpha: 0.4);
@@ -201,6 +207,7 @@ class _ActivityInsightsSectionState extends ConsumerState<ActivityInsightsSectio
   }
 
   Widget _buildTrendsCard(ThemeData theme, ColorScheme colorScheme, List<DateTime> last30Days, Map<DateTime, double> incomeByDate, Map<DateTime, double> expenseByDate) {
+    final isDark = theme.brightness == Brightness.dark;
     // [M3 ADAPTIVE]: Using custom green for income that works in both modes
     final incomeColor = Colors.green.shade600;
     final expenseColor = colorScheme.error;
@@ -208,8 +215,12 @@ class _ActivityInsightsSectionState extends ConsumerState<ActivityInsightsSectio
     return Container(
       padding: const EdgeInsets.all(24.0),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLow,
+        color: isDark ? colorScheme.surfaceContainer : Colors.white,
         borderRadius: BorderRadius.circular(28.0),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -223,6 +234,7 @@ class _ActivityInsightsSectionState extends ConsumerState<ActivityInsightsSectio
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   letterSpacing: -0.5,
+                  color: colorScheme.onSurface,
                 ),
               ),
             ],

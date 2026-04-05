@@ -518,14 +518,24 @@ class _DetailedReportsList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.only(left: 8, bottom: 16),
-            child: Text('DETAILED REPORTS', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w900, letterSpacing: 1.2, fontSize: 11)),
+          Padding(
+            padding: const EdgeInsets.only(left: 8, bottom: 16),
+            child: Text(
+              'DETAILED REPORTS', 
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.2,
+              ),
+            ),
           ),
           const _ReportNavItem(title: 'Month Summary', subtitle: 'A complete overview of your monthly flow', icon: Symbols.event_note, color: Colors.blue),
           const _ReportNavItem(title: 'Category Breakdown', subtitle: 'Where your money actually goes', icon: Symbols.category, color: Colors.orange),
@@ -620,6 +630,9 @@ class _ReportNavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return ListTile(
       onTap: onTap ?? () {},
       leading: Container(
@@ -627,9 +640,9 @@ class _ReportNavItem extends StatelessWidget {
         decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
         child: Icon(icon, color: color, size: 24),
       ),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: Text(subtitle, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-      trailing: const Icon(Symbols.chevron_right, color: Colors.grey),
+      title: Text(title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+      subtitle: Text(subtitle, style: theme.textTheme.labelMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
+      trailing: Icon(Symbols.chevron_right, color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
     );
   }
 }
