@@ -162,6 +162,11 @@ class CsvService {
     ]);
 
     for (var tx in transactions) {
+      // Ensure links are loaded before accessing their properties
+      await tx.category.load();
+      await tx.account.load();
+      await tx.transferAccount.load();
+
       rows.add([
         tx.date.toIso8601String().split('T')[0],
         tx.date.toIso8601String().split('T')[1].split('.')[0],

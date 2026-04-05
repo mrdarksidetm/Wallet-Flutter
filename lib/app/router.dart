@@ -297,6 +297,7 @@ class _FAB extends ConsumerWidget {
       '/add_recurring',
       '/add_category',
       '/budgets',
+      '/bill_splitter',
     ];
     // Don't hide for /reports anymore
     return hiddenRoutes

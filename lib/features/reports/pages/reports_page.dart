@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../../core/database/models/category.dart';
+import '../../../core/database/models/transaction_model.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/services/currency_engine.dart';
 import '../../../core/theme/color_extension.dart';
@@ -64,7 +65,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
     final selectedCurrency = ref.watch(currencyProvider);
 
     // [REACTIVE]: Watch breakdown and insights based on the selected range.
-    final breakdownAsync = ref.watch(categoryBreakdownProvider((_selectedRange, null, null)));
+    final breakdownAsync = ref.watch(categoryBreakdownProvider((_selectedRange, null, null, TransactionType.expense)));
     final insightsAsync = ref.watch(quickInsightsProvider(_selectedRange));
 
     return Scaffold(
@@ -512,24 +513,90 @@ class _DonutLegend extends StatelessWidget {
 }
 
 /// A vertical list of navigation items for specialized reports.
-class _DetailedReportsList extends StatelessWidget {
+class _DetailedReportsList extends ConsumerWidget {
   const _DetailedReportsList();
 
   @override
-  Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.all(16.0),
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
+          const Padding(
             padding: EdgeInsets.only(left: 8, bottom: 16),
             child: Text('DETAILED REPORTS', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w900, letterSpacing: 1.2, fontSize: 11)),
           ),
-          _ReportNavItem(title: 'Month Summary', subtitle: 'A complete overview of your monthly flow', icon: Symbols.event_note, color: Colors.blue),
-          _ReportNavItem(title: 'Category Breakdown', subtitle: 'Where your money actually goes', icon: Symbols.category, color: Colors.orange),
-          _ReportNavItem(title: 'Budget Performance', subtitle: 'How well you stick to your limits', icon: Symbols.pie_chart, color: Colors.purple),
-          _ReportNavItem(title: 'Cash Flow Analysis', subtitle: 'Inflow vs Outflow over time', icon: Symbols.swap_vert, color: Colors.teal),
+          const _ReportNavItem(title: 'Month Summary', subtitle: 'A complete overview of your monthly flow', icon: Symbols.event_note, color: Colors.blue),
+          const _ReportNavItem(title: 'Category Breakdown', subtitle: 'Where your money actually goes', icon: Symbols.category, color: Colors.orange),
+          const _ReportNavItem(title: 'Budget Performance', subtitle: 'How well you stick to your limits', icon: Symbols.pie_chart, color: Colors.purple),
+          const _ReportNavItem(title: 'Cash Flow Analysis', subtitle: 'Inflow vs Outflow over time', icon: Symbols.swap_vert, color: Colors.teal),
+          _ReportNavItem(
+            title: 'Export to CSV', 
+            subtitle: 'Download your transaction history', 
+            icon: Symbols.download, 
+            color: Colors.indigo,
+            onTap: () async {
+              try {
+                await ref.read(csvServiceProvider).exportTransactions();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Transactions exported successfully')),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Export failed: $e')),
+                  );
+                }
+              }
+            },
+          ),
+          _ReportNavItem(
+            title: 'Export to JSON', 
+            subtitle: 'Backup your data in JSON format', 
+            icon: Symbols.database, 
+            color: Colors.amber,
+            onTap: () async {
+              try {
+                await ref.read(jsonServiceProvider).exportTransactions();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Transactions exported successfully')),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Export failed: $e')),
+                  );
+                }
+              }
+            },
+          ),
+          _ReportNavItem(
+            title: 'Import from JSON', 
+            subtitle: 'Restore your data from a JSON file', 
+            icon: Symbols.upload_file, 
+            color: Colors.teal,
+            onTap: () async {
+              try {
+                await ref.read(jsonServiceProvider).importTransactions();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Data imported successfully')),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Import failed: $e')),
+                  );
+                }
+              }
+            },
+          ),
         ],
       ),
     );
@@ -541,18 +608,20 @@ class _ReportNavItem extends StatelessWidget {
   final String subtitle;
   final IconData icon;
   final Color color;
+  final VoidCallback? onTap;
 
   const _ReportNavItem({
     required this.title,
     required this.subtitle,
     required this.icon,
     required this.color,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      onTap: () {}, // Future implementation
+      onTap: onTap ?? () {},
       leading: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),

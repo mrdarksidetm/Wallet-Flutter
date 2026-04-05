@@ -44,7 +44,7 @@ class BackupService {
       await isar.copyToFile(backupPath);
       return backupPath;
     } catch (e) {
-      throw Exception('Failed to write backup file: $e');
+      throw Exception('Failed! Access Denied: Permissions required or storage full. Error: $e');
     }
   }
 

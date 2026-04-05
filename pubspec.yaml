@@ -108,7 +108,12 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/icon/original.png"
-  adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "assets/icon/original.png"
-  adaptive_icon_monochrome: "assets/icon/monochrome.png"
+  # 1. Legacy Fallback (Used by Package Installer): Tightly cropped logo
+  image_path: "assets/images/logo.svg" 
+  
+  # 2. Adaptive Background (Used by Home Screen)
+  adaptive_icon_background: "#FFFFFF" 
+  
+  # 3. Adaptive Foreground (Used by Home Screen): Padded icon
+  adaptive_icon_foreground: "assets/icon/original.svg"
+  adaptive_icon_monochrome: "assets/icon/monochrome.svg"

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 
@@ -40,6 +41,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
   Person? _selectedPerson;
   bool _isLoan = false;
   bool _isLoading = false;
+  DateTime _selectedDateTime = DateTime.now();
 
   @override
   void initState() {
@@ -100,6 +102,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
         _selectedCategory = cat;
         _selectedTransferAccount = tx.transferAccount.value;
         _selectedPerson = tx.person.value;
+        _selectedDateTime = tx.date;
         _isLoading = false;
       });
     }
@@ -137,6 +140,8 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
             _buildAmountInput(theme, effectiveColor),
             const SizedBox(height: 32),
             _buildNoteInput(),
+            const SizedBox(height: 16),
+            _buildDateTimePicker(colorScheme),
             const SizedBox(height: 16),
             _buildCategorySelector(colorScheme),
             const SizedBox(height: 16),
@@ -230,6 +235,47 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
         hintText: 'What was this for?',
       ),
     );
+  }
+
+  Widget _buildDateTimePicker(ColorScheme colorScheme) {
+    return ListTile(
+      onTap: _pickDateTime,
+      leading: const Icon(Symbols.calendar_month),
+      title: const Text('Date & Time'),
+      subtitle: Text(DateFormat('MMM dd, yyyy - hh:mm a').format(_selectedDateTime)),
+      trailing: const Icon(Icons.chevron_right_rounded),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      tileColor: colorScheme.surfaceContainerLow,
+    );
+  }
+
+  Future<void> _pickDateTime() async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: _selectedDateTime,
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now().add(const Duration(days: 365 * 10)),
+    );
+
+    if (date != null) {
+      if (!mounted) return;
+      final time = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.fromDateTime(_selectedDateTime),
+      );
+
+      if (time != null) {
+        setState(() {
+          _selectedDateTime = DateTime(
+            date.year,
+            date.month,
+            date.day,
+            time.hour,
+            time.minute,
+          );
+        });
+      }
+    }
   }
 
   Widget _buildCategorySelector(ColorScheme colorScheme) {
@@ -424,7 +470,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
         final updatedTx = TransactionModel()
           ..id = widget.transaction!.id
           ..amount = amount
-          ..date = widget.transaction!.date
+          ..date = _selectedDateTime
           ..type = _transactionType
           ..note = _noteController.text.isNotEmpty ? _noteController.text : null
           ..icon = _selectedIcon
@@ -440,7 +486,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
         await service.updateTransaction(widget.transaction!, updatedTx);
       } else {
         await service.addTransaction(
-          amount: amount, date: DateTime.now(), type: _transactionType,
+          amount: amount, date: _selectedDateTime, type: _transactionType,
           account: _selectedAccount!, category: _selectedCategory!,
           note: _noteController.text.isNotEmpty ? _noteController.text : null,
           transferAccount: _selectedTransferAccount, icon: _selectedIcon,

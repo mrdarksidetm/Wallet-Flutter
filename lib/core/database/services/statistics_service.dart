@@ -105,12 +105,12 @@ class StatisticsService {
   }
 
   Future<Map<Category, double>> getCategoryBreakdown(
-      DateTime start, DateTime end, {int? accountId, List<String>? tags}) async {
+      DateTime start, DateTime end, {int? accountId, List<String>? tags, TransactionType type = TransactionType.expense}) async {
     var query = isar.transactionModels
         .filter()
         .isDeletedEqualTo(false)
         .isArchivedEqualTo(false)
-        .typeEqualTo(TransactionType.expense)
+        .typeEqualTo(type)
         .dateBetween(start, end);
 
     if (accountId != null) {
@@ -199,9 +199,16 @@ class StatisticsService {
         .findAll();
 
     final Map<DateTime, double> daily = {};
+    
+    // Fill all days with 0.0 to avoid "small dot" issues in charts
+    for (int i = 0; i <= end.difference(start).inDays; i++) {
+      final d = start.add(Duration(days: i));
+      daily[DateTime(d.year, d.month, d.day)] = 0.0;
+    }
+
     for (var tx in transactions) {
       final date = DateTime(tx.date.year, tx.date.month, tx.date.day);
-      daily[date] = (daily[date] ?? 0) + tx.amount;
+      daily[date] = (daily[date] ?? 0.0) + tx.amount;
     }
 
     final sorted = daily.entries.toList()

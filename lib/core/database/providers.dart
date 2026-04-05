@@ -14,6 +14,7 @@ import 'services/budget_service.dart';
 import 'services/loan_service.dart';
 import 'services/goal_service.dart';
 import 'services/csv_service.dart';
+import 'services/json_service.dart';
 import 'services/person_service.dart';
 import 'services/account_service.dart';
 import 'services/category_service.dart';
@@ -158,6 +159,11 @@ final csvServiceProvider = Provider<CsvService>((ref) {
   return CsvService(isar);
 });
 
+final jsonServiceProvider = Provider<JsonService>((ref) {
+  final isar = ref.watch(isarProvider).value!;
+  return JsonService(isar);
+});
+
 final backupServiceProvider = Provider<BackupService>((ref) {
   final isar = ref.watch(isarProvider).value!;
   return BackupService(isar);
@@ -232,16 +238,17 @@ final recentStatsProvider = StreamProvider<Map<String, double>>((ref) {
 });
 
 final categoryBreakdownProvider =
-    FutureProvider.family<Map<Category, double>, (DateTimeRange?, int?, List<String>?)>(
+    FutureProvider.family<Map<Category, double>, (DateTimeRange?, int?, List<String>?, TransactionType?)>(
         (ref, params) async {
   final range = params.$1;
   final accountId = params.$2;
   final tags = params.$3;
+  final type = params.$4 ?? TransactionType.expense;
   if (range == null) return {};
   // Watch transactions to force rebuild when data changes
   ref.watch(transactionsStreamProvider);
   final service = ref.watch(statisticsServiceProvider);
-  return await service.getCategoryBreakdown(range.start, range.end, accountId: accountId, tags: tags);
+  return await service.getCategoryBreakdown(range.start, range.end, accountId: accountId, tags: tags, type: type);
 });
 
 final dailyStatsProvider =
