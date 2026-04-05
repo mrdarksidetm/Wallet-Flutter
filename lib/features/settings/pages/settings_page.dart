@@ -92,16 +92,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           _buildSettingsTile(
             context,
             icon: Symbols.upload_file,
-            title: 'Export Data',
-            subtitle: 'Export transactions to CSV',
+            title: 'Export to CSV',
+            subtitle: 'Export transactions to a CSV file',
             onTap: () async {
               try {
                 await ref.read(csvServiceProvider).exportTransactions();
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text(
-                            'Exported successfully! Check your selected folder.')),
+                    const SnackBar(content: Text('Exported successfully!')),
                   );
                 }
               } catch (e) {
@@ -116,11 +114,55 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           _buildSettingsTile(
             context,
             icon: Symbols.download_for_offline,
-            title: 'Import Data',
-            subtitle: 'Import transactions from CSV',
+            title: 'Import from CSV',
+            subtitle: 'Import transactions from a CSV file',
             onTap: () async {
               try {
                 await ref.read(csvServiceProvider).importTransactions();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Imported successfully!')),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Import failed: $e')),
+                  );
+                }
+              }
+            },
+          ),
+          _buildSettingsTile(
+            context,
+            icon: Symbols.database,
+            title: 'Export to JSON',
+            subtitle: 'Backup your data in JSON format',
+            onTap: () async {
+              try {
+                await ref.read(jsonServiceProvider).exportTransactions();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Exported successfully!')),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Export failed: $e')),
+                  );
+                }
+              }
+            },
+          ),
+          _buildSettingsTile(
+            context,
+            icon: Symbols.upload_file,
+            title: 'Import from JSON',
+            subtitle: 'Restore your data from a JSON file',
+            onTap: () async {
+              try {
+                await ref.read(jsonServiceProvider).importTransactions();
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Imported successfully!')),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -518,93 +519,61 @@ class _DetailedReportsList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 8, bottom: 16),
+          const Padding(
+            padding: EdgeInsets.only(left: 8, bottom: 16),
             child: Text(
               'DETAILED REPORTS', 
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
+              style: TextStyle(
+                color: Colors.grey,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 1.2,
+                fontSize: 11,
               ),
             ),
           ),
-          const _ReportNavItem(title: 'Month Summary', subtitle: 'A complete overview of your monthly flow', icon: Symbols.event_note, color: Colors.blue),
-          const _ReportNavItem(title: 'Category Breakdown', subtitle: 'Where your money actually goes', icon: Symbols.category, color: Colors.orange),
-          const _ReportNavItem(title: 'Budget Performance', subtitle: 'How well you stick to your limits', icon: Symbols.pie_chart, color: Colors.purple),
-          const _ReportNavItem(title: 'Cash Flow Analysis', subtitle: 'Inflow vs Outflow over time', icon: Symbols.swap_vert, color: Colors.teal),
           _ReportNavItem(
-            title: 'Export to CSV', 
-            subtitle: 'Download your transaction history', 
-            icon: Symbols.download, 
-            color: Colors.indigo,
-            onTap: () async {
-              try {
-                await ref.read(csvServiceProvider).exportTransactions();
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Transactions exported successfully')),
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Export failed: $e')),
-                  );
-                }
-              }
+            title: 'Month Summary', 
+            subtitle: 'A complete overview of your monthly flow', 
+            icon: Symbols.event_note, 
+            color: Colors.blue,
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Detailed Month Summary coming soon')),
+              );
             },
           ),
           _ReportNavItem(
-            title: 'Export to JSON', 
-            subtitle: 'Backup your data in JSON format', 
-            icon: Symbols.database, 
-            color: Colors.amber,
-            onTap: () async {
-              try {
-                await ref.read(jsonServiceProvider).exportTransactions();
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Transactions exported successfully')),
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Export failed: $e')),
-                  );
-                }
-              }
+            title: 'Category Breakdown', 
+            subtitle: 'Where your money actually goes', 
+            icon: Symbols.category, 
+            color: Colors.orange,
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Please select a category from the chart above for details')),
+              );
             },
           ),
           _ReportNavItem(
-            title: 'Import from JSON', 
-            subtitle: 'Restore your data from a JSON file', 
-            icon: Symbols.upload_file, 
+            title: 'Budget Performance', 
+            subtitle: 'How well you stick to your limits', 
+            icon: Symbols.pie_chart, 
+            color: Colors.purple,
+            onTap: () => context.push('/budgets'),
+          ),
+          _ReportNavItem(
+            title: 'Cash Flow Analysis', 
+            subtitle: 'Inflow vs Outflow over time', 
+            icon: Symbols.swap_vert, 
             color: Colors.teal,
-            onTap: () async {
-              try {
-                await ref.read(jsonServiceProvider).importTransactions();
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Data imported successfully')),
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Import failed: $e')),
-                  );
-                }
-              }
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Cash Flow Analysis coming soon')),
+              );
             },
           ),
         ],
