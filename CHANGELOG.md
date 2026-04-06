@@ -2,6 +2,23 @@
 
 All notable changes to the **Project Wallet** will be documented in this file. 🚀
 
+## [1.4.1] - 2026-04-06
+### Fixed
+- **Reports**: Resolved `undefined_method` for `_showCategoryDetails` by refactoring it into a top-level private function.
+- **Android Build**: Fixed AGP 8.0+ compatibility issue with `isar_flutter_libs` by programmatically stripping the deprecated `package` attribute from library manifests during build.
+- **Lint**: Cleaned up unused imports in `json_service.dart` and `activity_heatmap_page.dart`.
+- **CI/CD**: Improved release build stability for Codemagic.
+
+## [1.4.0] - 2026-04-03
+### Added
+- **Reports Dashboard**: High-performance dashboard with date-range filtering and fl_chart integration.
+- **Activity Heatmap**: Visual contribution-style heatmap for transaction history.
+- **Person Profile**: Enhanced profile editor with image cropping and transaction merging.
+- **Bill Splitter**: Direct integration with Loan system for debt tracking.
+### Fixed
+- Loan due date persistence bug.
+- Transaction history loading performance.
+
 ---
 
 ## [1.4.0] - 2026-04-02 💎
