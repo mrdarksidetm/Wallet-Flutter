@@ -10,6 +10,7 @@ import '../../../core/database/providers.dart';
 import '../../../core/services/currency_engine.dart';
 import '../../../core/theme/color_extension.dart';
 import '../../../core/widgets/icon_picker.dart';
+import '../../../core/widgets/transaction_list_tile.dart';
 import '../../../core/providers/fab_action_provider.dart';
 
 /// ReportsPage: A dynamic, Material 3 reactive dashboard for financial analysis.
@@ -121,7 +122,10 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
           ),
 
           // 5. Detailed Reports List
-          const SliverToBoxAdapter(child: _DetailedReportsList()),
+          SliverToBoxAdapter(child: _DetailedReportsList(
+            range: _selectedRange,
+            onCategorySelected: (cat) => _showCategoryDetails(context, ref, cat, _selectedRange),
+          )),
           
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
@@ -380,19 +384,112 @@ class _ChartSection extends ConsumerWidget {
             child: isLineChart 
               ? dailyStatsAsync.when(
                   data: (data) => _LineChartWidget(data: data),
-                  loading: () => const Center(child: CircularProgressIndicator()),
+                  loading: () => const _LoadingPlaceholder(height: 240),
                   error: (_, __) => const Center(child: Text('No trend data')),
                 )
-              : _DonutChartWidget(breakdown: breakdown),
+              : _DonutChartWidget(
+                  breakdown: breakdown,
+                  onCategorySelected: (cat) => _showCategoryDetails(context, ref, cat, range),
+                ),
           ),
           if (!isLineChart) ...[
             const SizedBox(height: 24),
-            _DonutLegend(breakdown: breakdown, currency: currency),
+            _DonutLegend(
+              breakdown: breakdown, 
+              currency: currency,
+              onCategorySelected: (cat) => _showCategoryDetails(context, ref, cat, range),
+            ),
           ]
         ],
       ),
     );
   }
+}
+
+void _showCategoryDetails(BuildContext context, WidgetRef ref, Category category, DateTimeRange range) {
+  final theme = Theme.of(context);
+  final color = category.color.parseHexColor();
+
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (context) => DraggableScrollableSheet(
+      initialChildSize: 0.7,
+      minChildSize: 0.5,
+      maxChildSize: 0.95,
+      builder: (context, scrollController) => Container(
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Column(
+          children: [
+            const SizedBox(height: 12),
+            Container(width: 40, height: 4, decoration: BoxDecoration(color: theme.colorScheme.outlineVariant, borderRadius: BorderRadius.circular(2))),
+            Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Row(
+                children: [
+                  Container(
+                    width: 48, height: 48,
+                    decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
+                    child: Icon(AppIcons.getIcon(category.icon), color: color, size: 24),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(category.name, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                        Text(
+                          '${DateFormat('MMM d').format(range.start)} - ${DateFormat('MMM d, yyyy').format(range.end)}',
+                          style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: Consumer(
+                builder: (context, ref, child) {
+                  final transactionsAsync = ref.watch(transactionsStreamProvider);
+                  return transactionsAsync.when(
+                    data: (allTransactions) {
+                      final filtered = allTransactions.where((tx) => 
+                        tx.categoryId == category.id && 
+                        tx.date.isAfter(range.start.subtract(const Duration(seconds: 1))) &&
+                        tx.date.isBefore(range.end.add(const Duration(days: 1)))
+                      ).toList();
+
+                      if (filtered.isEmpty) {
+                        return const Center(child: Text('No transactions for this category'));
+                      }
+
+                      return ListView.builder(
+                        controller: scrollController,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        itemCount: filtered.length,
+                        itemBuilder: (context, index) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: TransactionListTile(tx: filtered[index]),
+                        ),
+                      );
+                    },
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (err, _) => Center(child: Text('Error: $err')),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 }
 
 class _LineChartWidget extends StatelessWidget {
@@ -429,17 +526,34 @@ class _LineChartWidget extends StatelessWidget {
 
 class _DonutChartWidget extends StatelessWidget {
   final Map<Category, double> breakdown;
-  const _DonutChartWidget({required this.breakdown});
+  final Function(Category) onCategorySelected;
+
+  const _DonutChartWidget({required this.breakdown, required this.onCategorySelected});
 
   @override
   Widget build(BuildContext context) {
     if (breakdown.isEmpty) return const Center(child: Text('No spending data'));
 
+    final entries = breakdown.entries.toList();
+
     return PieChart(
       PieChartData(
+        pieTouchData: PieTouchData(
+          touchCallback: (FlTouchEvent event, pieTouchResponse) {
+            if (!event.isInterestedForInteractions || 
+                pieTouchResponse == null || 
+                pieTouchResponse.touchedSection == null) {
+              return;
+            }
+            final index = pieTouchResponse.touchedSection!.touchedSectionIndex;
+            if (index >= 0 && index < entries.length) {
+              onCategorySelected(entries[index].key);
+            }
+          },
+        ),
         sectionsSpace: 4,
         centerSpaceRadius: 60,
-        sections: breakdown.entries.map((e) {
+        sections: entries.map((e) {
           final color = e.key.color.parseHexColor();
           return PieChartSectionData(
             color: color,
@@ -456,8 +570,9 @@ class _DonutChartWidget extends StatelessWidget {
 class _DonutLegend extends StatelessWidget {
   final Map<Category, double> breakdown;
   final String currency;
+  final Function(Category) onCategorySelected;
 
-  const _DonutLegend({required this.breakdown, required this.currency});
+  const _DonutLegend({required this.breakdown, required this.currency, required this.onCategorySelected});
 
   @override
   Widget build(BuildContext context) {
@@ -473,39 +588,46 @@ class _DonutLegend extends StatelessWidget {
 
         return Padding(
           padding: const EdgeInsets.only(bottom: 12),
-          child: Row(
-            children: [
-              Container(
-                width: 32, height: 32,
-                decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
-                child: Icon(AppIcons.getIcon(category.icon), color: color, size: 16),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: InkWell(
+            onTap: () => onCategorySelected(category),
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+              child: Row(
+                children: [
+                  Container(
+                    width: 32, height: 32,
+                    decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
+                    child: Icon(AppIcons.getIcon(category.icon), color: color, size: 16),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(category.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                        Text(CurrencyEngine.formatCurrency(amount, currency), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(category.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                            Text(CurrencyEngine.formatCurrency(amount, currency), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        LinearProgressIndicator(
+                          value: percentage,
+                          backgroundColor: color.withValues(alpha: 0.05),
+                          valueColor: AlwaysStoppedAnimation<Color>(color),
+                          minHeight: 4,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
                       ],
                     ),
-                    const SizedBox(height: 4),
-                    LinearProgressIndicator(
-                      value: percentage,
-                      backgroundColor: color.withValues(alpha: 0.05),
-                      valueColor: AlwaysStoppedAnimation<Color>(color),
-                      minHeight: 4,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text('${(percentage * 100).toStringAsFixed(0)}%', style: const TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.bold)),
+                ],
               ),
-              const SizedBox(width: 12),
-              Text('${(percentage * 100).toStringAsFixed(0)}%', style: const TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.bold)),
-            ],
+            ),
           ),
         );
       }).toList(),
@@ -515,7 +637,10 @@ class _DonutLegend extends StatelessWidget {
 
 /// A vertical list of navigation items for specialized reports.
 class _DetailedReportsList extends ConsumerWidget {
-  const _DetailedReportsList();
+  final DateTimeRange range;
+  final Function(Category) onCategorySelected;
+
+  const _DetailedReportsList({required this.range, required this.onCategorySelected});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -553,8 +678,50 @@ class _DetailedReportsList extends ConsumerWidget {
             icon: Symbols.category, 
             color: Colors.orange,
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Please select a category from the chart above for details')),
+              // Show a category selection menu
+              final breakdown = ref.read(categoryBreakdownProvider((range, null, null, TransactionType.expense))).value ?? {};
+              if (breakdown.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('No spending data to show')),
+                );
+                return;
+              }
+              
+              showModalBottomSheet(
+                context: context,
+                backgroundColor: Colors.transparent,
+                builder: (context) => Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(height: 12),
+                      Container(width: 40, height: 4, decoration: BoxDecoration(color: Theme.of(context).colorScheme.outlineVariant, borderRadius: BorderRadius.circular(2))),
+                      const Padding(
+                        padding: EdgeInsets.all(24.0),
+                        child: Text('Select Category', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                      ),
+                      Flexible(
+                        child: ListView(
+                          shrinkWrap: true,
+                          children: breakdown.keys.map((cat) => ListTile(
+                            leading: Icon(AppIcons.getIcon(cat.icon), color: cat.color.parseHexColor()),
+                            title: Text(cat.name),
+                            trailing: const Icon(Symbols.chevron_right),
+                            onTap: () {
+                              Navigator.pop(context);
+                              onCategorySelected(cat);
+                            },
+                          )).toList(),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
+                ),
               );
             },
           ),

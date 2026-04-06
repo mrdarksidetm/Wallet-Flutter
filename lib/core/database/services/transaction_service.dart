@@ -91,6 +91,11 @@ class TransactionService {
       // 3. Save
       await isar.accounts.put(account);
       await isar.transactionModels.put(transaction);
+      
+      // [CRITICAL]: Manually save links to ensure they are persisted even if put() doesn't trigger them.
+      await transaction.account.save();
+      await transaction.category.save();
+      if (person != null) await transaction.person.save();
     });
   }
 

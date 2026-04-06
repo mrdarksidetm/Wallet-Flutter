@@ -6,6 +6,9 @@ part 'account.g.dart';
 class Account {
   Id id = Isar.autoIncrement;
 
+  @Index(unique: true)
+  String uuid = '';
+
   @Index()
   String name = '';
 

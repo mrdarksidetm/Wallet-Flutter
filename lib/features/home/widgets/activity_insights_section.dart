@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -100,21 +101,25 @@ class _ActivityInsightsSectionState extends ConsumerState<ActivityInsightsSectio
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            children: [
-              Icon(Symbols.calendar_today_rounded, color: colorScheme.primary, size: 20),
-              const SizedBox(width: 12),
-              Text(
-                'Calendar heatmap',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: -0.5,
-                  color: colorScheme.onSurface,
+          GestureDetector(
+            onTap: () => context.push('/activity_heatmap'),
+            behavior: HitTestBehavior.opaque,
+            child: Row(
+              children: [
+                Icon(Symbols.calendar_today_rounded, color: colorScheme.primary, size: 20),
+                const SizedBox(width: 12),
+                Text(
+                  'Calendar heatmap',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: -0.5,
+                    color: colorScheme.onSurface,
+                  ),
                 ),
-              ),
-              const Spacer(),
-              Icon(Symbols.chevron_right_rounded, color: colorScheme.onSurface.withValues(alpha: 0.3), size: 16),
-            ],
+                const Spacer(),
+                Icon(Symbols.chevron_right_rounded, color: colorScheme.onSurface.withValues(alpha: 0.3), size: 16),
+              ],
+            ),
           ),
           const SizedBox(height: 20),
           Divider(color: colorScheme.outlineVariant.withValues(alpha: 0.5), height: 1),

@@ -9,6 +9,10 @@ part 'auxiliary_models.g.dart';
 @collection
 class Person {
   Id id = Isar.autoIncrement;
+
+  @Index(unique: true)
+  String uuid = '';
+
   @Index()
   String name = '';
   String? contact;
@@ -23,6 +27,10 @@ class Person {
 @collection
 class Place {
   Id id = Isar.autoIncrement;
+
+  @Index(unique: true)
+  String uuid = '';
+
   String name = '';
   String? address;
   double? latitude;
@@ -36,6 +44,10 @@ class Place {
 @collection
 class Budget {
   Id id = Isar.autoIncrement;
+
+  @Index(unique: true)
+  String uuid = '';
+
   double amount = 0.0;
   final category = IsarLink<Category>();
 
@@ -65,6 +77,9 @@ enum BudgetPeriod {
 class Loan {
   Id id = Isar.autoIncrement;
 
+  @Index(unique: true)
+  String uuid = '';
+
   final person = IsarLink<Person>();
 
   double amount = 0.0;
@@ -93,6 +108,10 @@ enum LoanType {
 @collection
 class Goal {
   Id id = Isar.autoIncrement;
+
+  @Index(unique: true)
+  String uuid = '';
+
   String name = '';
   double targetAmount = 0.0;
   double currentAmount = 0.0;
@@ -112,6 +131,9 @@ class Goal {
 @collection
 class Recurring {
   Id id = Isar.autoIncrement;
+
+  @Index(unique: true)
+  String uuid = '';
 
   String name = '';
   double amount = 0.0;

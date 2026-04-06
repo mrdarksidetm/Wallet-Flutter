@@ -9,6 +9,9 @@ part 'transaction_model.g.dart';
 class TransactionModel {
   Id id = Isar.autoIncrement;
 
+  @Index(unique: true)
+  String uuid = '';
+
   double amount = 0.0;
 
   String? note; // Changed from 'name' to 'note' to match UI

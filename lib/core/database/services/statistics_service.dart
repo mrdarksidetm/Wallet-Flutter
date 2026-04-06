@@ -134,7 +134,11 @@ class StatisticsService {
       
       if (!categoryIdToCategory.containsKey(categoryId)) {
         await tx.category.load();
-        final category = tx.category.value;
+        var category = tx.category.value;
+        if (category == null && categoryId != 0) {
+          // [FALLBACK]: If the link is not loaded, try fetching by ID directly.
+          category = await isar.categorys.get(categoryId);
+        }
         if (category != null) {
           categoryIdToCategory[categoryId] = category;
         }

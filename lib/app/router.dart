@@ -36,6 +36,7 @@ import '../features/settings/pages/feedback_page.dart';
 import '../features/settings/pages/about_page.dart';
 import '../features/settings/pages/logcat_page.dart';
 import '../features/accounts/pages/account_details_page.dart';
+import '../features/home/pages/activity_heatmap_page.dart';
 
 import '../core/database/models/transaction_model.dart';
 import '../core/database/models/account.dart';
@@ -93,6 +94,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           _shellRoute('/people', const PeoplePage(),
               type: SharedAxisTransitionType.scaled),
           _shellRoute('/goals', const GoalsPage(),
+              type: SharedAxisTransitionType.scaled),
+          _shellRoute('/activity_heatmap', const ActivityHeatmapPage(),
               type: SharedAxisTransitionType.scaled),
           GoRoute(
             path: '/category_details',
