@@ -85,7 +85,11 @@ dev_dependencies:
     path: isar_community/packages/isar_generator
   riverpod_generator: 2.4.0
 
-# dependency_overrides:
+dependency_overrides:
+  isar:
+    path: isar_community/packages/isar
+  isar_flutter_libs:
+    path: isar_community/packages/isar_flutter_libs
  
 flutter:
   uses-material-design: true
