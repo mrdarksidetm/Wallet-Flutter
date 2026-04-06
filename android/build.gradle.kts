@@ -24,7 +24,7 @@ subprojects {
         }
         project.tasks.withType<com.android.build.gradle.tasks.ProcessApplicationManifest>().configureEach {
             doLast {
-                val manifestFile = manifestOutputFile.get().asFile
+                val manifestFile = mainMergedManifest.get().asFile
                 if (manifestFile.exists()) {
                     val content = manifestFile.readText()
                     val updatedContent = content.replace(Regex("""\s+package="[^"]+""""), "")
