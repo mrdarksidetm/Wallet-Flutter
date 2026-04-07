@@ -1,3 +1,7 @@
+-keep class io.isar.** { *; }
+-keepnames class io.isar.** { *; }
 -keep class dev.isar.** { *; }
+-keepnames class dev.isar.** { *; }
 -keep class io.flutter.plugins.** { *; }
 -dontwarn dev.isar.**
+-dontwarn io.isar.**
