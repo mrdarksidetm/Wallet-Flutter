@@ -1,0 +1,3 @@
+-keep class dev.isar.** { *; }
+-keep class io.flutter.plugins.** { *; }
+-dontwarn dev.isar.**
