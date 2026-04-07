@@ -16,10 +16,12 @@ Live tracking of the **Project Wallet** development lifecycle. 📈🏦
 ### **💾 1. Database & Core (100%)**
 - [x] Isar Database implementation. 📁
 - [x] **FIXED**: Android Build Failure (AGP 8.0+ / `isar_flutter_libs` compatibility). 🛠️
+- [x] **FIXED**: `libisar.so` dlopen error on Android arm64 by enforcing native lib extraction. 📂
 - [x] **NEW**: Added `personId` to `TransactionModel` for high-performance filtering. ⚡
 - [x] **UPDATED**: Loan model now correctly persists `dueDate`. ⏳
 - [x] **UPDATED**: `TransactionService` now atomically syncs `personId` on all writes. ⛓️
 
+- [x] **FIXED**: Missing `libisar.so` binaries in local `isar_flutter_libs` (Android/iOS). 🛠️
 ### **📱 2. UI & Navigation (100%)**
 - [x] **FIXED**: `ReportsPage` undefined method `_showCategoryDetails`. 📊
 - [x] **NEW**: `Hero` animations for transaction icons and category elements. 🦸‍♂️
@@ -47,6 +49,7 @@ Live tracking of the **Project Wallet** development lifecycle. 📈🏦
 
 ## 🛠️ Recent Fixes (v1.4.1 Update)
 
+- **💾 Isar Native**: Fixed `libisar.so` dlopen error on Android arm64 by enforcing native lib extraction in `AndroidManifest` and `build.gradle.kts`.
 - **📝 Reports Dashboard**: Resolved `_showCategoryDetails` undefined method by refactoring it to a top-level function.
 - **🏗️ Android Build**: Fixed critical build failure in CI/CD caused by `isar_flutter_libs` incompatibility with AGP 8.0+.
 - **🖇️ Person Connectivity**: Transactions now reliably link to people via `personId` syncing, fixing the empty activity history bug.
