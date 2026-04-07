@@ -7,6 +7,7 @@ import 'package:permission_handler/permission_handler.dart';
 import '../models/transaction_model.dart';
 import '../models/account.dart';
 import '../models/category.dart';
+import '../models/auxiliary_models.dart';
 
 class JsonService {
   final Isar isar;
@@ -88,7 +89,7 @@ class JsonService {
             ..bankName = json['bankName'] ?? ''
             ..balance = (json['amount'] as num?)?.toDouble() ?? 0.0
             ..color = _formatPaisaColor(json['color'])
-            ..icon = 'account_balance_wallet' // Default fallback for integer icon codes
+            ..icon = _mapPaisaIcon(json['icon'], 'account_balance_wallet')
             ..type = _mapPaisaAccountType(json['type'])
             ..createdAt = DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now()
             ..updatedAt = DateTime.tryParse(json['updatedAt'] ?? '') ?? DateTime.now();
@@ -109,7 +110,7 @@ class JsonService {
             ..name = json['name'] ?? 'Imported'
             ..description = json['description'] ?? ''
             ..color = _formatPaisaColor(json['color'])
-            ..icon = 'category' // Default fallback for integer icon codes
+            ..icon = _mapPaisaIcon(json['icon'], 'category')
             ..type = json['type'] == 1 ? CategoryType.income : CategoryType.expense
             ..createdAt = DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now()
             ..updatedAt = DateTime.tryParse(json['updatedAt'] ?? '') ?? DateTime.now();
@@ -118,7 +119,68 @@ class JsonService {
         uuidToCategory[uuid] = category;
       }
 
-      // 3. Import Transactions
+      // 3. Import Persons (Peoples)
+      final Map<String, Person> uuidToPerson = {};
+      final List<dynamic> peoplesJson = backup['peoples'] ?? [];
+      for (var json in peoplesJson) {
+        final uuid = json['uuid'] as String;
+        var person = await isar.persons.filter().uuidEqualTo(uuid).findFirst();
+        if (person == null) {
+          person = Person()
+            ..uuid = uuid
+            ..name = json['name'] ?? 'Imported'
+            ..contact = json['phoneNumber']
+            ..color = _formatPaisaColor(json['color'])
+            ..createdAt = DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now()
+            ..updatedAt = DateTime.tryParse(json['updatedAt'] ?? '') ?? DateTime.now();
+          await isar.persons.put(person);
+        }
+        uuidToPerson[uuid] = person;
+      }
+
+      // 4. Import Loans
+      final List<dynamic> loansJson = backup['loans'] ?? [];
+      for (var json in loansJson) {
+        final uuid = json['uuid'] as String;
+        var loan = await isar.loans.filter().uuidEqualTo(uuid).findFirst();
+        if (loan == null) {
+          final personUuid = json['people'] as String?;
+          var person = uuidToPerson[personUuid];
+          
+          // If no person linked, we might need a dummy person or handle it
+          if (person == null && personUuid == null) {
+             // Create a person with loan name if person is null in Paisa
+             final name = json['name'] ?? 'Loan';
+             person = await isar.persons.filter().nameEqualTo(name).findFirst();
+             if (person == null) {
+               person = Person()
+                 ..name = name
+                 ..color = _formatPaisaColor(json['color']);
+               await isar.persons.put(person);
+             }
+          }
+
+          loan = Loan()
+            ..uuid = uuid
+            ..amount = (json['amount'] as num?)?.toDouble() ?? 0.0
+            ..type = json['type'] == 1 ? LoanType.borrowed : LoanType.lent
+            ..isPaid = json['status'] == 1
+            ..note = json['description']
+            ..dueDate = DateTime.tryParse(json['expiryDateTime'] ?? '')
+            ..createdAt = DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now()
+            ..updatedAt = DateTime.tryParse(json['updatedAt'] ?? '') ?? DateTime.now();
+          
+          if (person != null) {
+            loan.person.value = person;
+          }
+          await isar.loans.put(loan);
+          if (person != null) {
+            await loan.person.save();
+          }
+        }
+      }
+
+      // 5. Import Transactions
       final List<dynamic> transactionsJson = backup['transactions'] ?? [];
       for (var json in transactionsJson) {
         final uuid = json['uuid'] as String;
@@ -225,10 +287,49 @@ class JsonService {
 
   String _formatPaisaColor(dynamic colorValue) {
     if (colorValue == null) return '0xFF2196F3';
+    
     if (colorValue is int) {
-      return '0x${colorValue.toRadixString(16).padLeft(8, '0').toUpperCase()}';
+      // Paisa uses 32-bit integers for colors (AARRGGBB)
+      // We convert it to the 0xFF... string format
+      return '0x${colorValue.toUnsigned(32).toRadixString(16).padLeft(8, '0').toUpperCase()}';
     }
-    return colorValue.toString();
+    
+    final colorStr = colorValue.toString();
+    if (colorStr.startsWith('#')) {
+      return '0xFF${colorStr.substring(1).toUpperCase()}';
+    }
+    return colorStr;
+  }
+
+  String _mapPaisaIcon(dynamic iconValue, String fallback) {
+    if (iconValue == null) return fallback;
+
+    // Paisa uses integer codes for icons. 
+    // This is a partial mapping based on common Paisa icons to Material Symbols.
+    final Map<int, String> iconMapping = {
+      983273: 'payments',       // Cash/Money
+      983079: 'account_balance_wallet',
+      983451: 'shopping_cart',
+      983678: 'restaurant',     // Food
+      983679: 'directions_bus', // Transport
+      983362: 'home',
+      983804: 'medical_services',
+      983471: 'school',
+      984102: 'fitness_center',
+      983709: 'movie',
+      983307: 'phone',
+      983411: 'lightbulb',      // Bills/Electricity
+      983072: 'category',
+      989276: 'handshake',      // Loan/Lent
+      987119: 'person',
+      // Add more as discovered
+    };
+
+    if (iconValue is int) {
+      return iconMapping[iconValue] ?? fallback;
+    }
+    
+    return iconValue.toString();
   }
 
   AccountType _mapPaisaAccountType(int? type) {
