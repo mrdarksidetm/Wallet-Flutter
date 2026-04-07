@@ -1,4 +1,5 @@
 import 'package:isar/isar.dart';
+import 'package:uuid/uuid.dart';
 import 'category.dart';
 import 'account.dart';
 import 'transaction_model.dart';
@@ -11,7 +12,7 @@ class Person {
   Id id = Isar.autoIncrement;
 
   @Index(unique: true)
-  String uuid = '';
+  String uuid = const Uuid().v4();
 
   @Index()
   String name = '';
@@ -29,7 +30,7 @@ class Place {
   Id id = Isar.autoIncrement;
 
   @Index(unique: true)
-  String uuid = '';
+  String uuid = const Uuid().v4();
 
   String name = '';
   String? address;
@@ -46,7 +47,7 @@ class Budget {
   Id id = Isar.autoIncrement;
 
   @Index(unique: true)
-  String uuid = '';
+  String uuid = const Uuid().v4();
 
   double amount = 0.0;
   final category = IsarLink<Category>();
@@ -78,7 +79,7 @@ class Loan {
   Id id = Isar.autoIncrement;
 
   @Index(unique: true)
-  String uuid = '';
+  String uuid = const Uuid().v4();
 
   final person = IsarLink<Person>();
 
@@ -110,7 +111,7 @@ class Goal {
   Id id = Isar.autoIncrement;
 
   @Index(unique: true)
-  String uuid = '';
+  String uuid = const Uuid().v4();
 
   String name = '';
   double targetAmount = 0.0;
@@ -133,7 +134,7 @@ class Recurring {
   Id id = Isar.autoIncrement;
 
   @Index(unique: true)
-  String uuid = '';
+  String uuid = const Uuid().v4();
 
   String name = '';
   double amount = 0.0;

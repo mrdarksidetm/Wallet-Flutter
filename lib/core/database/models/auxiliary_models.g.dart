@@ -96,7 +96,7 @@ const PersonSchema = CollectionSchema(
   getId: _personGetId,
   getLinks: _personGetLinks,
   attach: _personAttach,
-  version: '3.1.0+1',
+  version: '3.1.8',
 );
 
 int _personEstimateSize(
@@ -1663,7 +1663,7 @@ const PlaceSchema = CollectionSchema(
   getId: _placeGetId,
   getLinks: _placeGetLinks,
   attach: _placeAttach,
-  version: '3.1.0+1',
+  version: '3.1.8',
 );
 
 int _placeEstimateSize(
@@ -3069,7 +3069,7 @@ const BudgetSchema = CollectionSchema(
   getId: _budgetGetId,
   getLinks: _budgetGetLinks,
   attach: _budgetAttach,
-  version: '3.1.0+1',
+  version: '3.1.8',
 );
 
 int _budgetEstimateSize(
@@ -4422,7 +4422,7 @@ const LoanSchema = CollectionSchema(
   getId: _loanGetId,
   getLinks: _loanGetLinks,
   attach: _loanAttach,
-  version: '3.1.0+1',
+  version: '3.1.8',
 );
 
 int _loanEstimateSize(
@@ -5932,7 +5932,7 @@ const GoalSchema = CollectionSchema(
   getId: _goalGetId,
   getLinks: _goalGetLinks,
   attach: _goalAttach,
-  version: '3.1.0+1',
+  version: '3.1.8',
 );
 
 int _goalEstimateSize(
@@ -7653,7 +7653,7 @@ const RecurringSchema = CollectionSchema(
   getId: _recurringGetId,
   getLinks: _recurringGetLinks,
   attach: _recurringAttach,
-  version: '3.1.0+1',
+  version: '3.1.8',
 );
 
 int _recurringEstimateSize(
@@ -9394,7 +9394,7 @@ const LabelSchema = CollectionSchema(
   getId: _labelGetId,
   getLinks: _labelGetLinks,
   attach: _labelAttach,
-  version: '3.1.0+1',
+  version: '3.1.8',
 );
 
 int _labelEstimateSize(

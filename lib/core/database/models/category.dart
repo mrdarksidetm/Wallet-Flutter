@@ -1,4 +1,5 @@
 import 'package:isar/isar.dart';
+import 'package:uuid/uuid.dart';
 
 part 'category.g.dart';
 
@@ -7,7 +8,7 @@ class Category {
   Id id = Isar.autoIncrement;
 
   @Index(unique: true)
-  String uuid = '';
+  String uuid = const Uuid().v4();
 
   @Index()
   String name = '';

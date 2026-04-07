@@ -1,4 +1,5 @@
 import 'package:isar/isar.dart';
+import 'package:uuid/uuid.dart';
 import 'account.dart';
 import 'category.dart';
 import 'auxiliary_models.dart';
@@ -10,7 +11,7 @@ class TransactionModel {
   Id id = Isar.autoIncrement;
 
   @Index(unique: true)
-  String uuid = '';
+  String uuid = const Uuid().v4();
 
   double amount = 0.0;
 

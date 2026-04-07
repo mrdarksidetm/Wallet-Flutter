@@ -199,7 +199,6 @@ class JsonService {
         }
 
         final transaction = TransactionModel()
-          ..uuid = uuid
           ..amount = amount
           ..date = date
           ..type = type
@@ -209,6 +208,10 @@ class JsonService {
           ..tags = (data['tags'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? []
           ..createdAt = DateTime.now()
           ..updatedAt = DateTime.now();
+
+        if (uuid.isNotEmpty) {
+          transaction.uuid = uuid;
+        }
 
         transaction.account.value = account;
         transaction.category.value = category;

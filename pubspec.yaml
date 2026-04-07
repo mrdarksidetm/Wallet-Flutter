@@ -116,7 +116,7 @@ flutter_launcher_icons:
   image_path_android: "assets/images/logo.svg" 
   
   # 2. iOS Icon: Robust PNG fallback (iOS doesn't natively handle SVG for icons well in all generators)
-  image_path_ios: "assets/icon/Original.png"
+  image_path_ios: "assets/icon/original.png"
   
   # 3. Adaptive Background (Used by Android Home Screen)
   adaptive_icon_background: "#FFFFFF" 
@@ -124,3 +124,4 @@ flutter_launcher_icons:
   # 4. Adaptive Foreground (Used by Android Home Screen): Padded icon
   adaptive_icon_foreground: "assets/icon/original.svg"
   adaptive_icon_monochrome: "assets/icon/monochrome.svg"
+

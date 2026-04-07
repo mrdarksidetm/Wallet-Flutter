@@ -130,7 +130,7 @@ const CategorySchema = CollectionSchema(
   getId: _categoryGetId,
   getLinks: _categoryGetLinks,
   attach: _categoryAttach,
-  version: '3.1.0+1',
+  version: '3.1.8',
 );
 
 int _categoryEstimateSize(
