@@ -45,7 +45,9 @@ android {
         targetSdk = 36
         multiDexEnabled = true
         ndk {
-           abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64"))
+           abiFilters.add("armeabi-v7a")
+           abiFilters.add("arm64-v8a")
+           abiFilters.add("x86_64")
         }
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -57,6 +59,15 @@ android {
             storePassword = keystoreProperties["storePassword"] as String? ?: ""
             keyAlias = keystoreProperties["keyAlias"] as String? ?: ""
             keyPassword = keystoreProperties["keyPassword"] as String? ?: ""
+        }
+    }
+
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("armeabi-v7a", "arm64-v8a", "x86_64")
+            isUniversalApk = true
         }
     }
 
