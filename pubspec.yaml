@@ -111,6 +111,28 @@ flutter:
       fonts:
         - asset: assets/fonts/Emoji/iOS15.4_Fixed_space.ttf
 
+    - family: MaterialSymbolsOutlined
+      fonts:
+        - asset: assets/fonts/Icons/MaterialSymbolsOutlined.ttf
+    - family: MaterialSymbolsRounded
+      fonts:
+        - asset: assets/fonts/Icons/MaterialSymbolsRounded.ttf
+    - family: MaterialSymbolsSharp
+      fonts:
+        - asset: assets/fonts/Icons/MaterialSymbolsSharp.ttf
+    - family: MaterialDesignIcons
+      fonts:
+        - asset: assets/fonts/Icons/materialdesignicons-webfont.ttf
+    - family: FontAwesomeBrands
+      fonts:
+        - asset: assets/fonts/Icons/Font-Awesome-7-Brands-Regular-400.otf
+    - family: FontAwesomeRegular
+      fonts:
+        - asset: assets/fonts/Icons/Font-Awesome-7-Free-Regular-400.otf
+    - family: FontAwesomeSolid
+      fonts:
+        - asset: assets/fonts/Icons/Font-Awesome-7-Free-Solid-900.otf
+
 flutter_launcher_icons:
   android: true
   ios: true

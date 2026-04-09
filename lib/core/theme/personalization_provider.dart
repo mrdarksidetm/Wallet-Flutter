@@ -21,6 +21,7 @@ class PersonalizationState {
   final bool isBalanceVisible;
   final bool vibrateOnTransaction;
   final bool useGoogleSansFlex;
+  final String iconStyle; // 'Outlined', 'Rounded', 'Sharp'
 
   final bool useDynamicColor;
 
@@ -43,6 +44,7 @@ class PersonalizationState {
     this.isBalanceVisible = true,
     this.vibrateOnTransaction = true,
     this.useGoogleSansFlex = true,
+    this.iconStyle = 'Rounded',
   });
 
   PersonalizationState copyWith({
@@ -64,6 +66,7 @@ class PersonalizationState {
     bool? isBalanceVisible,
     bool? vibrateOnTransaction,
     bool? useGoogleSansFlex,
+    String? iconStyle,
   }) {
     return PersonalizationState(
       grade: grade ?? this.grade,
@@ -84,6 +87,7 @@ class PersonalizationState {
       isBalanceVisible: isBalanceVisible ?? this.isBalanceVisible,
       vibrateOnTransaction: vibrateOnTransaction ?? this.vibrateOnTransaction,
       useGoogleSansFlex: useGoogleSansFlex ?? this.useGoogleSansFlex,
+      iconStyle: iconStyle ?? this.iconStyle,
     );
   }
 
@@ -107,6 +111,7 @@ class PersonalizationState {
       'isBalanceVisible': isBalanceVisible,
       'vibrateOnTransaction': vibrateOnTransaction,
       'useGoogleSansFlex': useGoogleSansFlex,
+      'iconStyle': iconStyle,
     };
   }
 
@@ -130,6 +135,7 @@ class PersonalizationState {
       isBalanceVisible: map['isBalanceVisible'] as bool? ?? true,
       vibrateOnTransaction: map['vibrateOnTransaction'] as bool? ?? true,
       useGoogleSansFlex: map['useGoogleSansFlex'] as bool? ?? true,
+      iconStyle: map['iconStyle'] as String? ?? 'Rounded',
     );
   }
 }

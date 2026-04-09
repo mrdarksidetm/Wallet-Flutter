@@ -56,9 +56,11 @@ class RecentIconsNotifier extends StateNotifier<List<String>> {
 class AppIcons {
   static final Map<String, IconData> _iconCache = {};
 
-  static IconData getIcon(String? name) {
+  static IconData getIcon(String? name, {String? style}) {
     if (name == null || name.isEmpty) return Symbols.category;
-    if (_iconCache.containsKey(name)) return _iconCache[name]!;
+    
+    final cacheKey = style != null ? '$name:$style' : name;
+    if (_iconCache.containsKey(cacheKey)) return _iconCache[cacheKey]!;
 
     IconData? icon;
 
@@ -68,34 +70,61 @@ class AppIcons {
       icon = MdiIcons.fromString(iconName);
     } else if (name.startsWith('fa:')) {
       final iconName = name.substring(3);
-      // Fallback for FA as it's harder to resolve dynamically without reflection
-      // We use a basic mapping or default
       icon = _getFaIcon(iconName);
+    } else if (name.startsWith('mi:')) {
+      // Standard Material Icons fallback
+      final iconName = name.substring(3);
+      icon = _getMiIcon(iconName);
     } else {
-      // Default to Material Symbols
-      icon = materialSymbolsMap[name];
+      // Default to Material Symbols with style support
+      final baseIcon = materialSymbolsMap[name];
+      if (baseIcon != null && style != null) {
+        icon = IconData(
+          baseIcon.codePoint,
+          fontFamily: 'MaterialSymbols$style',
+          fontPackage: 'material_symbols_icons',
+        );
+      } else {
+        icon = baseIcon;
+      }
     }
 
     if (icon != null) {
-      _iconCache[name] = icon;
+      _iconCache[cacheKey] = icon;
       return icon;
     }
     return Symbols.category;
   }
 
+  static IconData? _getMiIcon(String name) {
+    // Basic mapping for common Material Icons not in Symbols
+    // This is a safety fallback
+    return null; 
+  }
+
   static IconData? _getFaIcon(String name) {
-    // Basic common FA icons mapping
     final Map<String, IconData> faMap = {
-      'wallet': FontAwesomeIcons.wallet,
-      'bank': FontAwesomeIcons.bank,
-      'credit-card': FontAwesomeIcons.creditCard,
-      'money-bill': FontAwesomeIcons.moneyBill,
-      'chart-pie': FontAwesomeIcons.chartPie,
-      'car': FontAwesomeIcons.car,
-      'house': FontAwesomeIcons.house,
-      'burger': FontAwesomeIcons.burger,
-      'gift': FontAwesomeIcons.gift,
-      'heart': FontAwesomeIcons.heart,
+      'wallet': FontAwesomeIcons.wallet, 'bank': FontAwesomeIcons.bank, 'credit-card': FontAwesomeIcons.creditCard,
+      'money-bill': FontAwesomeIcons.moneyBill, 'chart-pie': FontAwesomeIcons.chartPie, 'car': FontAwesomeIcons.car,
+      'house': FontAwesomeIcons.house, 'burger': FontAwesomeIcons.burger, 'gift': FontAwesomeIcons.gift,
+      'heart': FontAwesomeIcons.heart, 'star': FontAwesomeIcons.star, 'user': FontAwesomeIcons.user,
+      'gear': FontAwesomeIcons.gear, 'bell': FontAwesomeIcons.bell, 'camera': FontAwesomeIcons.camera,
+      'envelope': FontAwesomeIcons.envelope, 'phone': FontAwesomeIcons.phone, 'location-dot': FontAwesomeIcons.locationDot,
+      'bicycle': FontAwesomeIcons.bicycle, 'bus': FontAwesomeIcons.bus, 'plane': FontAwesomeIcons.plane,
+      'train': FontAwesomeIcons.train, 'gas-pump': FontAwesomeIcons.gasPump, 'laptop': FontAwesomeIcons.laptop,
+      'mobile': FontAwesomeIcons.mobile, 'tv': FontAwesomeIcons.tv, 'gamepad': FontAwesomeIcons.gamepad,
+      'music': FontAwesomeIcons.music, 'film': FontAwesomeIcons.film, 'ticket': FontAwesomeIcons.ticket,
+      'shopping-bag': FontAwesomeIcons.shoppingBag, 'shopping-cart': FontAwesomeIcons.shoppingCart, 'tag': FontAwesomeIcons.tag,
+      'coffee': FontAwesomeIcons.coffee, 'utensils': FontAwesomeIcons.utensils, 'wine-glass': FontAwesomeIcons.wineGlass,
+      'mug-hot': FontAwesomeIcons.mugHot, 'ice-cream': FontAwesomeIcons.iceCream, 'apple-whole': FontAwesomeIcons.appleWhole,
+      'carrot': FontAwesomeIcons.carrot, 'pizza-slice': FontAwesomeIcons.pizzaSlice, 'shirt': FontAwesomeIcons.shirt,
+      'graduation-cap': FontAwesomeIcons.graduationCap, 'briefcase': FontAwesomeIcons.briefcase, 'tools': FontAwesomeIcons.tools,
+      'wrench': FontAwesomeIcons.wrench, 'hammer': FontAwesomeIcons.hammer, 'medkit': FontAwesomeIcons.medkit,
+      'stethoscope': FontAwesomeIcons.stethoscope, 'pills': FontAwesomeIcons.pills, 'dumbbell': FontAwesomeIcons.dumbbell,
+      'soccer-ball': FontAwesomeIcons.soccerBall, 'basketball': FontAwesomeIcons.basketball, 'trophy': FontAwesomeIcons.trophy,
+      'coins': FontAwesomeIcons.coins, 'money-check-dollar': FontAwesomeIcons.moneyCheckDollar, 'receipt': FontAwesomeIcons.receipt,
+      'piggy-bank': FontAwesomeIcons.piggyBank, 'landmark': FontAwesomeIcons.landmark, 'dollar-sign': FontAwesomeIcons.dollarSign,
+      'euro-sign': FontAwesomeIcons.euroSign, 'bitcoin': FontAwesomeIcons.bitcoin,
     };
     return faMap[name];
   }
@@ -121,7 +150,7 @@ class _IconPickerWidgetState extends ConsumerState<IconPickerWidget> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   String _selectedCategory = 'All';
-  String _selectedSource = 'All'; // 'All', 'Material Symbols', 'Material Design', 'FontAwesome'
+  String _selectedSource = 'All'; 
   List<IconMetadata> _allIcons = [];
   List<String> _dynamicCategories = ['All', 'Recent'];
   bool _isLoading = true;
@@ -134,21 +163,63 @@ class _IconPickerWidgetState extends ConsumerState<IconPickerWidget> {
 
   Future<void> _loadMetadata() async {
     try {
-      final String response = await rootBundle.loadString('assets/metadata/icons.json');
-      final data = json.decode(response);
-      final List icons = data['icons'];
-      
-      final loadedIcons = icons.map((i) => IconMetadata.fromJson(i)).toList();
-      
-      // Inject some popular MDI and FA icons for testing since we don't have their full JSON yet
-      // In a real app, we would have a combined JSON or multiple JSONs
-      _injectExtraIcons(loadedIcons);
+      // 1. Dynamic Discovery of ALL Material Symbols (Direct from package map)
+      final List<IconMetadata> symbols = materialSymbolsMap.keys.map((name) => IconMetadata(
+        name: name,
+        categories: ['symbols'],
+        tags: [name.replaceAll('_', ' ')],
+        source: 'ms'
+      )).toList();
 
-      // Extract dynamic categories
+      // 2. Dynamic Discovery of ALL Material Design Icons (Direct from package)
+      final List<IconMetadata> mdi = MdiIcons.getNames().map((name) => IconMetadata(
+        name: 'mdi:$name',
+        categories: ['mdi'],
+        tags: [name.replaceAll('-', ' ')],
+        source: 'mdi'
+      )).toList();
+
+      // 3. Comprehensive FontAwesome list (The core of Paisa's extra variety)
+      final List<IconMetadata> fa = [
+        'wallet', 'bank', 'credit-card', 'money-bill', 'chart-pie', 'car', 'house', 'burger', 'gift', 'heart', 'star', 'user', 'gear', 'bell', 'camera', 'envelope', 'phone', 'location-dot', 'bicycle', 'bus', 'plane', 'train', 'gas-pump', 'laptop', 'mobile', 'tv', 'gamepad', 'music', 'film', 'ticket', 'shopping-bag', 'shopping-cart', 'tag', 'coffee', 'utensils', 'wine-glass', 'mug-hot', 'ice-cream', 'apple-whole', 'carrot', 'pizza-slice', 'shirt', 'graduation-cap', 'briefcase', 'tools', 'wrench', 'hammer', 'medkit', 'stethoscope', 'pills', 'dumbbell', 'soccer-ball', 'basketball', 'trophy', 'coins', 'money-check-dollar', 'receipt', 'piggy-bank', 'landmark', 'dollar-sign', 'euro-sign', 'bitcoin'
+      ].map((name) => IconMetadata(
+        name: 'fa:$name',
+        categories: ['fa'],
+        tags: [name.replaceAll('-', ' ')],
+        source: 'fa'
+      )).toList();
+
+      final allLoaded = [...symbols, ...mdi, ...fa];
+
+      // 4. Enrich categories from JSON if exists
+      try {
+        final String response = await rootBundle.loadString('assets/metadata/icons.json');
+        final data = json.decode(response);
+        final List icons = data['icons'];
+        final Map<String, List<String>> catMap = {};
+        for (var i in icons) {
+          catMap[i['name']] = List<String>.from(i['categories'] ?? []);
+        }
+        
+        for (var i = 0; i < allLoaded.length; i++) {
+          if (allLoaded[i].source == 'ms' && catMap.containsKey(allLoaded[i].name)) {
+            allLoaded[i] = IconMetadata(
+              name: allLoaded[i].name,
+              categories: catMap[allLoaded[i].name]!,
+              tags: allLoaded[i].tags,
+              source: 'ms'
+            );
+          }
+        }
+      } catch (_) {}
+
+      // Extract dynamic categories from Material Symbols
       final Set<String> categories = {};
-      for (var icon in loadedIcons) {
-        for (var cat in icon.categories) {
-          if (cat.isNotEmpty) categories.add(cat);
+      for (var icon in allLoaded) {
+        if (icon.source == 'ms') {
+          for (var cat in icon.categories) {
+            if (cat.isNotEmpty && cat != 'symbols') categories.add(cat);
+          }
         }
       }
       
@@ -156,26 +227,15 @@ class _IconPickerWidgetState extends ConsumerState<IconPickerWidget> {
 
       if (mounted) {
         setState(() {
-          _allIcons = loadedIcons;
+          _allIcons = allLoaded;
           _dynamicCategories = ['All', 'Recent', ...sortedCats.map((c) => _capitalize(c))];
           _isLoading = false;
         });
       }
     } catch (e) {
-      debugPrint('Error loading icon metadata: $e');
+      debugPrint('Error loading exhaustive icon set: $e');
       if (mounted) setState(() => _isLoading = false);
     }
-  }
-
-  void _injectExtraIcons(List<IconMetadata> target) {
-    // Inject MDI
-    target.add(IconMetadata(name: 'mdi:wallet', categories: ['finance'], tags: ['money', 'wallet'], source: 'mdi'));
-    target.add(IconMetadata(name: 'mdi:piggy-bank', categories: ['finance'], tags: ['savings'], source: 'mdi'));
-    target.add(IconMetadata(name: 'mdi:car-electric', categories: ['transport'], tags: ['tesla', 'car'], source: 'mdi'));
-    
-    // Inject FA
-    target.add(IconMetadata(name: 'fa:wallet', categories: ['finance'], tags: ['money'], source: 'fa'));
-    target.add(IconMetadata(name: 'fa:bank', categories: ['places'], tags: ['bank'], source: 'fa'));
   }
 
   String _capitalize(String s) => s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
@@ -250,7 +310,7 @@ class _IconPickerWidgetState extends ConsumerState<IconPickerWidget> {
             controller: _searchController,
             onChanged: (value) => setState(() => _searchQuery = value),
             decoration: InputDecoration(
-              hintText: 'Search 5,000+ icons (e.g. food, car)...',
+              hintText: 'Search 10,000+ icons (e.g. food, car)...',
               prefixIcon: Icon(Symbols.search, color: colorScheme.primary),
               suffixIcon: _searchQuery.isNotEmpty
                   ? IconButton(
