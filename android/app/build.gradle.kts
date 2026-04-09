@@ -47,7 +47,6 @@ android {
         ndk {
            abiFilters.add("armeabi-v7a")
            abiFilters.add("arm64-v8a")
-           abiFilters.add("x86_64")
         }
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -66,8 +65,8 @@ android {
         abi {
             isEnable = true
             reset()
-            include("armeabi-v7a", "arm64-v8a", "x86_64")
-            isUniversalApk = true
+            include("armeabi-v7a", "arm64-v8a")
+            isUniversalApk = true            
         }
     }
 
@@ -86,10 +85,6 @@ android {
                 "proguard-rules.pro"
             )
         }
-    }
-
-    packaging {
-        jniLibs.useLegacyPackaging = true
     }
 }
 

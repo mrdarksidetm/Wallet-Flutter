@@ -202,18 +202,68 @@ class _AnimatedBalanceHeroState extends ConsumerState<AnimatedBalanceHero>
                   
                   const Spacer(),
                   
-                  Text(
-                    'This month',
-                    style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 12),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildMiniStat('Income', widget.monthlyIncome, Colors.green, isVisible, currency),
-                      _buildMiniStat('Expense', widget.monthlyExpense, Colors.red, isVisible, currency),
+                      Text(
+                        'This month',
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface.withValues(alpha: 0.8),
+                        ),
+                      ),
+                      if (isVisible && widget.monthlyIncome > 0)
+                        Text(
+                          '${((widget.monthlyExpense / widget.monthlyIncome) * 100).toStringAsFixed(0)}% spent',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: colorScheme.onSurface.withValues(alpha: 0.5),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                     ],
-                  )
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildMiniStat(
+                          'Income', 
+                          widget.monthlyIncome, 
+                          Colors.green, 
+                          isVisible, 
+                          currency,
+                          Symbols.trending_up,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildMiniStat(
+                          'Expense', 
+                          widget.monthlyExpense, 
+                          Colors.red, 
+                          isVisible, 
+                          currency,
+                          Symbols.trending_down,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (isVisible && widget.monthlyIncome > 0) ...[
+                    const SizedBox(height: 16),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: (widget.monthlyExpense / widget.monthlyIncome).clamp(0.0, 1.0),
+                        backgroundColor: colorScheme.onSurface.withValues(alpha: 0.05),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          (widget.monthlyExpense / widget.monthlyIncome) > 0.9 
+                              ? Colors.red 
+                              : colorScheme.primary,
+                        ),
+                        minHeight: 6,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -223,24 +273,61 @@ class _AnimatedBalanceHeroState extends ConsumerState<AnimatedBalanceHero>
     );
   }
 
-  Widget _buildMiniStat(String label, double amount, Color color, bool isVisible, String currency) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(color: Colors.grey.shade600, fontSize: 12, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          isVisible ? CurrencyEngine.formatCurrency(amount, currency) : '•••',
-          style: TextStyle(
-            fontWeight: FontWeight.w900,
-            color: color.withValues(alpha: 0.8),
-            fontSize: 16,
+  Widget _buildMiniStat(
+    String label, 
+    double amount, 
+    Color color, 
+    bool isVisible, 
+    String currency,
+    IconData icon,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: color, size: 14),
           ),
-        ),
-      ],
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: Colors.grey.shade600, 
+                    fontSize: 10, 
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    isVisible ? CurrencyEngine.formatCurrency(amount, currency) : '•••',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      color: color.withValues(alpha: 0.8),
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

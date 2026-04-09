@@ -61,14 +61,13 @@ workflows:
           
           # 1st Build: Architecture-specific APKs (Split APKs)
           # These are smaller APKs optimized for specific phone processors
-          flutter build apk --release --split-per-abi --no-tree-shake-icons --obfuscate --split-debug-info=./debug-info
+          flutter build apk --release --split-per-abi --no-tree-shake-icons
           cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk build/artifacts/Wallet-armeabi-v7a.apk
           cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk build/artifacts/Wallet-arm64-v8a.apk
-          cp build/app/outputs/flutter-apk/app-x86_64-release.apk build/artifacts/Wallet-x86_64.apk
 
           # 2nd Build: Universal APK
           # A larger APK that works on any Android processor (Good for manual sharing/testing)
-          flutter build apk --release --no-tree-shake-icons --obfuscate --split-debug-info=./debug-info
+          flutter build apk --release --no-tree-shake-icons
           cp build/app/outputs/flutter-apk/app-release.apk build/artifacts/Wallet-universal.apk
 
     # 4. ARTIFACTS COLLECTION

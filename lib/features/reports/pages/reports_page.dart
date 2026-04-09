@@ -13,6 +13,8 @@ import '../../../core/widgets/icon_picker.dart';
 import '../../../core/widgets/transaction_list_tile.dart';
 import '../../../core/providers/fab_action_provider.dart';
 
+import '../../../core/widgets/paisa_charts.dart';
+
 /// ReportsPage: A dynamic, Material 3 reactive dashboard for financial analysis.
 /// Implements date-range filtering, interactive charts, and quick spending insights.
 class ReportsPage extends ConsumerStatefulWidget {
@@ -380,21 +382,22 @@ class _ChartSection extends ConsumerWidget {
           ),
           const SizedBox(height: 24),
           SizedBox(
-            height: 240,
+            height: isLineChart ? 240 : 280,
             child: isLineChart 
               ? dailyStatsAsync.when(
                   data: (data) => _LineChartWidget(data: data),
                   loading: () => const _LoadingPlaceholder(height: 240),
                   error: (_, __) => const Center(child: Text('No trend data')),
                 )
-              : _DonutChartWidget(
+              : PaisaDonutChart(
                   breakdown: breakdown,
+                  currency: currency,
                   onCategorySelected: (cat) => _showCategoryDetails(context, ref, cat, range),
                 ),
           ),
           if (!isLineChart) ...[
-            const SizedBox(height: 24),
-            _DonutLegend(
+            const SizedBox(height: 32),
+            PaisaSpendingBreakdown(
               breakdown: breakdown, 
               currency: currency,
               onCategorySelected: (cat) => _showCategoryDetails(context, ref, cat, range),
@@ -524,118 +527,6 @@ class _LineChartWidget extends StatelessWidget {
   }
 }
 
-class _DonutChartWidget extends StatelessWidget {
-  final Map<Category, double> breakdown;
-  final Function(Category) onCategorySelected;
-
-  const _DonutChartWidget({required this.breakdown, required this.onCategorySelected});
-
-  @override
-  Widget build(BuildContext context) {
-    if (breakdown.isEmpty) return const Center(child: Text('No spending data'));
-
-    final entries = breakdown.entries.toList();
-
-    return PieChart(
-      PieChartData(
-        pieTouchData: PieTouchData(
-          touchCallback: (FlTouchEvent event, pieTouchResponse) {
-            if (!event.isInterestedForInteractions || 
-                pieTouchResponse == null || 
-                pieTouchResponse.touchedSection == null) {
-              return;
-            }
-            final index = pieTouchResponse.touchedSection!.touchedSectionIndex;
-            if (index >= 0 && index < entries.length) {
-              onCategorySelected(entries[index].key);
-            }
-          },
-        ),
-        sectionsSpace: 4,
-        centerSpaceRadius: 60,
-        sections: entries.map((e) {
-          final color = e.key.color.parseHexColor();
-          return PieChartSectionData(
-            color: color,
-            value: e.value,
-            title: '',
-            radius: 30,
-          );
-        }).toList(),
-      ),
-    );
-  }
-}
-
-class _DonutLegend extends StatelessWidget {
-  final Map<Category, double> breakdown;
-  final String currency;
-  final Function(Category) onCategorySelected;
-
-  const _DonutLegend({required this.breakdown, required this.currency, required this.onCategorySelected});
-
-  @override
-  Widget build(BuildContext context) {
-    final total = breakdown.values.fold(0.0, (sum, v) => sum + v);
-    final sorted = breakdown.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
-
-    return Column(
-      children: sorted.take(5).map((e) {
-        final category = e.key;
-        final amount = e.value;
-        final color = category.color.parseHexColor();
-        final percentage = total > 0 ? (amount / total) : 0.0;
-
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: InkWell(
-            onTap: () => onCategorySelected(category),
-            borderRadius: BorderRadius.circular(12),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-              child: Row(
-                children: [
-                  Container(
-                    width: 32, height: 32,
-                    decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
-                    child: Icon(AppIcons.getIcon(category.icon), color: color, size: 16),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(category.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                            Text(CurrencyEngine.formatCurrency(amount, currency), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        LinearProgressIndicator(
-                          value: percentage,
-                          backgroundColor: color.withValues(alpha: 0.05),
-                          valueColor: AlwaysStoppedAnimation<Color>(color),
-                          minHeight: 4,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text('${(percentage * 100).toStringAsFixed(0)}%', style: const TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.bold)),
-                ],
-              ),
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-}
-
-/// A vertical list of navigation items for specialized reports.
 class _DetailedReportsList extends ConsumerWidget {
   final DateTimeRange range;
   final Function(Category) onCategorySelected;

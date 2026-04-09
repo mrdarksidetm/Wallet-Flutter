@@ -6,6 +6,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/database/models/transaction_model.dart';
 import '../../../core/database/providers.dart';
+import '../../../core/services/currency_engine.dart';
 
 class ActivityInsightsSection extends ConsumerStatefulWidget {
   const ActivityInsightsSection({super.key});
@@ -68,6 +69,10 @@ class _ActivityInsightsSectionState extends ConsumerState<ActivityInsightsSectio
           }
         }
 
+        final double totalIncome = incomeByDate.values.fold(0, (sum, val) => sum + val);
+        final double totalExpense = expenseByDate.values.fold(0, (sum, val) => sum + val);
+        final selectedCurrency = ref.watch(currencyProvider);
+
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
@@ -76,7 +81,16 @@ class _ActivityInsightsSectionState extends ConsumerState<ActivityInsightsSectio
               _buildHeatmapCard(theme, colorScheme, heatmapData),
               const SizedBox(height: 16),
               // --- TRENDS LINE CHART ---
-              _buildTrendsCard(theme, colorScheme, last30Days, incomeByDate, expenseByDate),
+              _buildTrendsCard(
+                theme, 
+                colorScheme, 
+                last30Days, 
+                incomeByDate, 
+                expenseByDate, 
+                totalIncome, 
+                totalExpense,
+                selectedCurrency,
+              ),
             ],
           ),
         );
@@ -211,9 +225,17 @@ class _ActivityInsightsSectionState extends ConsumerState<ActivityInsightsSectio
     return colorScheme.primary;
   }
 
-  Widget _buildTrendsCard(ThemeData theme, ColorScheme colorScheme, List<DateTime> last30Days, Map<DateTime, double> incomeByDate, Map<DateTime, double> expenseByDate) {
+  Widget _buildTrendsCard(
+    ThemeData theme, 
+    ColorScheme colorScheme, 
+    List<DateTime> last30Days, 
+    Map<DateTime, double> incomeByDate, 
+    Map<DateTime, double> expenseByDate,
+    double totalIncome,
+    double totalExpense,
+    String currency,
+  ) {
     final isDark = theme.brightness == Brightness.dark;
-    // [M3 ADAPTIVE]: Using custom green for income that works in both modes
     final incomeColor = Colors.green.shade600;
     final expenseColor = colorScheme.error;
 
@@ -231,17 +253,37 @@ class _ActivityInsightsSectionState extends ConsumerState<ActivityInsightsSectio
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(Symbols.trending_up_rounded, color: colorScheme.primary, size: 20),
-              const SizedBox(width: 12),
+              Row(
+                children: [
+                  Icon(Symbols.trending_up_rounded, color: colorScheme.primary, size: 20),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Income vs Expense',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: -0.5,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                ],
+              ),
               Text(
-                'Income vs Expense',
-                style: theme.textTheme.titleMedium?.copyWith(
+                'Last 30 days',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.bold,
-                  letterSpacing: -0.5,
-                  color: colorScheme.onSurface,
                 ),
               ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              _buildTrendStat(theme, 'Income', totalIncome, incomeColor, currency),
+              const SizedBox(width: 24),
+              _buildTrendStat(theme, 'Expense', totalExpense, expenseColor, currency),
             ],
           ),
           const SizedBox(height: 32),
@@ -252,6 +294,14 @@ class _ActivityInsightsSectionState extends ConsumerState<ActivityInsightsSectio
                 gridData: const FlGridData(show: false),
                 titlesData: const FlTitlesData(show: false),
                 borderData: FlBorderData(show: false),
+                lineTouchData: LineTouchData(
+                  touchTooltipData: LineTouchTooltipData(
+                    getTooltipColor: (touchedSpot) => colorScheme.surfaceContainerHighest,
+                    getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
+                      return touchedSpotItems(touchedBarSpots, last30Days, currency);
+                    },
+                  ),
+                ),
                 lineBarsData: [
                   LineChartBarData(
                     spots: last30Days.asMap().entries.map((e) {
@@ -296,6 +346,51 @@ class _ActivityInsightsSectionState extends ConsumerState<ActivityInsightsSectio
           ),
         ],
       ),
+    );
+  }
+
+  List<LineTooltipItem> touchedSpotItems(List<LineBarSpot> touchedBarSpots, List<DateTime> last30Days, String currency) {
+    return touchedBarSpots.map((barSpot) {
+      final flSpot = barSpot;
+      final date = last30Days[flSpot.x.toInt()];
+      return LineTooltipItem(
+        '${DateFormat('MMM d').format(date)}\n',
+        const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+        children: [
+          TextSpan(
+            text: CurrencyEngine.formatCurrency(flSpot.y, currency),
+            style: TextStyle(
+              color: barSpot.bar.color,
+              fontWeight: FontWeight.w900,
+              fontSize: 14,
+            ),
+          ),
+        ],
+      );
+    }).toList();
+  }
+
+  Widget _buildTrendStat(ThemeData theme, String label, double amount, Color color, String currency) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          CurrencyEngine.formatCurrency(amount, currency),
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: color,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+      ],
     );
   }
 

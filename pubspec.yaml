@@ -20,8 +20,8 @@ dependencies:
   flutter_secure_storage: 10.0.0
 
   # Database
-  isar: 3.1.8
-  isar_flutter_libs: 3.1.8
+  isar: ^3.1.0+1
+  isar_flutter_libs: ^3.1.0+1
   path_provider: 2.1.2
 
   # UI
@@ -42,6 +42,8 @@ dependencies:
   # Theming & Icons (Paisa Replica)
   flex_color_picker: ^3.8.0
   material_symbols_icons: ^4.27.6
+  material_design_icons_flutter: ^7.0.7296
+  font_awesome_flutter: ^10.8.0
   dynamic_color: ^1.7.0
 
   # Security (Phase 13)
@@ -85,11 +87,11 @@ dev_dependencies:
     path: isar_community/packages/isar_generator
   riverpod_generator: 2.4.0
 
-dependency_overrides:
-  isar:
-    path: isar_community/packages/isar
-  isar_flutter_libs:
-    path: isar_community/packages/isar_flutter_libs
+# dependency_overrides:
+#   isar:
+#     path: isar_community/packages/isar
+#   isar_flutter_libs:
+#     path: isar_community/packages/isar_flutter_libs
  
 flutter:
   uses-material-design: true
