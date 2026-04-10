@@ -1009,6 +1009,8 @@ void _buildConditionStringOp({
           ),
         );
         break;
+      default:
+        throw IsarError('Unsupported condition type for string operation');
     }
   } else {
     throw IsarError('Unsupported type for condition');
