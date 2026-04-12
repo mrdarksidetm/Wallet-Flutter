@@ -19,17 +19,13 @@ if (keystorePropertiesFile.exists()) {
 // Supports both F_ (Flutter) and CM_ (Codemagic) prefixes.
 val envStorePassword = (System.getenv("F_KEYSTORE_PASSWORD") ?: System.getenv("CM_KEYSTORE_PASSWORD"))?.trim()
 if (envStorePassword != null) {
-    println("Codemagic: Signing environment variables detected.")
+    println("Codemagic: Signing environment variables detected (Pass Length: ${envStorePassword.length}).")
     keystoreProperties["storePassword"] = envStorePassword
-    keystoreProperties["keyPassword"]   = (System.getenv("F_KEY_PASSWORD") ?: System.getenv("CM_KEY_PASSWORD"))?.trim() ?: envStorePassword
-    keystoreProperties["keyAlias"]      = (System.getenv("F_KEY_ALIAS") ?: System.getenv("CM_KEY_ALIAS"))?.trim() ?: "upload"
+    keystoreProperties["keyPassword"]   = (System.getenv("F_KEY_PASSWORD") ?: System.getenv("CM_KEY_PASSWORD"))?.trim() ?: keystoreProperties["keyPassword"] ?: envStorePassword
+    keystoreProperties["keyAlias"]      = (System.getenv("F_KEY_ALIAS") ?: System.getenv("CM_KEY_ALIAS"))?.trim() ?: keystoreProperties["keyAlias"] ?: "upload"
     keystoreProperties["storeFile"]     = file("upload-keystore.jks").absolutePath
-    
-    if (keystoreProperties["keyAlias"] != "upload") {
-        println("Codemagic: Using custom key alias.")
-    }
 } else {
-    println("Codemagic: Signing environment variables NOT found. Using local properties if available.")
+    println("Codemagic: Signing environment variables NOT found. Using local properties.")
 }
 
 android {
