@@ -17,12 +17,19 @@ if (keystorePropertiesFile.exists()) {
 // THE CODEMAGIC BYPASS
 // Direct injection avoids Java string escaping issues entirely.
 // Supports both F_ (Flutter) and CM_ (Codemagic) prefixes.
-val envStorePassword = System.getenv("F_KEYSTORE_PASSWORD") ?: System.getenv("CM_KEYSTORE_PASSWORD")
+val envStorePassword = (System.getenv("F_KEYSTORE_PASSWORD") ?: System.getenv("CM_KEYSTORE_PASSWORD"))?.trim()
 if (envStorePassword != null) {
+    println("Codemagic: Signing environment variables detected.")
     keystoreProperties["storePassword"] = envStorePassword
-    keystoreProperties["keyPassword"]   = System.getenv("F_KEY_PASSWORD") ?: System.getenv("CM_KEY_PASSWORD") ?: envStorePassword
-    keystoreProperties["keyAlias"]      = System.getenv("F_KEY_ALIAS") ?: System.getenv("CM_KEY_ALIAS") ?: "upload"
+    keystoreProperties["keyPassword"]   = (System.getenv("F_KEY_PASSWORD") ?: System.getenv("CM_KEY_PASSWORD"))?.trim() ?: envStorePassword
+    keystoreProperties["keyAlias"]      = (System.getenv("F_KEY_ALIAS") ?: System.getenv("CM_KEY_ALIAS"))?.trim() ?: "upload"
     keystoreProperties["storeFile"]     = file("upload-keystore.jks").absolutePath
+    
+    if (keystoreProperties["keyAlias"] != "upload") {
+        println("Codemagic: Using custom key alias.")
+    }
+} else {
+    println("Codemagic: Signing environment variables NOT found. Using local properties if available.")
 }
 
 android {
