@@ -77,15 +77,23 @@ class AppIcons {
       icon = _getMiIcon(iconName);
     } else {
       // Default to Material Symbols with style support
-      final baseIcon = materialSymbolsMap[name];
-      if (baseIcon != null && style != null) {
-        icon = IconData(
-          baseIcon.codePoint,
-          fontFamily: 'MaterialSymbols$style',
-          fontPackage: 'material_symbols_icons',
-        );
+      // To support dynamic styles without breaking icon tree shaking (which requires const IconData),
+      // we look up the pre-defined styled icon from the materialSymbolsMap instead of
+      // creating a new IconData at runtime.
+      String lookupName = name;
+      
+      // Strip any existing style suffix to avoid name_rounded_rounded
+      if (lookupName.endsWith('_rounded')) {
+        lookupName = lookupName.substring(0, lookupName.length - 8);
+      } else if (lookupName.endsWith('_sharp')) {
+        lookupName = lookupName.substring(0, lookupName.length - 6);
+      }
+
+      if (style != null && style != 'Outlined') {
+        final styledName = '${lookupName}_${style.toLowerCase()}';
+        icon = materialSymbolsMap[styledName] ?? materialSymbolsMap[lookupName];
       } else {
-        icon = baseIcon;
+        icon = materialSymbolsMap[lookupName];
       }
     }
 
