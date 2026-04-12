@@ -7,7 +7,7 @@ This is the **Single Source of Truth** for the Project Wallet ecosystem. 🏦
 ## 💎 1. App Identity
 
 *   **Project Name**: Project Wallet (Paisa Clone) 🏦
-*   **Version**: 1.3.0 ("The Reactive Atelier") 💎
+*   **Version**: 2.0.1 ("The Expressive Motion") 💎
 *   **Target SDK**: Android 14+ (API 34) 🤖
 *   **Design Language**: Material 3 Expressive (Editorial Style) 🎨
 *   **Core Mandate**: Offline-first, Privacy-centric, High-Performance (60-120 FPS). ⚡
@@ -92,7 +92,7 @@ This is the **Single Source of Truth** for the Project Wallet ecosystem. 🏦
 
 ## 🛠️ 5. Debug History & Known Issues
 
-### **Current Build Status (v1.3.0)**
+### **Current Build Status (v2.0.1)**
 - **Status**: 🟢 **Healthy**
 - **Analysis**: `flutter analyze` report: **No issues found**. 🧹
 - **Generation**: Isar and Riverpod generated files are up-to-date. ⚙️
@@ -104,3 +104,4 @@ This is the **Single Source of Truth** for the Project Wallet ecosystem. 🏦
 
 ---
 *SPEC maintained by the Wallet Core Team.* 💼
+
