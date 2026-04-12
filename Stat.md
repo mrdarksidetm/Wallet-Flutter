@@ -5,13 +5,13 @@ Live tracking of the **Project Wallet** development lifecycle. 📈🏦
 ---
 
 ## 💎 Version Control
-- **Current Version**: `1.4.1` 💎
+- **Current Version**: `2.0.1` 💎
 - **Codename**: "The Expressive Motion" ⛸️
 - **Build Date**: April 6, 2026 📅
 - **Flutter SDK**: `>=3.5.0` 💙
 - **Primary Design**: Material 3 Expressive (Editorial Style) ✨
 
-## 🚀 Implementation Status (v1.4.1 Audit)
+## 🚀 Implementation Status (v2.0.1 Audit)
 
 ### **💾 1. Database & Core (100%)**
 - [x] Isar Database implementation. 📁
@@ -47,7 +47,7 @@ Live tracking of the **Project Wallet** development lifecycle. 📈🏦
 
 ---
 
-## 🛠️ Recent Fixes (v1.4.1 Update)
+## 🛠️ Recent Fixes (v2.0.1 Update)
 
 - **💾 Isar Native**: Fixed `libisar.so` dlopen error on Android arm64 by enforcing native lib extraction in `AndroidManifest` and `build.gradle.kts`.
 - **📝 Reports Dashboard**: Resolved `_showCategoryDetails` undefined method by refactoring it to a top-level function.

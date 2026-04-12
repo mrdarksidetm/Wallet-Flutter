@@ -2,7 +2,7 @@
 
 All notable changes to the **Project Wallet** will be documented in this file. 🚀
 
-## [1.4.1] - 2026-04-06
+## [2.0.1] - 2026-04-13
 ### Fixed
 - **Reports**: Resolved `undefined_method` for `_showCategoryDetails` by refactoring it into a top-level private function.
 - **Android Build**: Fixed AGP 8.0+ compatibility issue with `isar_flutter_libs` by programmatically stripping the deprecated `package` attribute from library manifests during build.
