@@ -14,22 +14,6 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
-// THE CODEMAGIC BYPASS
-// Direct injection avoids Java string escaping issues entirely.
-val envStorePassword = (System.getenv("F_KEYSTORE_PASSWORD") ?: System.getenv("CM_KEYSTORE_PASSWORD"))?.trim()
-if (envStorePassword != null) {
-    val ksFile = file("upload-keystore.jks")
-    println("Codemagic: Keystore Status -> Exists: ${ksFile.exists()}, Size: ${ksFile.length()} bytes")
-    println("Codemagic: Password Check -> Length: ${envStorePassword.length}, Starts with: ${envStorePassword.take(1)}...")
-    
-    keystoreProperties.setProperty("storePassword", envStorePassword)
-    keystoreProperties.setProperty("keyPassword", (System.getenv("F_KEY_PASSWORD") ?: System.getenv("CM_KEY_PASSWORD"))?.trim() ?: envStorePassword)
-    keystoreProperties.setProperty("keyAlias", (System.getenv("F_KEY_ALIAS") ?: System.getenv("CM_KEY_ALIAS"))?.trim() ?: "upload")
-    keystoreProperties.setProperty("storeFile", ksFile.absolutePath)
-} else {
-    println("Codemagic: Signing environment variables NOT found. Using local properties.")
-}
-
 android {
     namespace = "com.mrdarksidetm.wallet"
     compileSdk = 36
@@ -80,11 +64,8 @@ android {
 
     buildTypes {
         release {
-            signingConfig = if (keystoreProperties.containsKey("storeFile")) {
-                signingConfigs.getByName("release")
-            } else {
-                signingConfigs.getByName("debug")
-            }
+            // FORCED DEBUG SIGNING: Using debug keys for release build to bypass keystore issues.
+            signingConfig = signingConfigs.getByName("debug")
             
             isMinifyEnabled = true
             isShrinkResources = true
