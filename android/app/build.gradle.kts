@@ -16,11 +16,12 @@ if (keystorePropertiesFile.exists()) {
 
 // THE CODEMAGIC BYPASS
 // Direct injection avoids Java string escaping issues entirely.
-val cmKeystorePassword = System.getenv("F_KEYSTORE_PASSWORD")
-if (cmKeystorePassword != null) {
-    keystoreProperties["storePassword"] = cmKeystorePassword
-    keystoreProperties["keyPassword"]   = System.getenv("F_KEY_PASSWORD")
-    keystoreProperties["keyAlias"]      = System.getenv("F_KEY_ALIAS")
+// Supports both F_ (Flutter) and CM_ (Codemagic) prefixes.
+val envStorePassword = System.getenv("F_KEYSTORE_PASSWORD") ?: System.getenv("CM_KEYSTORE_PASSWORD")
+if (envStorePassword != null) {
+    keystoreProperties["storePassword"] = envStorePassword
+    keystoreProperties["keyPassword"]   = System.getenv("F_KEY_PASSWORD") ?: System.getenv("CM_KEY_PASSWORD") ?: envStorePassword
+    keystoreProperties["keyAlias"]      = System.getenv("F_KEY_ALIAS") ?: System.getenv("CM_KEY_ALIAS") ?: "upload"
     keystoreProperties["storeFile"]     = file("upload-keystore.jks").absolutePath
 }
 
