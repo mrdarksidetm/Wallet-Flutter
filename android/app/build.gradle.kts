@@ -64,8 +64,7 @@ android {
 
     buildTypes {
         release {
-            // FORCED DEBUG SIGNING: Using debug keys for release build to bypass keystore issues.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
             
             isMinifyEnabled = true
             isShrinkResources = true
