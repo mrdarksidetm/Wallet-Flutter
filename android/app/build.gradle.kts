@@ -34,9 +34,6 @@ android {
         minSdk = 33
         targetSdk = 36
         multiDexEnabled = true
-        ndk {
-            abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64"))
-        }
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
