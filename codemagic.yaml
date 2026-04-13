@@ -26,7 +26,7 @@ workflows:
           storePassword=$F_STORE_PASSWORD
           keyPassword=$F_KEY_PASSWORD
           keyAlias=$F_KEY_ALIAS
-          storeFile=app/upload-keystore.jks
+          storeFile=upload-keystore.jks
           EOF
           
           # Decode the Base64 keystore

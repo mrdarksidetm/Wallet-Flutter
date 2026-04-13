@@ -15,7 +15,8 @@ Live tracking of the **Project Wallet** development lifecycle. 📈🏦
 
 ### **💾 1. Database & Core (100%)**
 - [x] Isar Database implementation. 📁
-- [x] **FIXED**: Android Build Failure (AGP 8.0+ / `isar_flutter_libs` compatibility). 🛠️
+- [x] **FIXED**: Android Release Build (Keystore path resolution and build directory mismatch). 🛠️
+- [x] **UPDATED**: `codemagic.yaml` with correct keystore path mapping. 🚦
 - [x] **FIXED**: `libisar.so` dlopen error on Android arm64 by enforcing native lib extraction. 📂
 - [x] **NEW**: Added `personId` to `TransactionModel` for high-performance filtering. ⚡
 - [x] **UPDATED**: Loan model now correctly persists `dueDate`. ⏳
