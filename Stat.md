@@ -23,6 +23,8 @@ Live tracking of the **Project Wallet** development lifecycle. 📈🏦
 - [x] **UPDATED**: `TransactionService` now atomically syncs `personId` on all writes. ⛓️
 
 - [x] **FIXED**: Missing `libisar.so` binaries in local `isar_flutter_libs` (Android/iOS). 🛠️
+- [x] **FIXED**: Android Build Failure (Gradle AAR metadata check). Overrode `compileSdk` to 36 for all plugins in root `build.gradle.kts`. 🛠️
+- [x] **UPDATED**: `vibration` package to `^3.1.8` to resolve Android API 34 compatibility issues. 📈
 ### **📱 2. UI & Navigation (100%)**
 - [x] **FIXED**: `ReportsPage` undefined method `_showCategoryDetails`. 📊
 - [x] **NEW**: `Hero` animations for transaction icons and category elements. 🦸‍♂️
@@ -57,6 +59,8 @@ Live tracking of the **Project Wallet** development lifecycle. 📈🏦
 - **🍕 Bill Splitting**: Transformed the Bill Splitter from a calculator into a functional tool by adding Isar-backed loan creation.
 - **🎨 Visual Fluidity**: Introduced `Hero` transitions for transaction entries to create a more "tactile" and "editorial" feel when editing data.
 - **🔍 Smart Discovery**: Upgraded the icon picker with a keyword engine (e.g., searching "Car" finds transport icons) to improve UX speed.
+- **🏗️ Android Build**: Overrode `compileSdk` to 36 for all plugins in root `build.gradle.kts` to resolve AAR metadata conflicts (API 34+ requirement).
+- **💓 Haptic Compatibility**: Updated `vibration` to `^3.1.8` to fix Android build failures caused by outdated plugin dependencies.
 
 ---
 *Built with ❤️ for the Flutter Community.* 💼✨
