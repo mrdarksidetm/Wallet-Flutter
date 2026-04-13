@@ -51,22 +51,22 @@ workflows:
 
       - name: Build Android Release APKs
         script: |
-          mkdir -p build/artifacts
+          mkdir -p artifacts
           
           # Single build command to generate both split and universal APKs
           flutter build apk --release --split-per-abi --no-tree-shake-icons
           
-          # Use find to locate artifacts regardless of path variations
-          find build -name "app-armeabi-v7a-release.apk" -exec cp {} build/artifacts/Wallet-armeabi-v7a.apk \;
-          find build -name "app-arm64-v8a-release.apk" -exec cp {} build/artifacts/Wallet-arm64-v8a.apk \;
-          find build -name "app-release.apk" -exec cp {} build/artifacts/Wallet-universal.apk \;
+          # Bruteforce find to locate artifacts regardless of path variations
+          find . -name "app-armeabi-v7a-release.apk" -exec cp {} artifacts/Wallet-armeabi-v7a.apk \;
+          find . -name "app-arm64-v8a-release.apk" -exec cp {} artifacts/Wallet-arm64-v8a.apk \;
+          find . -name "app-release.apk" -exec cp {} artifacts/Wallet-universal.apk \;
           
           # Final check
-          ls -R build/artifacts/
+          ls -R artifacts/
 
     # 4. ARTIFACTS COLLECTION
     artifacts:
-      - build/artifacts/*.apk
+      - artifacts/*.apk
 
     # 5. PUBLISHING / NOTIFICATIONS
     publishing:
