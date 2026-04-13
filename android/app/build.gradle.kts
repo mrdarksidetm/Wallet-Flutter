@@ -34,12 +34,14 @@ android {
         minSdk = 33
         targetSdk = 36
         multiDexEnabled = true
-        ndk {
-           abiFilters.add("armeabi-v7a")
-           abiFilters.add("arm64-v8a")
-        }
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+    }
+
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
     }
 
     signingConfigs {
