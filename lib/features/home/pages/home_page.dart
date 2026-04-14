@@ -96,20 +96,25 @@ class HomePage extends ConsumerWidget {
                       const SizedBox(width: 8),
                       GestureDetector(
                         onTap: () => context.push('/edit_profile'),
-                        child: CircleAvatar(
-                          radius: 18,
-                          backgroundColor: colorScheme.surfaceContainerHighest,
-                          backgroundImage: personalization.userPhoto != null 
-                              ? FileImage(File(personalization.userPhoto!)) 
-                              : null,
-                          child: personalization.userPhoto == null
-                              ? Icon(
-                                  Symbols.person,
-                                  size: 18,
-                                  color: colorScheme.onSurfaceVariant,
-                                )
-                              : null,
-                        ),
+                        child: () {
+                          final photoPath = personalization.userPhoto;
+                          final bool hasValidPhoto = photoPath != null && File(photoPath).existsSync();
+                          
+                          return CircleAvatar(
+                            radius: 18,
+                            backgroundColor: colorScheme.surfaceContainerHighest,
+                            backgroundImage: hasValidPhoto 
+                                ? FileImage(File(photoPath)) 
+                                : null,
+                            child: !hasValidPhoto
+                                ? Icon(
+                                    Symbols.person,
+                                    size: 18,
+                                    color: colorScheme.onSurfaceVariant,
+                                  )
+                                : null,
+                          );
+                        }(),
                       ),
                       const SizedBox(width: 24),
                     ],

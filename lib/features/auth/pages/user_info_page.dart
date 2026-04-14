@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/theme/personalization_provider.dart';
+import '../../../core/services/file_service.dart';
 
 class UserInfoPage extends ConsumerStatefulWidget {
   const UserInfoPage({super.key});
@@ -69,12 +70,20 @@ class _UserInfoPageState extends ConsumerState<UserInfoPage> {
     }
   }
 
-  void _toggleEdit() {
+  Future<void> _toggleEdit() async {
     if (_isEditing) {
+      String? finalPhotoPath = _tempPhotoPath;
+      final currentState = ref.read(personalizationProvider);
+      
+      // [ACTION]: Only persist the image if it's a new selection (different from current).
+      if (_tempPhotoPath != null && _tempPhotoPath != currentState.userPhoto) {
+        finalPhotoPath = await FileService.saveImagePermanently(_tempPhotoPath!);
+      }
+
       // Save changes
       ref.read(personalizationProvider.notifier).updateProfile(
             name: _nameController.text.trim(),
-            photo: _tempPhotoPath,
+            photo: finalPhotoPath,
           );
     }
     setState(() {

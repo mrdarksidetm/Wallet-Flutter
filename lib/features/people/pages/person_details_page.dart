@@ -13,6 +13,7 @@ import '../../../core/widgets/transaction_list_tile.dart';
 import '../../../core/theme/color_extension.dart';
 import '../../../core/widgets/icon_picker.dart';
 import '../../../core/widgets/expressive_bottom_sheet.dart';
+import '../../../core/services/file_service.dart';
 import '../widgets/person_avatar.dart';
 
 class PersonDetailsPage extends ConsumerStatefulWidget {
@@ -179,8 +180,15 @@ class _PersonDetailsPageState extends ConsumerState<PersonDetailsPage> {
                     height: 56,
                     child: FilledButton(
                       onPressed: () async {
+                        String? finalAvatar = imagePath ?? selectedIcon;
+                        
+                        // [ACTION]: If it's a file path and has changed, persist it.
+                        if (imagePath != null && imagePath != _person.avatar) {
+                          finalAvatar = await FileService.saveImagePermanently(imagePath!);
+                        }
+                        
                         _person.name = nameController.text;
-                        _person.avatar = imagePath ?? selectedIcon;
+                        _person.avatar = finalAvatar;
                         _person.color = selectedColor;
                         _person.updatedAt = DateTime.now();
                         await ref.read(personServiceProvider).savePerson(_person);

@@ -6,6 +6,7 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/theme/personalization_provider.dart';
+import '../../../core/services/file_service.dart';
 import '../../settings/pages/currency_selection_page.dart';
 
 class OnboardingPage extends ConsumerStatefulWidget {
@@ -97,7 +98,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage>
     }
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (_nameController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter your name')),
@@ -112,10 +113,15 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage>
       return;
     }
 
+    String? finalPhotoPath = _imagePath;
+    if (_imagePath != null) {
+      finalPhotoPath = await FileService.saveImagePermanently(_imagePath!);
+    }
+
     ref.read(personalizationProvider.notifier).completeOnboarding(
           name: _nameController.text,
           currency: _selectedCurrency!,
-          photo: _imagePath,
+          photo: finalPhotoPath,
         );
   }
 
