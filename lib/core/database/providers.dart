@@ -166,7 +166,7 @@ final jsonServiceProvider = Provider<JsonService>((ref) {
 
 final backupServiceProvider = Provider<BackupService>((ref) {
   final isar = ref.watch(isarProvider).value!;
-  return BackupService(isar);
+  return BackupService(isar, ref);
 });
 
 final performanceAuditServiceProvider =

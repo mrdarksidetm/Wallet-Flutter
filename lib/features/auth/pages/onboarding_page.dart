@@ -5,8 +5,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:restart_app/restart_app.dart';
 import '../../../core/theme/personalization_provider.dart';
 import '../../../core/services/file_service.dart';
+import '../../../core/database/providers.dart';
 import '../../settings/pages/currency_selection_page.dart';
 
 class OnboardingPage extends ConsumerStatefulWidget {
@@ -123,6 +125,35 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage>
           currency: _selectedCurrency!,
           photo: finalPhotoPath,
         );
+  }
+
+  Future<void> _restoreBackup() async {
+    try {
+      final success = await ref.read(backupServiceProvider).restoreBackup();
+      if (success && mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            title: const Text('Restore Successful'),
+            content: const Text(
+                'Your data and settings have been restored. The app will now restart to apply changes.'),
+            actions: [
+              FilledButton(
+                onPressed: () => Restart.restartApp(),
+                child: const Text('Restart App'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Restore failed: $e')),
+        );
+      }
+    }
   }
 
   @override
@@ -319,6 +350,24 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage>
                           SizedBox(width: 8),
                           Icon(Symbols.arrow_forward),
                         ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Restore from Backup Button
+                  Center(
+                    child: TextButton.icon(
+                      onPressed: _restoreBackup,
+                      icon: const Icon(Symbols.settings_backup_restore),
+                      label: const Text(
+                        "Restore from Backup",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      style: TextButton.styleFrom(
+                        foregroundColor: colorScheme.primary,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                       ),
                     ),
                   ),

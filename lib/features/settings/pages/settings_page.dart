@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:ota_update/ota_update.dart';
+import 'package:restart_app/restart_app.dart';
 import '../../../core/services/update_service.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/theme/personalization_provider.dart';
@@ -181,7 +182,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             context,
             icon: Symbols.backup,
             title: 'Backup Database',
-            subtitle: 'Create a local .isar backup',
+            subtitle: 'Complete backup of data, settings & photos (.zip)',
             onTap: () async {
               try {
                 final path =
@@ -205,7 +206,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             context,
             icon: Symbols.restore,
             title: 'Restore Backup',
-            subtitle: 'Restore from an .isar file',
+            subtitle: 'Restore from a .zip backup file',
             onTap: () async {
               try {
                 final success =
@@ -217,11 +218,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     builder: (context) => AlertDialog(
                       title: const Text('Restore Successful'),
                       content: const Text(
-                          'Database has been restored. Please restart the app to apply changes.'),
+                          'Data has been restored. The app will now restart to apply changes.'),
                       actions: [
                         FilledButton(
-                          onPressed: () => exit(0),
-                          child: const Text('Close App'),
+                          onPressed: () => Restart.restartApp(),
+                          child: const Text('Restart App'),
                         ),
                       ],
                     ),

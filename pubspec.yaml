@@ -72,6 +72,7 @@ dependencies:
   restart_app: ^1.7.3
   smooth_page_indicator: ^2.0.1
   flutter_heatmap_calendar: ^1.0.5
+  archive: ^4.0.9
 
 dev_dependencies:
   flutter_test:
