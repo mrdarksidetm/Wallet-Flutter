@@ -131,7 +131,8 @@ final routerProvider = Provider<GoRouter>((ref) {
               transaction: state.extra as TransactionModel?)),
       _rootRoute('/add_account',
           (state) => AddEditAccountPage(account: state.extra as Account?)),
-      _rootRoute('/add_loan', (_) => const AddEditLoanPage()),
+      _rootRoute('/add_loan',
+          (state) => AddEditLoanPage(loan: state.extra as Loan?)),
       _rootRoute(
           '/add_recurring',
           (state) =>

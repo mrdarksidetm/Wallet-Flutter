@@ -157,6 +157,7 @@ class LoansPage extends ConsumerWidget {
                       .withValues(alpha: 0.5)
                   : null,
               child: ListTile(
+                onTap: () => context.push('/add_loan', extra: item),
                 leading: item.person.value != null
                     ? PersonAvatar(person: item.person.value!, radius: 24)
                     : CircleAvatar(

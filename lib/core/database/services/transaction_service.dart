@@ -142,15 +142,22 @@ class TransactionService {
       }
 
       // 3. Apply New Balance
-      final newAcc = newTransaction.account.value;
-      final newTransferAcc = newTransaction.transferAccount.value;
+      // Fetch fresh copies of accounts to avoid stale balances after revert
+      final newAccId = newTransaction.account.value?.id;
+      final newTransferAccId = newTransaction.transferAccount.value?.id;
+
+      final newAcc = newAccId != null ? await isar.accounts.get(newAccId) : null;
+      final newTransferAcc = newTransferAccId != null
+          ? await isar.accounts.get(newTransferAccId)
+          : null;
 
       if (newAcc != null) {
         if (newTransaction.type == TransactionType.income) {
           newAcc.balance += newTransaction.amount;
         } else if (newTransaction.type == TransactionType.expense) {
           newAcc.balance -= newTransaction.amount;
-        } else if (newTransaction.type == TransactionType.transfer && newTransferAcc != null) {
+        } else if (newTransaction.type == TransactionType.transfer &&
+            newTransferAcc != null) {
           newAcc.balance -= newTransaction.amount;
           newTransferAcc.balance += newTransaction.amount;
           await isar.accounts.put(newTransferAcc);
@@ -158,7 +165,10 @@ class TransactionService {
 
         // [ACTION]: Apply New Goal progress
         if (newAcc.type == AccountType.savings) {
-          final linkedGoals = await isar.goals.filter().account((q) => q.idEqualTo(newAcc.id)).findAll();
+          final linkedGoals = await isar.goals
+              .filter()
+              .account((q) => q.idEqualTo(newAcc.id))
+              .findAll();
           for (var goal in linkedGoals) {
             if (newTransaction.type == TransactionType.income) {
               goal.currentAmount += newTransaction.amount;
@@ -170,6 +180,12 @@ class TransactionService {
           }
         }
         await isar.accounts.put(newAcc);
+
+        // Update the link in the transaction model with the fresh account
+        newTransaction.account.value = newAcc;
+        if (newTransferAcc != null) {
+          newTransaction.transferAccount.value = newTransferAcc;
+        }
       }
 
       // 4. Inherit category icon/color if null
