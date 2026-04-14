@@ -57,7 +57,6 @@ class BackupService {
 
       // 5. Backup Profile Photos
       final appDocDir = await getApplicationDocumentsDirectory();
-      final photosDir = Directory(directory.path);
       // We look for files starting with 'profile_photo_' in the app documents directory
       final List<File> photoFiles = [];
       await for (final entity in appDocDir.list()) {
@@ -162,11 +161,17 @@ class BackupService {
         // Clear current first? Maybe safer to just overwrite.
         for (final entry in prefsMap.entries) {
           final value = entry.value;
-          if (value is String) await prefs.setString(entry.key, value);
-          else if (value is bool) await prefs.setBool(entry.key, value);
-          else if (value is int) await prefs.setInt(entry.key, value);
-          else if (value is double) await prefs.setDouble(entry.key, value);
-          else if (value is List) await prefs.setStringList(entry.key, value.cast<String>());
+          if (value is String) {
+            await prefs.setString(entry.key, value);
+          } else if (value is bool) {
+            await prefs.setBool(entry.key, value);
+          } else if (value is int) {
+            await prefs.setInt(entry.key, value);
+          } else if (value is double) {
+            await prefs.setDouble(entry.key, value);
+          } else if (value is List) {
+            await prefs.setStringList(entry.key, value.cast<String>());
+          }
         }
       }
 
