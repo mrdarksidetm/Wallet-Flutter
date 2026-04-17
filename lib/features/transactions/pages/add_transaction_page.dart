@@ -548,20 +548,26 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
         title: 'Select Person',
         child: Column(
           children: [
+            ListTile(
+              leading: CircleAvatar(
+                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                child: Icon(Icons.add_rounded, color: Theme.of(context).colorScheme.onPrimaryContainer),
+              ),
+              title: const Text('Add New Person', style: TextStyle(fontWeight: FontWeight.bold)),
+              onTap: () {
+                Navigator.pop(context);
+                _showAddPersonDialog();
+              },
+            ),
+            const Divider(height: 1),
             if (people.isEmpty)
-              Padding(
-                padding: const EdgeInsets.all(32.0),
+              const Padding(
+                padding: EdgeInsets.all(32.0),
                 child: Column(
                   children: [
-                    const Icon(Symbols.person_off, size: 48, color: Colors.grey),
-                    const SizedBox(height: 16),
-                    const Text('No people found. Add them in the People tab.'),
-                    const SizedBox(height: 16),
-                    TextButton.icon(
-                      onPressed: () { Navigator.pop(context); context.push('/people'); },
-                      icon: const Icon(Symbols.add),
-                      label: const Text('Go to People'),
-                    )
+                    Icon(Symbols.person_off, size: 48, color: Colors.grey),
+                    SizedBox(height: 16),
+                    Text('No people found.'),
                   ],
                 ),
               ),
@@ -575,6 +581,44 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
             )),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showAddPersonDialog() {
+    final nameController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Add Person'),
+        content: TextField(
+          controller: nameController,
+          decoration: const InputDecoration(labelText: 'Name', hintText: 'Enter name...'),
+          autofocus: true,
+          textCapitalization: TextCapitalization.words,
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
+          TextButton(
+            onPressed: () async {
+              if (nameController.text.isNotEmpty) {
+                final person = Person()
+                  ..name = nameController.text
+                  ..color = '0x${Colors.blue.value.toRadixString(16).toUpperCase()}'
+                  ..createdAt = DateTime.now()
+                  ..updatedAt = DateTime.now();
+                await ref.read(personServiceProvider).savePerson(person);
+                setState(() {
+                  _selectedPerson = person;
+                });
+                if (context.mounted) Navigator.pop(context);
+              }
+            },
+            child: const Text('Add'),
+          ),
+        ],
       ),
     );
   }

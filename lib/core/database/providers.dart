@@ -197,6 +197,13 @@ final totalAssetBalanceProvider = StreamProvider<double>((ref) {
 });
 
 // --- Settings Providers ---
+enum TransactionSort {
+  date,
+  account,
+}
+
+final transactionSortProvider = StateProvider<TransactionSort>((ref) => TransactionSort.date);
+
 final currencyProvider = Provider<String>((ref) {
   final personalization = ref.watch(personalizationProvider);
   final currency = personalization.defaultCurrency;

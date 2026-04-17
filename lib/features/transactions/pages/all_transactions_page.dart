@@ -24,6 +24,9 @@ class _AllTransactionsPageState extends ConsumerState<AllTransactionsPage> {
         ? ref.watch(archivedTransactionsStreamProvider)
         : ref.watch(transactionsStreamProvider);
     
+    final sortType = ref.watch(transactionSortProvider);
+    final accountsAsync = ref.watch(accountsStreamProvider);
+    
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -35,10 +38,39 @@ class _AllTransactionsPageState extends ConsumerState<AllTransactionsPage> {
             icon: Icon(_showArchived ? Symbols.inbox : Symbols.archive),
             tooltip: _showArchived ? 'Show Active' : 'Show Archived',
           ),
+          PopupMenuButton<TransactionSort>(
+            icon: const Icon(Symbols.sort),
+            tooltip: 'Sort Transactions',
+            onSelected: (value) {
+              ref.read(transactionSortProvider.notifier).state = value;
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: TransactionSort.date,
+                child: Row(
+                  children: [
+                    Icon(Symbols.calendar_month, color: sortType == TransactionSort.date ? colorScheme.primary : null),
+                    const SizedBox(width: 8),
+                    const Text('Date'),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: TransactionSort.account,
+                child: Row(
+                  children: [
+                    Icon(Symbols.account_balance_wallet, color: sortType == TransactionSort.account ? colorScheme.primary : null),
+                    const SizedBox(width: 8),
+                    const Text('Account'),
+                  ],
+                ),
+              ),
+            ],
+          ),
           IconButton(
             onPressed: () => setState(() => _ascending = !_ascending),
             icon: Icon(_ascending ? Symbols.arrow_upward : Symbols.arrow_downward),
-            tooltip: 'Sort by Date',
+            tooltip: 'Toggle Order',
           ),
         ],
       ),
@@ -58,9 +90,33 @@ class _AllTransactionsPageState extends ConsumerState<AllTransactionsPage> {
           }
 
           final sortedTxs = [...transactions];
-          sortedTxs.sort((a, b) => _ascending 
-              ? a.date.compareTo(b.date) 
-              : b.date.compareTo(a.date));
+          
+          if (sortType == TransactionSort.date) {
+            sortedTxs.sort((a, b) => _ascending 
+                ? a.date.compareTo(b.date) 
+                : b.date.compareTo(a.date));
+          } else if (sortType == TransactionSort.account) {
+            // Sort by Account basis with date & time sorting
+            accountsAsync.whenData((accounts) {
+              sortedTxs.sort((a, b) {
+                final accA = accounts.where((acc) => acc.id == a.accountId).firstOrNull;
+                final accB = accounts.where((acc) => acc.id == b.accountId).firstOrNull;
+                
+                final nameA = accA?.name ?? '';
+                final nameB = accB?.name ?? '';
+                
+                final accountCompare = _ascending ? nameA.compareTo(nameB) : nameB.compareTo(nameA);
+                
+                if (accountCompare != 0) return accountCompare;
+                
+                // Secondary sort by date
+                return b.date.compareTo(a.date); // Always show newest first within same account? 
+                // Or follow _ascending for date too? 
+                // User said "via Account basis with date & time sorting". 
+                // Usually this means newest first.
+              });
+            });
+          }
 
           return ListView.builder(
             padding: const EdgeInsets.all(16),
