@@ -17,6 +17,7 @@ import '../../../core/theme/color_extension.dart';
 import '../../../core/database/models/auxiliary_models.dart';
 import '../../../core/widgets/expressive_bottom_sheet.dart';
 import '../../../core/services/currency_engine.dart';
+import '../../people/widgets/person_avatar.dart';
 
 class AddTransactionPage extends ConsumerStatefulWidget {
   final TransactionModel? transaction;
@@ -143,8 +144,10 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
             const SizedBox(height: 16),
             _buildDateTimePicker(colorScheme),
             const SizedBox(height: 16),
-            _buildCategorySelector(colorScheme),
-            const SizedBox(height: 16),
+            if (_transactionType != TransactionType.transfer) ...[
+              _buildCategorySelector(colorScheme),
+              const SizedBox(height: 16),
+            ],
             _buildIconAndColorOverrides(theme, colorScheme, effectiveIcon, effectiveColor),
             const SizedBox(height: 24),
             _buildPeopleAndLoanSection(theme, colorScheme),
@@ -365,7 +368,9 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
         const SizedBox(height: 8),
         ListTile(
           onTap: () => _showPersonPicker(peopleAsync.value ?? []),
-          leading: const Icon(Symbols.person),
+          leading: _selectedPerson != null 
+            ? PersonAvatar(person: _selectedPerson!, radius: 16)
+            : const Icon(Symbols.person),
           title: const Text('With Person'),
           subtitle: Text(_selectedPerson?.name ?? 'None'),
           trailing: _selectedPerson != null 
@@ -433,7 +438,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
       return;
     }
 
-    if (_selectedAccount == null || _selectedCategory == null) {
+    if (_selectedAccount == null || (_transactionType != TransactionType.transfer && _selectedCategory == null)) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select account and category')));
       return;
     }
@@ -487,7 +492,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
       } else {
         await service.addTransaction(
           amount: amount, date: _selectedDateTime, type: _transactionType,
-          account: _selectedAccount!, category: _selectedCategory!,
+          account: _selectedAccount!, category: _selectedCategory,
           note: _noteController.text.isNotEmpty ? _noteController.text : null,
           transferAccount: _selectedTransferAccount, icon: _selectedIcon,
           color: _selectedColor, person: _selectedPerson,
@@ -572,10 +577,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
                 ),
               ),
             ...people.map((p) => ListTile(
-              leading: CircleAvatar(
-                backgroundColor: p.color.parseHexColor(),
-                child: Text(p.name[0].toUpperCase(), style: const TextStyle(color: Colors.white)),
-              ),
+              leading: PersonAvatar(person: p, radius: 20),
               title: Text(p.name),
               onTap: () { setState(() => _selectedPerson = p); Navigator.pop(context); },
             )),

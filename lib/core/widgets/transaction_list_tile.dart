@@ -9,8 +9,10 @@ import '../theme/color_extension.dart';
 import '../services/currency_engine.dart';
 import 'icon_picker.dart';
 import 'expressive_bottom_sheet.dart';
+import '../../features/people/widgets/person_avatar.dart';
 
 class TransactionListTile extends ConsumerWidget {
+
   final TransactionModel tx;
   final VoidCallback? onTap;
 
@@ -152,7 +154,14 @@ class TransactionListTile extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 4),
-            _AccountPill(accountId: tx.accountId),
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                _AccountPill(accountId: tx.accountId),
+                if (tx.personId != 0) _PersonPill(personId: tx.personId),
+              ],
+            ),
           ],
         ),
         trailing: Text(
@@ -208,6 +217,59 @@ class _AccountPill extends ConsumerWidget {
                 account.name,
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: accountColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 10,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+}
+
+class _PersonPill extends ConsumerWidget {
+  final int personId;
+  const _PersonPill({required this.personId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final personsAsync = ref.watch(personsStreamProvider);
+    final theme = Theme.of(context);
+
+    return personsAsync.when(
+      data: (persons) {
+        final person = persons.where((p) => p.id == personId).firstOrNull;
+        if (person == null) return const SizedBox.shrink();
+
+        final personColor = person.color.parseHexColor();
+
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+          decoration: BoxDecoration(
+            color: personColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: personColor.withValues(alpha: 0.2),
+              width: 0.5,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              PersonAvatar(
+                person: person,
+                radius: 6,
+                fontSize: 6,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                person.name,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: personColor,
                   fontWeight: FontWeight.bold,
                   fontSize: 10,
                 ),

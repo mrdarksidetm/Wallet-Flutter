@@ -23,7 +23,7 @@ class TransactionService {
     required DateTime date,
     required TransactionType type,
     required Account account,
-    required Category category,
+    Category? category,
     Person? person,
     String? note,
     String? icon,
@@ -39,6 +39,9 @@ class TransactionService {
     if (type == TransactionType.transfer && account.id == transferAccount?.id) {
       throw Exception('Cannot transfer to the same account');
     }
+    if (type != TransactionType.transfer && category == null) {
+      throw Exception('Category is required for income/expense');
+    }
 
     await isar.writeTxn(() async {
       final transaction = TransactionModel()
@@ -46,19 +49,19 @@ class TransactionService {
         ..date = date
         ..type = type
         ..note = note
-        ..icon = icon ?? category.icon // Inherit category icon if null
-        ..color = color ?? category.color // Inherit category color if null
+        ..icon = icon ?? category?.icon ?? 'swap_horiz' // Inherit category icon or use transfer icon
+        ..color = color ?? category?.color ?? '0xFF9E9E9E' // Inherit category color or use grey
         ..tags = tags
         ..createdAt = DateTime.now()
         ..updatedAt = DateTime.now();
 
       transaction.account.value = account;
-      transaction.category.value = category;
+      if (category != null) transaction.category.value = category;
       transaction.person.value = person;
 
       // Sync IDs for faster querying without loading links
       transaction.accountId = account.id;
-      transaction.categoryId = category.id;
+      transaction.categoryId = category?.id ?? 0;
       transaction.personId = person?.id ?? 0;
 
       // 2. Update Balance
