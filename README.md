@@ -92,7 +92,8 @@
 | **Phase 4** | The Ledger (Account History) | ✅ Complete |
 | **Phase 5** | The Input Pipeline (Transactions) | ✅ Complete |
 | **Phase 6** | Visualizations (Canvas Charts) | ✅ Complete |
-| **Phase 7** | Refinement (UX & Reordering) | 🚀 In Progress |
+| **Phase 7** | Refinement (UX & Reordering) | ✅ Complete |
+| **Phase 8** | Micro Details (Adding Flare) | 🚀 In Progress |
 
 ---
 
