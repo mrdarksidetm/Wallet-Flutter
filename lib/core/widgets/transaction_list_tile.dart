@@ -248,10 +248,10 @@ class _PersonPill extends ConsumerWidget {
         final personColor = person.color.parseHexColor();
 
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+          padding: const EdgeInsets.fromLTRB(2, 2, 8, 2),
           decoration: BoxDecoration(
             color: personColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(100),
             border: Border.all(
               color: personColor.withValues(alpha: 0.2),
               width: 0.5,
@@ -262,10 +262,10 @@ class _PersonPill extends ConsumerWidget {
             children: [
               PersonAvatar(
                 person: person,
-                radius: 6,
-                fontSize: 6,
+                radius: 8,
+                fontSize: 8,
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 6),
               Text(
                 person.name,
                 style: theme.textTheme.labelSmall?.copyWith(

@@ -147,9 +147,9 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
             if (_transactionType != TransactionType.transfer) ...[
               _buildCategorySelector(colorScheme),
               const SizedBox(height: 16),
+              _buildIconAndColorOverrides(theme, colorScheme, effectiveIcon, effectiveColor),
+              const SizedBox(height: 24),
             ],
-            _buildIconAndColorOverrides(theme, colorScheme, effectiveIcon, effectiveColor),
-            const SizedBox(height: 24),
             _buildPeopleAndLoanSection(theme, colorScheme),
             const SizedBox(height: 24),
             _buildAccountSelector(colorScheme),
@@ -576,11 +576,21 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
                   ],
                 ),
               ),
-            ...people.map((p) => ListTile(
-              leading: PersonAvatar(person: p, radius: 20),
-              title: Text(p.name),
-              onTap: () { setState(() => _selectedPerson = p); Navigator.pop(context); },
-            )),
+            ...people.map((p) {
+              final color = p.color.parseHexColor();
+              final isSelected = _selectedPerson?.id == p.id;
+              return ListTile(
+                leading: PersonAvatar(person: p, radius: 20),
+                title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: p.contact != null ? Text(p.contact!) : null,
+                trailing: isSelected ? Icon(Icons.check_circle, color: color) : null,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                onTap: () {
+                  setState(() => _selectedPerson = p);
+                  Navigator.pop(context);
+                },
+              );
+            }),
           ],
         ),
       ),
