@@ -3,9 +3,9 @@
 <html class="light" lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Project Wallet | Premium Asset Management</title>
+<title>The Forge Ecosystem - Forging Next-Gen Software</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <script id="tailwind-config">
@@ -13,262 +13,133 @@
             darkMode: "class",
             theme: {
                 extend: {
-                    "colors": {
-                        "on-surface-dark": "#E2E2E6",
-                        "on-primary-container-dark": "#D6E3FF",
-                        "on-surface": "#313234",
-                        "on-secondary": "#ffffff",
-                        "tertiary-fixed-dim": "#ffb784",
-                        "on-secondary-fixed": "#0e1b36",
-                        "on-secondary-container": "#535f7e",
-                        "surface-tint": "#0061a4",
-                        "expense": "#EF4444",
-                        "secondary-fixed-dim": "#bac6ea",
-                        "primary-container": "#0061a4",
-                        "tertiary": "#713700",
-                        "secondary": "#525e7d",
-                        "on-surface-variant": "#44474E",
-                        "text-muted-dark": "#64748B",
-                        "primary-dark": "#A9C7FF",
-                        "surface-variant": "#e1e2e8",
-                        "tertiary-fixed": "#ffdcc6",
-                        "primary-container-dark": "#004689",
-                        "outline": "#74777F",
-                        "on-tertiary-fixed": "#301400",
-                        "on-tertiary": "#ffffff",
-                        "card-dark": "#1F1F23",
-                        "surface-container-highest": "#e1e2e8",
-                        "surface-container": "#EFEDEE",
-                        "primary-dim": "#004689",
-                        "surface-dark": "#1A1C1E",
-                        "primary": "#00497d",
-                        "on-background": "#191c20",
-                        "on-primary": "#ffffff",
-                        "primary-fixed-dim": "#9fcaff",
-                        "background-dark": "#1A1C1E",
-                        "surface-container-lowest": "#FFFFFF",
-                        "inverse-on-surface": "#eff0f7",
-                        "background": "#f8f9ff",
-                        "on-primary-dark": "#003062",
-                        "surface-bright": "#f8f9ff",
-                        "on-secondary-fixed-variant": "#3a4664",
-                        "on-error-container": "#93000a",
-                        "text-muted": "#94A3B8",
-                        "primary-fixed": "#d1e4ff",
-                        "on-primary-container": "#c0dbff",
-                        "tertiary-container": "#944a00",
-                        "on-primary-fixed-variant": "#00497d",
-                        "error-container": "#ffdad6",
-                        "surface-container-low": "#F5F3F4",
-                        "secondary-fixed": "#d9e2ff",
-                        "on-tertiary-fixed-variant": "#713700",
-                        "on-primary-fixed": "#001d36",
-                        "error": "#ba1a1a",
-                        "secondary-container": "#cdd9fe",
-                        "outline-variant": "#c1c7d2",
-                        "surface-container-high": "#E9E8E9",
-                        "inverse-surface": "#2e3135",
-                        "surface-dim": "#d8dae0",
-                        "on-error": "#ffffff",
-                        "inverse-primary": "#9fcaff",
-                        "surface": "#FBF9F9",
-                        "on-tertiary-container": "#ffceaf",
-                        "income": "#10B981"
+                    colors: {
+                        primary: '#0061A4',
+                        surface: '#FBF9F9',
+                        'on-surface': '#313234',
+                        'surface-container': '#EFEDEE'
                     },
-                    "borderRadius": {
-                        "DEFAULT": "0.25rem",
-                        "lg": "0.5rem",
-                        "xl": "0.75rem",
-                        "full": "9999px"
+                    borderRadius: {
+                        DEFAULT: "0.5rem",
+                        lg: "1rem",
+                        xl: "1.5rem",
+                        full: "9999px",
+                        'xl-card': '24px'
                     },
-                    "spacing": {
-                        "xl": "20px",
-                        "lg": "16px",
-                        "md": "12px",
-                        "xxl": "24px",
-                        "sm": "8px",
-                        "huge": "32px",
-                        "xs": "4px"
-                    },
-                    "fontFamily": {
-                        "body-medium": ["Work Sans"],
-                        "title-medium": ["Work Sans"],
-                        "display-medium": ["Work Sans"],
-                        "body-large": ["Work Sans"],
-                        "headline-large": ["Work Sans"],
-                        "title-large": ["Work Sans"],
-                        "headline-medium": ["Work Sans"],
-                        "label-large": ["Work Sans"],
-                        "display-small": ["Work Sans"],
-                        "display-large": ["Work Sans"],
-                        "headline-small": ["Work Sans"]
-                    },
-                    "fontSize": {
-                        "body-medium": ["14px", { "lineHeight": "1.43", "letterSpacing": "0.25px", "fontWeight": "400" }],
-                        "title-medium": ["16px", { "lineHeight": "1.5", "letterSpacing": "0.15px", "fontWeight": "500" }],
-                        "display-medium": ["45px", { "lineHeight": "1.15", "letterSpacing": "0px", "fontWeight": "400" }],
-                        "body-large": ["16px", { "lineHeight": "1.5", "letterSpacing": "0.5px", "fontWeight": "400" }],
-                        "headline-large": ["32px", { "lineHeight": "1.25", "letterSpacing": "0px", "fontWeight": "400" }],
-                        "title-large": ["22px", { "lineHeight": "1.27", "letterSpacing": "0px", "fontWeight": "600" }],
-                        "headline-medium": ["28px", { "lineHeight": "1.28", "letterSpacing": "0px", "fontWeight": "600" }],
-                        "label-large": ["14px", { "lineHeight": "1.43", "letterSpacing": "0.1px", "fontWeight": "500" }],
-                        "display-small": ["36px", { "lineHeight": "1.22", "letterSpacing": "0px", "fontWeight": "400" }],
-                        "display-large": ["57px", { "lineHeight": "1.12", "letterSpacing": "-0.25px", "fontWeight": "400" }],
-                        "headline-small": ["24px", { "lineHeight": "1.33", "letterSpacing": "0px", "fontWeight": "600" }]
+                    fontFamily: {
+                        headline: ["Public Sans", "sans-serif"],
+                        display: ["Public Sans", "sans-serif"],
+                        body: ["Public Sans", "sans-serif"],
+                        label: ["Public Sans", "sans-serif"]
                     }
                 }
             }
         }
     </script>
+<style>
+        body {
+            background-color: #FBF9F9;
+            color: #313234;
+            font-family: 'Public Sans', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
 </head>
-<body class="bg-surface text-on-surface font-body-large antialiased selection:bg-primary-container selection:text-on-primary-container">
+<body class="min-h-screen flex flex-col">
 <!-- TopNavBar -->
-<nav class="fixed top-0 w-full z-50 bg-slate-50/90 dark:bg-zinc-900/90 backdrop-blur-md border-b border-zinc-200/50 dark:border-zinc-800/50 shadow-sm dark:shadow-none">
-<div class="flex justify-between items-center h-20 px-8 max-w-7xl mx-auto w-full">
-<div class="text-2xl font-black tracking-tighter text-zinc-800 dark:text-zinc-100">Project Wallet</div>
-<div class="hidden md:flex gap-8 items-center font-['Work_Sans'] text-sm font-medium tracking-tight">
-<a class="text-zinc-500 dark:text-zinc-400 font-medium hover:text-blue-600 dark:hover:text-blue-300 transition-all duration-300" href="#">Dashboard</a>
-<a class="text-zinc-500 dark:text-zinc-400 font-medium hover:text-blue-600 dark:hover:text-blue-300 transition-all duration-300" href="#">Security</a>
-<a class="text-zinc-500 dark:text-zinc-400 font-medium hover:text-blue-600 dark:hover:text-blue-300 transition-all duration-300" href="#">Insights</a>
-<a class="text-zinc-500 dark:text-zinc-400 font-medium hover:text-blue-600 dark:hover:text-blue-300 transition-all duration-300" href="#">Legacy</a>
+<nav class="fixed top-0 w-full z-50 bg-[#FBF9F9]/80 backdrop-blur-md border-b border-slate-200/50">
+<div class="max-w-7xl mx-auto px-6 flex justify-between items-center h-20">
+<div class="text-2xl font-black tracking-tighter text-slate-900">The Forge</div>
+<div class="hidden md:flex items-center gap-8 font-['Public_Sans'] font-medium tracking-tight">
+<a class="text-slate-600 hover:text-blue-700 hover:bg-slate-100 rounded-full transition-all px-4 py-2" href="#">Portfolio</a>
+<a class="text-slate-600 hover:text-blue-700 hover:bg-slate-100 rounded-full transition-all px-4 py-2" href="#">WinForge</a>
+<a class="text-slate-600 hover:text-blue-700 hover:bg-slate-100 rounded-full transition-all px-4 py-2" href="#">Paisa Wallet</a>
+<a class="text-blue-700 font-bold border-b-2 border-blue-700 pb-1" href="#">Ecosystem</a>
 </div>
-<button class="bg-primary text-on-primary font-label-large rounded-full px-lg py-sm hover:scale-95 transition-transform duration-300">Get Started</button>
+<button class="bg-primary text-white font-medium rounded-full px-6 py-2.5 active:scale-95 duration-200 transition-transform">Get Started</button>
 </div>
 </nav>
+<!-- Main Content Canvas -->
+<main class="flex-grow pt-32 pb-24 px-6 md:px-12 max-w-7xl mx-auto w-full flex flex-col gap-16">
 <!-- Hero Section -->
-<section class="pt-[160px] pb-xxl px-xxl max-w-7xl mx-auto text-center flex flex-col items-center">
-<h1 class="font-display-large text-on-surface max-w-4xl mx-auto font-black mb-lg">Master your capital with professional precision.</h1>
-<p class="font-headline-small text-on-surface-variant max-w-2xl mx-auto mb-huge font-normal">An offline-first, highly curated environment for discerning asset managers.</p>
-<div class="w-full max-w-5xl rounded-[24px] bg-surface-container overflow-hidden border border-surface-variant relative aspect-[16/9]" style="box-shadow: 0 0 0 1px rgba(0,0,0,0.05);">
-<!-- Mock Dashboard UI instead of image -->
-<div class="w-full h-full p-xxl flex flex-col bg-surface">
-<div class="flex justify-between items-start mb-huge">
+<header class="text-center max-w-3xl mx-auto flex flex-col items-center gap-6 mt-12 mb-8">
+<h1 class="text-5xl md:text-7xl font-black tracking-tighter text-on-surface leading-tight">Forging Next-Gen <br/><span class="text-primary">Software</span></h1>
+<p class="text-xl md:text-2xl text-slate-600 font-medium tracking-tight">Beautifully Crafted, Powerfully Engineered.</p>
+<button class="mt-4 bg-on-surface text-surface rounded-full px-8 py-4 font-bold text-lg hover:bg-black transition-colors active:scale-95 duration-200">Explore Ecosystem</button>
+</header>
+<!-- Bento Grid Ecosystem -->
+<section class="grid grid-cols-1 md:grid-cols-12 gap-6 w-full auto-rows-[300px]">
+<!-- WinForge (Large spanning card) -->
+<div class="md:col-span-8 bg-surface-container rounded-xl-card p-10 flex flex-col justify-between overflow-hidden relative group cursor-pointer hover:shadow-lg transition-shadow">
+<div class="z-10 relative max-w-md">
+<span class="inline-flex items-center gap-2 bg-white/50 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-primary mb-4 uppercase tracking-wider">
+<span class="material-symbols-outlined text-[16px]" data-icon="desktop_windows">desktop_windows</span> Optimization
+                    </span>
+<h2 class="text-3xl font-black text-on-surface mb-2">WinForge</h2>
+<p class="text-slate-600 font-medium">Windows 11 elevated. Precision optimization tools wrapped in a stunning atelier interface. Reclaim your machine's true potential.</p>
+</div>
+<div class="absolute right-0 bottom-0 w-2/3 h-full bg-cover bg-center rounded-br-xl-card opacity-50 group-hover:opacity-80 transition-opacity duration-500 mask-image-linear" data-alt="abstract sleek silver metallic texture with blue neon light accents representing modern computing technology" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAMPi-vLV-fjxAerzgOHOkmhjQduL9FejH5SnKCwghXGNZNNlHk041nRIs2g67NRCeVETlH3lDHVfdpIRUrCEJfmjh8cWolsRgD31JSTUVAOeyj3ebGKXensHAjL00SsYzpTPJkTdGULAvlPSBustnQ5-IwsKEnbfvzWTodNXC4UYeywqt4nuo4rPrJ0aSHTICzi1iwd2gI4vGiAozXKTpYsXnQNSEt0_urTeeJEVORAPVYg4Jl05SASOFA-NZziej986UT3sy7908');">
+</div>
+<div class="z-10 relative mt-auto self-start">
+<span class="inline-flex items-center gap-2 text-primary font-bold group-hover:gap-4 transition-all">
+                        Discover <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</span>
+</div>
+</div>
+<!-- Paisa Wallet (Tall card) -->
+<div class="md:col-span-4 md:row-span-2 bg-primary rounded-xl-card p-10 flex flex-col justify-between text-white overflow-hidden relative cursor-pointer hover:shadow-xl transition-shadow shadow-primary/20">
+<div class="z-10 relative">
+<span class="inline-flex items-center gap-2 bg-black/20 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold mb-4 uppercase tracking-wider">
+<span class="material-symbols-outlined text-[16px]" data-icon="account_balance_wallet">account_balance_wallet</span> Finance
+                    </span>
+<h2 class="text-3xl font-black mb-2">Paisa Wallet</h2>
+<p class="text-blue-100 font-medium">Premium local-first finance tracking. Your data, your device, beautifully visualized.</p>
+</div>
+<!-- Abstract visual representation -->
+<div class="relative w-full aspect-square mt-8 flex justify-center items-center z-10">
+<div class="w-full h-full bg-white/10 rounded-full blur-2xl absolute"></div>
+<div class="bg-white/20 backdrop-blur-md rounded-2xl w-4/5 h-3/4 flex items-center justify-center border border-white/30 shadow-2xl transform rotate-12 group-hover:rotate-6 transition-transform duration-500">
+<span class="material-symbols-outlined text-6xl text-white opacity-80" data-icon="monitoring">monitoring</span>
+</div>
+</div>
+<div class="z-10 relative mt-auto self-start">
+<span class="inline-flex items-center gap-2 font-bold group-hover:gap-4 transition-all">
+                        Download <span class="material-symbols-outlined" data-icon="download">download</span>
+</span>
+</div>
+</div>
+<!-- Portfolio (Square card) -->
+<div class="md:col-span-4 bg-[#E5E7EB] rounded-xl-card p-8 flex flex-col justify-between cursor-pointer hover:bg-slate-300 transition-colors">
 <div>
-<div class="font-body-large text-on-surface-variant mb-xs">Total Net Worth</div>
-<div class="font-display-medium text-on-surface font-black" style="letter-spacing: -1px;">$12,450,000.00</div>
+<h2 class="text-2xl font-bold text-on-surface mb-2">Portfolio</h2>
+<p class="text-slate-600">The Forge Home. Curated engineering showcase.</p>
 </div>
-<div class="flex gap-sm">
-<span class="material-symbols-outlined text-on-surface-variant bg-surface-container p-sm rounded-full">search</span>
-<span class="material-symbols-outlined text-on-surface-variant bg-surface-container p-sm rounded-full">settings</span>
-</div>
-</div>
-<div class="grid grid-cols-3 gap-xl flex-1">
-<div class="col-span-2 bg-surface-container-low rounded-[16px] p-xl flex flex-col justify-end relative overflow-hidden">
-<div class="absolute top-xl left-xl font-title-large text-on-surface">Portfolio Growth</div>
-<div class="w-full h-32 bg-gradient-to-t from-primary-container/20 to-transparent absolute bottom-0 left-0"></div>
-<svg class="w-full h-24 text-primary" preserveaspectratio="none" viewbox="0 0 100 30">
-<path d="M0,30 Q20,10 40,20 T80,10 T100,5 L100,30 Z" fill="currentColor" opacity="0.1"></path>
-<path d="M0,30 Q20,10 40,20 T80,10 T100,5" fill="none" stroke="currentColor" stroke-width="2"></path>
-</svg>
-</div>
-<div class="col-span-1 flex flex-col gap-xl">
-<div class="flex-1 bg-surface-container-low rounded-[16px] p-xl">
-<div class="font-title-medium text-on-surface-variant mb-sm">Recent Activity</div>
-<div class="space-y-sm">
-<div class="flex justify-between items-center"><span class="font-body-medium">AAPL Dividend</span><span class="font-label-large text-income">+$4,200</span></div>
-<div class="flex justify-between items-center"><span class="font-body-medium">Real Estate Maint.</span><span class="font-label-large text-expense">-$1,150</span></div>
+<div class="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm self-end">
+<span class="material-symbols-outlined text-on-surface" data-icon="north_east">north_east</span>
 </div>
 </div>
-<div class="flex-1 bg-surface-container-low rounded-[16px] p-xl">
-<div class="font-title-medium text-on-surface-variant mb-sm">Asset Allocation</div>
-<div class="w-full h-4 bg-surface-variant rounded-full overflow-hidden flex">
-<div class="h-full bg-primary w-[45%]"></div>
-<div class="h-full bg-secondary w-[30%]"></div>
-<div class="h-full bg-tertiary w-[25%]"></div>
-</div>
-</div>
-</div>
-</div>
-</div>
+<!-- Stats/Extra (Square card) -->
+<div class="md:col-span-4 bg-white border border-slate-200 rounded-xl-card p-8 flex flex-col justify-center items-center text-center">
+<h3 class="text-6xl font-black text-primary tracking-tighter mb-2">1M+</h3>
+<p class="text-slate-500 font-medium uppercase tracking-widest text-sm">Downloads</p>
+<p class="text-sm text-slate-400 mt-4 px-4">Across the entire Forge Ecosystem.</p>
 </div>
 </section>
-<!-- Features Bento Grid -->
-<section class="py-huge px-xxl max-w-7xl mx-auto">
-<h2 class="font-display-small text-on-surface mb-xxl font-bold text-center">Engineered for absolute privacy.</h2>
-<div class="grid grid-cols-1 md:grid-cols-3 gap-xl">
-<!-- Offline First -->
-<div class="col-span-1 md:col-span-2 bg-surface-container rounded-[24px] p-xxl flex flex-col md:flex-row gap-xl items-center">
-<div class="flex-1">
-<span class="material-symbols-outlined text-4xl text-primary mb-md" style="font-variation-settings: 'FILL' 1;">shield</span>
-<h3 class="font-headline-medium text-on-surface mb-sm">Offline-First Architecture</h3>
-<p class="font-body-large text-on-surface-variant">Your financial data never leaves your device unless explicitly instructed. We prioritize local storage to guarantee absolute sovereignty over your capital insights.</p>
-</div>
-<div class="w-full md:w-1/2 h-48 bg-surface-container-lowest rounded-[16px] border border-surface-variant p-lg relative overflow-hidden flex items-center justify-center">
-<span class="material-symbols-outlined text-6xl text-outline-variant">cloud_off</span>
-</div>
-</div>
-<!-- Budgets -->
-<div class="col-span-1 bg-surface-container rounded-[24px] p-xxl flex flex-col justify-between">
-<div>
-<span class="material-symbols-outlined text-4xl text-secondary mb-md" style="font-variation-settings: 'FILL' 1;">account_balance_wallet</span>
-<h3 class="font-headline-small text-on-surface mb-sm">Precision Budgets</h3>
-<p class="font-body-medium text-on-surface-variant">Micro-manage allocations with zero latency.</p>
-</div>
-<div class="mt-lg space-y-sm">
-<div class="w-full bg-surface-variant rounded-full h-2"><div class="bg-secondary h-2 rounded-full w-[70%]"></div></div>
-<div class="w-full bg-surface-variant rounded-full h-2"><div class="bg-secondary h-2 rounded-full w-[40%]"></div></div>
-</div>
-</div>
-<!-- Heatmap -->
-<div class="col-span-1 bg-surface-container rounded-[24px] p-xxl">
-<span class="material-symbols-outlined text-4xl text-tertiary mb-md" style="font-variation-settings: 'FILL' 1;">grid_view</span>
-<h3 class="font-headline-small text-on-surface mb-sm">Activity Heatmap</h3>
-<p class="font-body-medium text-on-surface-variant mb-lg">Visualize your transaction density intuitively.</p>
-<div class="grid grid-cols-7 gap-xs">
-<!-- Fake heatmap squares -->
-<div class="w-full aspect-square bg-tertiary-container rounded-sm opacity-20"></div>
-<div class="w-full aspect-square bg-tertiary-container rounded-sm opacity-40"></div>
-<div class="w-full aspect-square bg-tertiary-container rounded-sm opacity-80"></div>
-<div class="w-full aspect-square bg-tertiary-container rounded-sm opacity-100"></div>
-<div class="w-full aspect-square bg-tertiary-container rounded-sm opacity-20"></div>
-<div class="w-full aspect-square bg-tertiary-container rounded-sm opacity-60"></div>
-<div class="w-full aspect-square bg-tertiary-container rounded-sm opacity-40"></div>
-<div class="w-full aspect-square bg-tertiary-container rounded-sm opacity-100"></div>
-<div class="w-full aspect-square bg-tertiary-container rounded-sm opacity-20"></div>
-<div class="w-full aspect-square bg-tertiary-container rounded-sm opacity-80"></div>
-<div class="w-full aspect-square bg-tertiary-container rounded-sm opacity-40"></div>
-<div class="w-full aspect-square bg-tertiary-container rounded-sm opacity-20"></div>
-<div class="w-full aspect-square bg-tertiary-container rounded-sm opacity-60"></div>
-<div class="w-full aspect-square bg-tertiary-container rounded-sm opacity-100"></div>
-</div>
-</div>
-<!-- Account Tracking -->
-<div class="col-span-1 md:col-span-2 bg-surface-container rounded-[24px] p-xxl flex flex-col md:flex-row gap-xl items-center justify-between">
-<div class="w-full md:w-1/2 h-48 bg-surface-container-lowest rounded-[16px] border border-surface-variant p-lg space-y-md">
-<div class="flex justify-between items-center pb-sm border-b border-surface-variant">
-<div class="flex items-center gap-sm"><span class="material-symbols-outlined text-primary">account_balance</span><span class="font-title-medium">Checking</span></div>
-<span class="font-title-medium">$45,020.00</span>
-</div>
-<div class="flex justify-between items-center pb-sm border-b border-surface-variant">
-<div class="flex items-center gap-sm"><span class="material-symbols-outlined text-secondary">trending_up</span><span class="font-title-medium">Investment</span></div>
-<span class="font-title-medium">$1,200,500.00</span>
-</div>
-</div>
-<div class="flex-1 text-right">
-<span class="material-symbols-outlined text-4xl text-primary-container mb-md" style="font-variation-settings: 'FILL' 1;">analytics</span>
-<h3 class="font-headline-medium text-on-surface mb-sm">Holistic Account Tracking</h3>
-<p class="font-body-large text-on-surface-variant">Consolidate disparate assets into a single, unified view. Every penny accounted for, beautifully.</p>
-</div>
-</div>
-</div>
-</section>
-<!-- CTA Section -->
-<section class="py-[120px] px-xxl bg-inverse-surface text-inverse-on-surface text-center">
-<h2 class="font-display-medium font-bold mb-md">Join the Atelier</h2>
-<p class="font-headline-small text-surface-variant mb-xl max-w-2xl mx-auto font-normal">Elevate your financial perspective with Project Wallet.</p>
-<button class="bg-primary-container text-on-primary-container font-label-large rounded-full px-huge py-lg text-lg hover:scale-95 transition-transform duration-300">Download for Desktop</button>
-</section>
+</main>
 <!-- Footer -->
-<footer class="w-full relative py-16 bg-zinc-100 dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800">
-<div class="max-w-7xl mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-8">
-<div class="text-lg font-bold text-zinc-800 dark:text-zinc-100">Project Wallet</div>
-<div class="font-['Work_Sans'] text-xs font-normal text-zinc-500 dark:text-zinc-500">© 2024 Project Wallet. Local-first, privacy-focused asset management.</div>
-<div class="flex gap-md">
-<a class="text-zinc-500 dark:text-zinc-500 hover:text-blue-600 dark:hover:text-blue-400 underline decoration-2 underline-offset-4 font-['Work_Sans'] text-xs font-normal transition-opacity" href="#">Privacy</a>
-<a class="text-zinc-500 dark:text-zinc-500 hover:text-blue-600 dark:hover:text-blue-400 underline decoration-2 underline-offset-4 font-['Work_Sans'] text-xs font-normal transition-opacity" href="#">Terms</a>
-<a class="text-zinc-500 dark:text-zinc-500 hover:text-blue-600 dark:hover:text-blue-400 underline decoration-2 underline-offset-4 font-['Work_Sans'] text-xs font-normal transition-opacity" href="#">Security</a>
-<a class="text-zinc-500 dark:text-zinc-500 hover:text-blue-600 dark:hover:text-blue-400 underline decoration-2 underline-offset-4 font-['Work_Sans'] text-xs font-normal transition-opacity" href="#">Audit</a>
+<footer class="w-full rounded-t-[24px] bg-slate-50 border-t border-slate-200 mt-auto">
+<div class="max-w-7xl mx-auto px-8 py-12 flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="text-xl font-black text-slate-900">The Forge</div>
+<div class="flex flex-wrap justify-center gap-6 font-['Public_Sans'] text-sm tracking-normal">
+<a class="text-slate-500 hover:text-slate-900 hover:underline transition-all opacity-100 hover:opacity-80 duration-150" href="#">Privacy</a>
+<a class="text-slate-500 hover:text-slate-900 hover:underline transition-all opacity-100 hover:opacity-80 duration-150" href="#">Terms</a>
+<a class="text-slate-500 hover:text-slate-900 hover:underline transition-all opacity-100 hover:opacity-80 duration-150" href="#">Documentation</a>
+<a class="text-slate-500 hover:text-slate-900 hover:underline transition-all opacity-100 hover:opacity-80 duration-150" href="#">Contact</a>
 </div>
+<div class="text-sm text-slate-500 font-medium">© 2024 The Forge Ecosystem. Curated Engineering.</div>
 </div>
 </footer>
 </body></html>
