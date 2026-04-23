@@ -161,9 +161,62 @@
 <div class="relative w-full aspect-square md:aspect-[4/3] lg:aspect-square flex items-center justify-center">
 <!-- Decorative Background Blob -->
 <div class="absolute inset-0 bg-gradient-to-tr from-primary-fixed to-tertiary-fixed rounded-full blur-3xl opacity-50 -z-10 animate-pulse" style="animation-duration: 8s;"></div>
-<!-- The "App" Screenshot -->
-<div class="w-full max-w-2xl bg-surface-container-lowest rounded-[2rem] shadow-2xl shadow-primary/10 p-2 border border-outline-variant/20 relative z-10 transform rotate-1 hover:rotate-0 transition-transform duration-500 overflow-hidden">
-    <img src="Welcome_Desktop.png" alt="Project Wallet Dashboard" class="w-full h-auto rounded-[1.5rem]">
+<!-- The "App" Card -->
+<div class="w-full max-w-md bg-surface-container-lowest rounded-[2rem] shadow-2xl shadow-primary/10 p-md flex flex-col gap-md border border-outline-variant/20 relative z-10 transform rotate-1 hover:rotate-0 transition-transform duration-500">
+<div class="flex justify-between items-center mb-sm">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center">
+<span class="material-symbols-outlined icon-fill" data-icon="waving_hand" data-weight="fill">waving_hand</span>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant opacity-80">Good Morning</p>
+<p class="font-headline-md text-[18px] text-on-surface font-semibold">Alex</p>
+</div>
+</div>
+<button class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+</div>
+<!-- Balance Widget -->
+<div class="bg-primary text-on-primary rounded-[1.5rem] p-md flex flex-col gap-xs shadow-lg shadow-primary/20 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-xl translate-x-10 -translate-y-10"></div>
+<p class="font-body-md text-sm opacity-80 z-10">Available to Spend</p>
+<p class="font-display-lg text-[40px] font-bold tracking-tight z-10">$2,450.00</p>
+<div class="flex items-center gap-2 mt-2 z-10">
+<span class="px-2 py-1 bg-white/20 rounded-full text-xs font-medium backdrop-blur-sm">+ $340 this week</span>
+</div>
+</div>
+<!-- Mini Recent Activity -->
+<div class="flex flex-col gap-3 mt-2">
+<div class="flex justify-between items-center">
+<p class="font-label-md text-label-md text-on-surface">Recent</p>
+<button class="text-sm text-primary font-medium hover:underline">View all</button>
+</div>
+<div class="flex items-center justify-between p-3 rounded-xl hover:bg-surface-container-low transition-colors group cursor-pointer">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-tertiary-container/20 text-tertiary-container flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined icon-fill text-[20px]" data-icon="local_cafe" data-weight="fill">local_cafe</span>
+</div>
+<div>
+<p class="font-body-md text-on-surface font-medium text-sm">Morning Coffee</p>
+<p class="font-body-md text-on-surface-variant text-xs opacity-80">Today, 8:30 AM</p>
+</div>
+</div>
+<p class="font-body-md text-on-surface font-semibold text-sm">-$4.50</p>
+</div>
+<div class="flex items-center justify-between p-3 rounded-xl hover:bg-surface-container-low transition-colors group cursor-pointer">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-secondary-container/20 text-secondary-container flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined icon-fill text-[20px]" data-icon="shopping_bag" data-weight="fill">shopping_bag</span>
+</div>
+<div>
+<p class="font-body-md text-on-surface font-medium text-sm">Groceries</p>
+<p class="font-body-md text-on-surface-variant text-xs opacity-80">Yesterday</p>
+</div>
+</div>
+<p class="font-body-md text-on-surface font-semibold text-sm">-$85.20</p>
+</div>
+</div>
 </div>
 </div>
 </div>
