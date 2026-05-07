@@ -16,6 +16,15 @@ class TransactionRepository extends BaseRepository<TransactionModel> {
         .watch(fireImmediately: true);
   }
 
+  Stream<List<TransactionModel>> watchAll() {
+    return isar.transactionModels
+        .filter()
+        .isDeletedEqualTo(false)
+        .isArchivedEqualTo(false)
+        .sortByDateDesc()
+        .watch(fireImmediately: true);
+  }
+
   Stream<List<TransactionModel>> watchByAccount(Id accountId) {
     return isar.transactionModels
         .filter()

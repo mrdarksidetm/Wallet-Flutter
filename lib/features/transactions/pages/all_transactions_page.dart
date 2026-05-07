@@ -22,7 +22,7 @@ class _AllTransactionsPageState extends ConsumerState<AllTransactionsPage> {
   Widget build(BuildContext context) {
     final transactionsAsync = _showArchived 
         ? ref.watch(archivedTransactionsStreamProvider)
-        : ref.watch(transactionsStreamProvider);
+        : ref.watch(allTransactionsStreamProvider);
     
     final sortType = ref.watch(transactionSortProvider);
     final accountsAsync = ref.watch(accountsStreamProvider);
