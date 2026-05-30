@@ -2,9 +2,9 @@ name: Build Wallet APKs
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop, Improv ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, develop, Improv ]
   workflow_dispatch: # Allows manual trigger
 
 jobs:
