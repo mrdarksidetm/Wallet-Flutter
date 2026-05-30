@@ -36,6 +36,7 @@ jobs:
       - name: Install Dependencies
         run: |
           flutter doctor -v
+          yes | flutter doctor --android-licenses || true
           flutter pub get
 
       - name: Setup Signing (Optional)
@@ -101,11 +102,19 @@ jobs:
       - name: Fail-Safe Detection & Detailed Logging
         if: steps.build_universal.outcome == 'failure' || steps.build_split.outcome == 'failure'
         run: |
-          echo "::error::Build failed! Printing last 200 lines of build logs..."
-          echo "--- Universal Build Log ---"
-          [ -f build_universal.log ] && tail -n 200 build_universal.log || echo "Log not found."
-          echo "--- Split Build Log ---"
-          [ -f build_split.log ] && tail -n 200 build_split.log || echo "Log not found."
+          echo "::error::Build failed! Searching for error patterns in logs..."
+          echo "--- Error Analysis (Universal Build) ---"
+          if [ -f build_universal.log ]; then
+            grep -iEi "error|fail|exception" build_universal.log | head -n 100 || tail -n 100 build_universal.log
+          else
+            echo "Universal log not found."
+          fi
+          echo "--- Error Analysis (Split Build) ---"
+          if [ -f build_split.log ]; then
+            grep -iEi "error|fail|exception" build_split.log | head -n 100 || tail -n 100 build_split.log
+          else
+            echo "Split log not found."
+          fi
           exit 1
 
       - name: Upload Build Artifacts
