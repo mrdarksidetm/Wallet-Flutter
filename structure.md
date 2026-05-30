@@ -7,6 +7,8 @@ A bird's eye view of the **Project Wallet** (Flutter) technical blueprint. 🗺�
 ## 📂 Directory Map
 
 ```text
+.github/
+└── workflows/             # CI/CD (GitHub Actions)
 lib/
 ├── 📱 app/                # Root configuration (Router, Theme, AppShell)
 ├── 🏛️ core/               # Shared logic & infrastructure

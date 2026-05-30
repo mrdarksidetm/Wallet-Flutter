@@ -1,0 +1,123 @@
+name: Build Wallet APKs
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch: # Allows manual trigger
+
+jobs:
+  build:
+    name: Build & Release APKs
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive # Ensure submodules if any are checked out
+          fetch-depth: 0 # Full history for versioning if needed
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.x' # Aligned with pubspec >= 3.5.0
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        run: |
+          flutter doctor -v
+          flutter pub get
+
+      - name: Setup Signing (Optional)
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [ ! -z "$KEYSTORE_BASE64" ]; then
+            echo "Decoding Keystore..."
+            echo $KEYSTORE_BASE64 | base64 --decode > android/app/upload-keystore.jks
+            echo "Creating key.properties..."
+            echo "storePassword=$KEYSTORE_PASSWORD" > android/key.properties
+            echo "keyPassword=$KEY_PASSWORD" >> android/key.properties
+            echo "keyAlias=$KEY_ALIAS" >> android/key.properties
+            echo "storeFile=upload-keystore.jks" >> android/key.properties
+          else
+            echo "No signing secrets found. Building unsigned APKs."
+          fi
+
+      - name: Code Generation (Build Runner)
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Run Static Analysis
+        run: flutter analyze
+
+      - name: Run Tests
+        run: flutter test
+
+      - name: Build Universal APK
+        id: build_universal
+        run: |
+          echo "Building Universal (Fat) APK..."
+          flutter build apk --obfuscate --split-debug-info=build/app/outputs/symbols --release --verbose > build_universal.log 2>&1
+        continue-on-error: true
+
+      - name: Build Split APKs
+        id: build_split
+        run: |
+          echo "Building Split-ABI APKs..."
+          flutter build apk --split-per-abi --obfuscate --split-debug-info=build/app/outputs/symbols --release --verbose > build_split.log 2>&1
+        continue-on-error: true
+
+      - name: Process & Rename APKs
+        run: |
+          mkdir -p build/app/outputs/final-apks
+          
+          # Check for Universal APK
+          if [ -f build/app/outputs/flutter-apk/app-release.apk ]; then
+            mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/final-apks/wallet-universal.apk
+          fi
+          
+          # Check for Split APKs
+          if [ -f build/app/outputs/flutter-apk/app-arm64-v8a-release.apk ]; then
+            mv build/app/outputs/flutter-apk/app-arm64-v8a-release.apk build/app/outputs/final-apks/wallet-arm64-v8a.apk
+          fi
+          
+          if [ -f build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk ]; then
+            mv build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk build/app/outputs/final-apks/wallet-arm-v7a.apk
+          fi
+
+      - name: Fail-Safe Detection & Detailed Logging
+        if: steps.build_universal.outcome == 'failure' || steps.build_split.outcome == 'failure'
+        run: |
+          echo "::error::Build failed! Printing last 200 lines of build logs..."
+          echo "--- Universal Build Log ---"
+          [ -f build_universal.log ] && tail -n 200 build_universal.log || echo "Log not found."
+          echo "--- Split Build Log ---"
+          [ -f build_split.log ] && tail -n 200 build_split.log || echo "Log not found."
+          exit 1
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Wallet-APKs
+          path: build/app/outputs/final-apks/*.apk
+          retention-days: 7
+
+      - name: Upload Debug Symbols
+        uses: actions/upload-artifact@v4
+        with:
+          name: Debug-Symbols
+          path: build/app/outputs/symbols/*
+          retention-days: 7

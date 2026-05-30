@@ -29,12 +29,11 @@ class AppTheme {
     }
   }
 
-  static ThemeData getTheme(
-    PersonalizationState state,
-    Brightness brightness, {
-    ColorScheme? dynamicColorScheme,
-    bool useDynamicVariant = true,
-  }) {
+  static ThemeData getTheme(PersonalizationState state,
+      Brightness brightness, {
+        ColorScheme? dynamicColorScheme,
+        bool useDynamicVariant = true,
+      }) {
     final bool isDark = brightness == Brightness.dark;
 
     final List<FontVariation> variations = [
@@ -75,35 +74,35 @@ class AppTheme {
       fontFamilyFallback: const ['AppleColorEmoji', 'Noto Color Emoji'],
       textTheme: TextTheme(
         displayLarge:
-            baseTextStyle.copyWith(fontSize: 57, fontWeight: FontWeight.normal),
+        baseTextStyle.copyWith(fontSize: 57, fontWeight: FontWeight.normal),
         displayMedium:
-            baseTextStyle.copyWith(fontSize: 45, fontWeight: FontWeight.normal),
+        baseTextStyle.copyWith(fontSize: 45, fontWeight: FontWeight.normal),
         displaySmall:
-            baseTextStyle.copyWith(fontSize: 36, fontWeight: FontWeight.normal),
+        baseTextStyle.copyWith(fontSize: 36, fontWeight: FontWeight.normal),
         headlineLarge:
-            baseTextStyle.copyWith(fontSize: 32, fontWeight: FontWeight.normal),
+        baseTextStyle.copyWith(fontSize: 32, fontWeight: FontWeight.normal),
         headlineMedium:
-            baseTextStyle.copyWith(fontSize: 28, fontWeight: FontWeight.normal),
+        baseTextStyle.copyWith(fontSize: 28, fontWeight: FontWeight.normal),
         headlineSmall:
-            baseTextStyle.copyWith(fontSize: 24, fontWeight: FontWeight.normal),
+        baseTextStyle.copyWith(fontSize: 24, fontWeight: FontWeight.normal),
         titleLarge:
-            baseTextStyle.copyWith(fontSize: 22, fontWeight: FontWeight.normal),
+        baseTextStyle.copyWith(fontSize: 22, fontWeight: FontWeight.normal),
         titleMedium:
-            baseTextStyle.copyWith(fontSize: 16, fontWeight: FontWeight.normal),
+        baseTextStyle.copyWith(fontSize: 16, fontWeight: FontWeight.normal),
         titleSmall:
-            baseTextStyle.copyWith(fontSize: 14, fontWeight: FontWeight.normal),
+        baseTextStyle.copyWith(fontSize: 14, fontWeight: FontWeight.normal),
         bodyLarge:
-            baseTextStyle.copyWith(fontSize: 16, fontWeight: FontWeight.normal),
+        baseTextStyle.copyWith(fontSize: 16, fontWeight: FontWeight.normal),
         bodyMedium:
-            baseTextStyle.copyWith(fontSize: 14, fontWeight: FontWeight.normal),
+        baseTextStyle.copyWith(fontSize: 14, fontWeight: FontWeight.normal),
         bodySmall:
-            baseTextStyle.copyWith(fontSize: 12, fontWeight: FontWeight.normal),
+        baseTextStyle.copyWith(fontSize: 12, fontWeight: FontWeight.normal),
         labelLarge:
-            baseTextStyle.copyWith(fontSize: 14, fontWeight: FontWeight.normal),
+        baseTextStyle.copyWith(fontSize: 14, fontWeight: FontWeight.normal),
         labelMedium:
-            baseTextStyle.copyWith(fontSize: 12, fontWeight: FontWeight.normal),
+        baseTextStyle.copyWith(fontSize: 12, fontWeight: FontWeight.normal),
         labelSmall:
-            baseTextStyle.copyWith(fontSize: 11, fontWeight: FontWeight.normal),
+        baseTextStyle.copyWith(fontSize: 11, fontWeight: FontWeight.normal),
       ).apply(
         bodyColor: colorScheme.onSurface,
         displayColor: colorScheme.onSurface,

@@ -36,6 +36,7 @@ Live tracking of the **Project Wallet** development lifecycle. 📈🏦
 - [x] **FIXED**: Loan Due Date bug - now correctly saved and displayed. 📅
 - [x] **FIXED**: Person Transaction History - now correctly loads and merges both loans and transactions. 📊
 - [x] **IMPROVED**: "Choose Icon" experience with better search and Material 3 iconography. ✨
+- [x] **NEW**: GitHub Actions CI/CD Integration. Automated multi-ABI APK builds (`Universal`, `arm64-v8a`, `arm-v7a`) with detailed fail-safe logging. 🚀
 
 ---
 

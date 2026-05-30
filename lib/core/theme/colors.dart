@@ -43,7 +43,9 @@ class AppColors {
 
 extension ColorUtils on Color {
   Color adaptive(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = Theme
+        .of(context)
+        .brightness == Brightness.dark;
     if (!isDark) return this;
 
     // In dark mode, if the color is too dark, lighten it to follow the atelier curated vibe.

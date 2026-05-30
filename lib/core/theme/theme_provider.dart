@@ -8,7 +8,10 @@ enum ColorSchemeVariant {
   expressive,
   fruitSalad;
 
-  String get name => toString().split('.').last;
+  String get name =>
+      toString()
+          .split('.')
+          .last;
 }
 
 class ThemeState {
@@ -91,7 +94,7 @@ class ThemeController extends Notifier<ThemeState> {
     }
 
     final variant = ColorSchemeVariant.values.firstWhere(
-      (e) => e.name == variantStr,
+          (e) => e.name == variantStr,
       orElse: () => ColorSchemeVariant.tonalSpot,
     );
 
@@ -147,6 +150,6 @@ class ThemeController extends Notifier<ThemeState> {
 }
 
 final themeControllerProvider =
-    NotifierProvider<ThemeController, ThemeState>(() {
+NotifierProvider<ThemeController, ThemeState>(() {
   return ThemeController();
 });

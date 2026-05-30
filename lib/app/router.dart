@@ -99,12 +99,13 @@ final routerProvider = Provider<GoRouter>((ref) {
               type: SharedAxisTransitionType.scaled),
           GoRoute(
             path: '/category_details',
-            pageBuilder: (context, state) => _buildSharedAxisTransition(
-              context,
-              state,
-              CategoryDetailsPage(category: state.extra as Category),
-              SharedAxisTransitionType.scaled,
-            ),
+            pageBuilder: (context, state) =>
+                _buildSharedAxisTransition(
+                  context,
+                  state,
+                  CategoryDetailsPage(category: state.extra as Category),
+                  SharedAxisTransitionType.scaled,
+                ),
           ),
         ],
       ),
@@ -121,23 +122,25 @@ final routerProvider = Provider<GoRouter>((ref) {
       _rootRoute('/user_info', (_) => const UserInfoPage()),
       _rootRoute('/edit_profile', (_) => const EditProfilePage()),
       _rootRoute('/person_details',
-          (state) => PersonDetailsPage(person: state.extra as Person)),
+              (state) => PersonDetailsPage(person: state.extra as Person)),
       _rootRoute('/all_transactions', (_) => const AllTransactionsPage()),
       _rootRoute('/account_details',
-          (state) => AccountDetailsPage(account: state.extra as Account)),
+              (state) => AccountDetailsPage(account: state.extra as Account)),
       _rootRoute(
           '/add_transaction',
-          (state) => AddTransactionPage(
-              transaction: state.extra as TransactionModel?)),
+              (state) =>
+              AddTransactionPage(
+                  transaction: state.extra as TransactionModel?)),
       _rootRoute('/add_account',
-          (state) => AddEditAccountPage(account: state.extra as Account?)),
+              (state) => AddEditAccountPage(account: state.extra as Account?)),
       _rootRoute('/add_loan', (_) => const AddEditLoanPage()),
       _rootRoute(
           '/add_recurring',
-          (state) =>
+              (state) =>
               AddEditRecurringPage(recurring: state.extra as Recurring?)),
       _rootRoute('/add_category',
-          (state) => AddEditCategoryPage(category: state.extra as Category?)),
+              (state) =>
+              AddEditCategoryPage(category: state.extra as Category?)),
       _rootRoute(
           '/add_goal', (state) => AddEditGoalPage(goal: state.extra as Goal?)),
     ],
@@ -189,6 +192,7 @@ Page _buildSharedAxisTransition(BuildContext context, GoRouterState state,
 
 class AppShell extends ConsumerWidget {
   final Widget child;
+
   const AppShell({super.key, required this.child});
 
   @override
@@ -196,7 +200,10 @@ class AppShell extends ConsumerWidget {
     final authState = ref.watch(authProvider);
     if (authState.isLocked) return const UnlockPage();
 
-    final location = GoRouterState.of(context).uri.path;
+    final location = GoRouterState
+        .of(context)
+        .uri
+        .path;
 
     return Scaffold(
       body: child,
@@ -208,6 +215,7 @@ class AppShell extends ConsumerWidget {
 
 class _BottomNavBar extends StatelessWidget {
   final String location;
+
   const _BottomNavBar({required this.location});
 
   @override
@@ -241,13 +249,16 @@ class _BottomNavBar extends StatelessWidget {
 class _NavDest extends StatelessWidget {
   final IconData icon;
   final String label;
+
   const _NavDest({required this.icon, required this.label});
 
   @override
   Widget build(BuildContext context) {
     return Consumer(
       builder: (context, ref, _) {
-        final fillIcons = ref.watch(personalizationProvider).fillIcons;
+        final fillIcons = ref
+            .watch(personalizationProvider)
+            .fillIcons;
         return NavigationDestination(
           icon: Icon(icon, fill: fillIcons ? 1.0 : 0.0),
           selectedIcon: Icon(icon, fill: 1.0),
@@ -260,14 +271,19 @@ class _NavDest extends StatelessWidget {
 
 class _FAB extends ConsumerWidget {
   final String location;
+
   const _FAB({required this.location});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (_shouldHideFAB(location)) return const SizedBox.shrink();
 
-    final colorScheme = Theme.of(context).colorScheme;
-    final fillIcons = ref.watch(personalizationProvider).fillIcons;
+    final colorScheme = Theme
+        .of(context)
+        .colorScheme;
+    final fillIcons = ref
+        .watch(personalizationProvider)
+        .fillIcons;
 
     return FloatingActionButton(
       backgroundColor: colorScheme.primaryContainer,
@@ -339,7 +355,7 @@ class _FAB extends ConsumerWidget {
         context.push('/add_account');
         break;
       case '/reports':
-        // Show filter bottom sheet or dialog
+      // Show filter bottom sheet or dialog
         final action = ref.read(fabActionProvider);
         if (action != null) action();
         break;
