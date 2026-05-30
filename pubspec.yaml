@@ -42,8 +42,8 @@ dependencies:
   # Theming & Icons (Paisa Replica)
   flex_color_picker: ^3.8.0
   material_symbols_icons: ^4.27.6
-  material_design_icons_flutter: ^7.0.7296
-  font_awesome_flutter: ^10.8.0
+  flutter_material_design_icons: ^3.1.0+7447
+  font_awesome_flutter: ^11.0.0
   dynamic_color: ^1.7.0
 
   # Security (Phase 13)
