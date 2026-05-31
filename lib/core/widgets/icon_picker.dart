@@ -55,6 +55,7 @@ class RecentIconsNotifier extends StateNotifier<List<String>> {
 
 class AppIcons {
   static final Map<String, IconData> _iconCache = {};
+  static Map<String, IconData>? _mdiNameMap;
 
   static IconData getIcon(String? name, {String? style}) {
     if (name == null || name.isEmpty) return Symbols.category;
@@ -67,7 +68,7 @@ class AppIcons {
     // 1. Resolve by prefix
     if (name.startsWith('mdi:')) {
       final iconName = name.substring(4);
-      icon = MdiIcons.fromString(iconName);
+      icon = _getMdiIcon(iconName);
     } else if (name.startsWith('fa:')) {
       final iconName = name.substring(3);
       icon = _getFaIcon(iconName);
@@ -104,6 +105,19 @@ class AppIcons {
     return Symbols.category;
   }
 
+  static IconData? _getMdiIcon(String name) {
+    if (_mdiNameMap == null) {
+      _mdiNameMap = {};
+      for (final icon in MdiIcons.values) {
+        final meta = MdiIcons.maybeMetadataOf(icon);
+        if (meta != null) {
+          _mdiNameMap![meta.name] = icon;
+        }
+      }
+    }
+    return _mdiNameMap![name];
+  }
+
   static IconData? _getMiIcon(String name) {
     // Basic mapping for common Material Icons not in Symbols
     // This is a safety fallback
@@ -112,27 +126,27 @@ class AppIcons {
 
   static IconData? _getFaIcon(String name) {
     final Map<String, IconData> faMap = {
-      'wallet': FontAwesomeIcons.wallet, 'bank': FontAwesomeIcons.bank, 'credit-card': FontAwesomeIcons.creditCard,
-      'money-bill': FontAwesomeIcons.moneyBill, 'chart-pie': FontAwesomeIcons.chartPie, 'car': FontAwesomeIcons.car,
-      'house': FontAwesomeIcons.house, 'burger': FontAwesomeIcons.burger, 'gift': FontAwesomeIcons.gift,
-      'heart': FontAwesomeIcons.heart, 'star': FontAwesomeIcons.star, 'user': FontAwesomeIcons.user,
-      'gear': FontAwesomeIcons.gear, 'bell': FontAwesomeIcons.bell, 'camera': FontAwesomeIcons.camera,
-      'envelope': FontAwesomeIcons.envelope, 'phone': FontAwesomeIcons.phone, 'location-dot': FontAwesomeIcons.locationDot,
-      'bicycle': FontAwesomeIcons.bicycle, 'bus': FontAwesomeIcons.bus, 'plane': FontAwesomeIcons.plane,
-      'train': FontAwesomeIcons.train, 'gas-pump': FontAwesomeIcons.gasPump, 'laptop': FontAwesomeIcons.laptop,
-      'mobile': FontAwesomeIcons.mobile, 'tv': FontAwesomeIcons.tv, 'gamepad': FontAwesomeIcons.gamepad,
-      'music': FontAwesomeIcons.music, 'film': FontAwesomeIcons.film, 'ticket': FontAwesomeIcons.ticket,
-      'shopping-bag': FontAwesomeIcons.shoppingBag, 'shopping-cart': FontAwesomeIcons.shoppingCart, 'tag': FontAwesomeIcons.tag,
-      'coffee': FontAwesomeIcons.coffee, 'utensils': FontAwesomeIcons.utensils, 'wine-glass': FontAwesomeIcons.wineGlass,
-      'mug-hot': FontAwesomeIcons.mugHot, 'ice-cream': FontAwesomeIcons.iceCream, 'apple-whole': FontAwesomeIcons.appleWhole,
-      'carrot': FontAwesomeIcons.carrot, 'pizza-slice': FontAwesomeIcons.pizzaSlice, 'shirt': FontAwesomeIcons.shirt,
-      'graduation-cap': FontAwesomeIcons.graduationCap, 'briefcase': FontAwesomeIcons.briefcase, 'tools': FontAwesomeIcons.tools,
-      'wrench': FontAwesomeIcons.wrench, 'hammer': FontAwesomeIcons.hammer, 'medkit': FontAwesomeIcons.medkit,
-      'stethoscope': FontAwesomeIcons.stethoscope, 'pills': FontAwesomeIcons.pills, 'dumbbell': FontAwesomeIcons.dumbbell,
-      'soccer-ball': FontAwesomeIcons.soccerBall, 'basketball': FontAwesomeIcons.basketball, 'trophy': FontAwesomeIcons.trophy,
-      'coins': FontAwesomeIcons.coins, 'money-check-dollar': FontAwesomeIcons.moneyCheckDollar, 'receipt': FontAwesomeIcons.receipt,
-      'piggy-bank': FontAwesomeIcons.piggyBank, 'landmark': FontAwesomeIcons.landmark, 'dollar-sign': FontAwesomeIcons.dollarSign,
-      'euro-sign': FontAwesomeIcons.euroSign, 'bitcoin': FontAwesomeIcons.bitcoin,
+      'wallet': FontAwesomeIcons.wallet.data, 'bank': FontAwesomeIcons.bank.data, 'credit-card': FontAwesomeIcons.creditCard.data,
+      'money-bill': FontAwesomeIcons.moneyBill.data, 'chart-pie': FontAwesomeIcons.chartPie.data, 'car': FontAwesomeIcons.car.data,
+      'house': FontAwesomeIcons.house.data, 'burger': FontAwesomeIcons.burger.data, 'gift': FontAwesomeIcons.gift.data,
+      'heart': FontAwesomeIcons.heart.data, 'star': FontAwesomeIcons.star.data, 'user': FontAwesomeIcons.user.data,
+      'gear': FontAwesomeIcons.gear.data, 'bell': FontAwesomeIcons.bell.data, 'camera': FontAwesomeIcons.camera.data,
+      'envelope': FontAwesomeIcons.envelope.data, 'phone': FontAwesomeIcons.phone.data, 'location-dot': FontAwesomeIcons.locationDot.data,
+      'bicycle': FontAwesomeIcons.bicycle.data, 'bus': FontAwesomeIcons.bus.data, 'plane': FontAwesomeIcons.plane.data,
+      'train': FontAwesomeIcons.train.data, 'gas-pump': FontAwesomeIcons.gasPump.data, 'laptop': FontAwesomeIcons.laptop.data,
+      'mobile': FontAwesomeIcons.mobile.data, 'tv': FontAwesomeIcons.tv.data, 'gamepad': FontAwesomeIcons.gamepad.data,
+      'music': FontAwesomeIcons.music.data, 'film': FontAwesomeIcons.film.data, 'ticket': FontAwesomeIcons.ticket.data,
+      'shopping-bag': FontAwesomeIcons.shoppingBag.data, 'shopping-cart': FontAwesomeIcons.shoppingCart.data, 'tag': FontAwesomeIcons.tag.data,
+      'coffee': FontAwesomeIcons.coffee.data, 'utensils': FontAwesomeIcons.utensils.data, 'wine-glass': FontAwesomeIcons.wineGlass.data,
+      'mug-hot': FontAwesomeIcons.mugHot.data, 'ice-cream': FontAwesomeIcons.iceCream.data, 'apple-whole': FontAwesomeIcons.appleWhole.data,
+      'carrot': FontAwesomeIcons.carrot.data, 'pizza-slice': FontAwesomeIcons.pizzaSlice.data, 'shirt': FontAwesomeIcons.shirt.data,
+      'graduation-cap': FontAwesomeIcons.graduationCap.data, 'briefcase': FontAwesomeIcons.briefcase.data, 'tools': FontAwesomeIcons.tools.data,
+      'wrench': FontAwesomeIcons.wrench.data, 'hammer': FontAwesomeIcons.hammer.data, 'medkit': FontAwesomeIcons.medkit.data,
+      'stethoscope': FontAwesomeIcons.stethoscope.data, 'pills': FontAwesomeIcons.pills.data, 'dumbbell': FontAwesomeIcons.dumbbell.data,
+      'soccer-ball': FontAwesomeIcons.soccerBall.data, 'basketball': FontAwesomeIcons.basketball.data, 'trophy': FontAwesomeIcons.trophy.data,
+      'coins': FontAwesomeIcons.coins.data, 'money-check-dollar': FontAwesomeIcons.moneyCheckDollar.data, 'receipt': FontAwesomeIcons.receipt.data,
+      'piggy-bank': FontAwesomeIcons.piggyBank.data, 'landmark': FontAwesomeIcons.landmark.data, 'dollar-sign': FontAwesomeIcons.dollarSign.data,
+      'euro-sign': FontAwesomeIcons.euroSign.data, 'bitcoin': FontAwesomeIcons.bitcoin.data,
     };
     return faMap[name];
   }
@@ -180,12 +194,16 @@ class _IconPickerWidgetState extends ConsumerState<IconPickerWidget> {
       )).toList();
 
       // 2. Dynamic Discovery of ALL Material Design Icons (Direct from package)
-      final List<IconMetadata> mdi = MdiIcons.getNames().map((name) => IconMetadata(
-        name: 'mdi:$name',
-        categories: ['mdi'],
-        tags: [name.replaceAll('-', ' ')],
-        source: 'mdi'
-      )).toList();
+      final List<IconMetadata> mdi = MdiIcons.values.map((icon) {
+        final meta = MdiIcons.maybeMetadataOf(icon);
+        final name = meta?.name ?? '';
+        return IconMetadata(
+          name: 'mdi:$name',
+          categories: ['mdi'],
+          tags: [name.replaceAll('-', ' ')],
+          source: 'mdi'
+        );
+      }).where((m) => m.name != 'mdi:').toList();
 
       // 3. Comprehensive FontAwesome list (The core of Paisa's extra variety)
       final List<IconMetadata> fa = [

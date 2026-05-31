@@ -20,3 +20,12 @@
   - **CI Improvement:** Upgraded GitHub Actions environment to Flutter 3.44.x.
   - **CI Improvement:** Refined fail-safe logging in `.github/workflows/build_apks.yml` (removed `--verbose` to reduce log bloat, added smarter error pattern matching).
 - **Status:** 100% (Compatibility issues resolved and CI optimized).
+
+## [2026-05-31 10:30] - Icon Picker Breaking Changes Fix
+- **Action:** Resolved 64 compilation errors in `lib/core/widgets/icon_picker.dart`.
+- **Changes:**
+  - **MDI Fix:** Migrated `flutter_material_design_icons` usage from `fromString`/`getNames` (now missing in v3.1.0) to `MdiIcons.values` and `MdiIcons.maybeMetadataOf`.
+  - **MDI Fix:** Implemented static name-to-icon cache in `AppIcons` for high-performance lookup.
+  - **FontAwesome Fix:** Updated `font_awesome_flutter` (v11.0.0+) usage to access `.data` for `IconData` compatibility in `Icon` widgets.
+  - **Tooling:** Installed GitHub CLI (`gh`) via winget for future CI log inspection.
+- **Status:** 100% (Verified with `flutter analyze`).
