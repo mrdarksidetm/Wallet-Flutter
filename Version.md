@@ -40,3 +40,11 @@ dkVersion to "27.0.12077973" in uild.gradle.kts.
   - **CI Improvement:** Hardened license acceptance by removing || true from lutter doctor --android-licenses.
   - **CI Improvement:** Added mkdir -p android/app before decoding keystore to prevent path errors.
 - **Status:** 100% (Changes applied, ready for verification via CI).
+
+## [2026-06-01 00:58] - Toolchain Upgrade (AGP 8.10.2 & SDK 36)
+- **Action:** Upgraded Android build tools to satisfy dependency requirements discovered in CI.
+- **Changes:**
+  - **AGP Upgrade:** Bumped Android Gradle Plugin to 8.10.2 in settings.gradle.kts.
+  - **SDK Upgrade:** Increased compileSdk and 	argetSdk to 36 to support modern AndroidX libraries (browser, activity, core).
+  - **Validation:** Previous build logs explicitly requested these versions to resolve CheckAarMetadata errors.
+- **Status:** 100% (Upgraded and ready for CI re-run).
