@@ -29,3 +29,14 @@
   - **FontAwesome Fix:** Updated `font_awesome_flutter` (v11.0.0+) usage to access `.data` for `IconData` compatibility in `Icon` widgets.
   - **Tooling:** Installed GitHub CLI (`gh`) via winget for future CI log inspection.
 - **Status:** 100% (Verified with `flutter analyze`).
+
+## [2026-06-01 00:42] - Build Fix & CI Transparency
+- **Action:** Resolved build failure caused by API 36/37 preview issues and improved CI visibility.
+- **Changes:**
+  - **SDK Downgrade:** Reverted compileSdk and 	argetSdk to 35 (Android 15) for stable builds, avoiding API 36/37 preview constraints.
+  - **NDK Stabilization:** Hardcoded 
+dkVersion to "27.0.12077973" in uild.gradle.kts.
+  - **CI Improvement:** Modified GitHub Actions to show full build logs in the console (removed redirection to files).
+  - **CI Improvement:** Hardened license acceptance by removing || true from lutter doctor --android-licenses.
+  - **CI Improvement:** Added mkdir -p android/app before decoding keystore to prevent path errors.
+- **Status:** 100% (Changes applied, ready for verification via CI).

@@ -16,8 +16,8 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.mrdarksidetm.wallet"
-    compileSdk = 36
-    ndkVersion = flutter.ndkVersion
+    compileSdk = 35
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
@@ -32,7 +32,7 @@ android {
     defaultConfig {
         applicationId = "com.mrdarksidetm.wallet"
         minSdk = 33
-        targetSdk = 36
+        targetSdk = 35
         multiDexEnabled = true
         versionCode = flutter.versionCode
         versionName = flutter.versionName
