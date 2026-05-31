@@ -67,7 +67,8 @@ Internal technical documentation for maintaining the **Project Wallet** ecosyste
 ### **📦 Multi-ABI Builds**
 - **Strategy**: The app is built for `Universal`, `arm64-v8a`, and `armeabi-v7a` architectures to ensure maximum compatibility and optimized delivery.
 - **Workflow**: Managed via `.github/workflows/build_apks.yml`.
-- **Fail-Safe Detection**: On build failure, the CI captures the last 200 lines of the verbose build log and surfaces them in the GitHub Actions summary for rapid diagnosis.
+- **Transparent Logging**: To simplify debugging, build logs are streamed directly to the console instead of being redirected to files. Failures are automatically surfaced by the GitHub Actions runner.
+- **SDK Stability**: Project targets Android SDK 35 (Android 15) to ensure compatibility with stable build environments.
 
 ### **🔐 Signing Secrets**
 - **Mandate**: Production APKs are signed using secrets stored in GitHub (`KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, etc.). Never commit `key.properties` or `.jks` files directly to the repo.
