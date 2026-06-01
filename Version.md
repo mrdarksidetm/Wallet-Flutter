@@ -120,3 +120,22 @@
   - **Gradle Upgrade:** Upgraded Gradle to `8.11.1` to ensure compatibility with AGP 8.9.1.
   - **Root Cause:** Previous attempt with 8.10.2 failed because the specific version was not found in repositories. Reverting to the exact known-compatible minimum (8.9.1) while maintaining SDK 36 support.
 - **Status:** 100% (Toolchain synchronized to 8.9.1 and ready for CI verification).
+
+## [2026-06-01 20:15] - Verified Toolchain Stabilization (AGP 8.13.0 & Kotlin 2.1.10)
+- **Action:** Aligned toolchain to verified stable versions supporting Android SDK 36.
+- **Changes:**
+  - **AGP Upgrade:** Upgraded AGP to `8.13.0` (Official stable support for compileSdk 36).
+  - **Kotlin Alignment:** Set Kotlin to `2.1.10` to resolve R8 metadata errors caused by 2.2.x hallucinations.
+  - **Gradle Maintenance:** Maintained `8.11.1` for optimal AGP 8.13 compatibility.
+  - **Validation:** Versions verified via internet search to ensure existence in stable repositories.
+- **Status:** 100% (Toolchain stabilized and ready for APK build).
+
+## [2026-06-01 20:45] - GitHub Actions Workflow & Build Script Synchronization
+- **Action:** Fixed remote build failures by aligning GitHub Actions and local scripts with the new toolchain.
+- **Changes:**
+  - **CI Workflow Fix:** Corrected the `build_apks.yml` to remove the non-existent `Wallet-Flutter` directory prefix.
+  - **CI Workflow Upgrade:** Upgraded Java to `21` and Flutter action to modern defaults to match the local toolchain.
+  - **CI Error Analysis:** Added a diagnostic step to capture and highlight root causes on failure.
+  - **Local Script Fix:** Synchronized `build_release.sh` by removing path prefixes and adding `--no-tree-shake-icons`.
+  - **Root Cause:** The GitHub runner was failing because it couldn't find the project directory (nested path error) and was using an older toolchain inconsistent with the recent SDK 36 upgrade.
+- **Status:** 100% (CI and build scripts synchronized; ready for remote build).

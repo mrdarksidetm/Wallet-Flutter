@@ -6,5 +6,9 @@
 # (e.g., arm64-v8a). This keeps the download size under 15MB, heavily reducing storage
 # and memory overhead on 4GB RAM phones.
 
-cd Wallet-Flutter
-flutter build apk --split-per-abi --obfuscate --split-debug-info=./debug-info
+# Clean and get dependencies first to ensure a fresh state
+flutter clean
+flutter pub get
+
+# Build universal and split APKs with stabilization flags
+flutter build apk --split-per-abi --obfuscate --split-debug-info=./debug-info --release --no-tree-shake-icons --verbose

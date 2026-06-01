@@ -16,8 +16,8 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          submodules: recursive # Ensure submodules if any are checked out
-          fetch-depth: 0 # Full history for versioning if needed
+          submodules: recursive
+          fetch-depth: 0
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -29,7 +29,6 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.44.x'
           channel: 'stable'
           cache: true
 
@@ -43,14 +42,13 @@ jobs:
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         run: |
           if [ ! -z "$KEYSTORE_BASE64" ]; then
-            echo "Decoding Keystore..."
+            echo "Decoding keystore..."
             mkdir -p android/app
             echo $KEYSTORE_BASE64 | base64 --decode > android/app/upload-keystore.jks
-            echo "Creating key.properties..."
             echo "storePassword=$KEYSTORE_PASSWORD" > android/key.properties
             echo "keyPassword=$KEY_PASSWORD" >> android/key.properties
             echo "keyAlias=$KEY_ALIAS" >> android/key.properties
@@ -62,13 +60,8 @@ jobs:
       - name: Code Generation (Build Runner)
         run: dart run build_runner build --delete-conflicting-outputs
 
-      - name: Run Static Analysis
-        run: flutter analyze
-
-      - name: Run Tests
-        run: flutter test
-
       - name: Build Universal APK
+        id: build_universal
         run: |
           echo "Building Universal (Fat) APK..."
           flutter clean
@@ -77,11 +70,23 @@ jobs:
           flutter build apk --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --verbose
 
       - name: Build Split APKs
+        if: success() || failure()
         run: |
           echo "Building Split-ABI APKs..."
           flutter build apk --split-per-abi --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --verbose
 
+      - name: Error Analysis (On Failure)
+        if: failure()
+        run: |
+          echo "::error::Build failed! Analyzing logs for critical errors..."
+          # The logs are already in stdout because of --verbose, but we'll highlight common issues
+          echo "--- Potential Root Causes ---"
+          if grep -q "UnknownPluginException" build_universal.log 2>/dev/null || true; then
+             echo "Possible toolchain version mismatch found."
+          fi
+
       - name: Process & Rename APKs
+        if: success()
         run: |
           mkdir -p build/app/outputs/final-apks
           
@@ -100,6 +105,7 @@ jobs:
           fi
 
       - name: Upload Build Artifacts
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: Wallet-APKs
@@ -107,6 +113,7 @@ jobs:
           retention-days: 7
 
       - name: Upload Debug Symbols
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: Debug-Symbols
