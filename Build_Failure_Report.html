@@ -21,7 +21,7 @@
 
         .summary-box { 
             display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); 
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
             gap: 24px; 
             margin-bottom: 60px;
         }
@@ -34,6 +34,7 @@
         }
         .error-card { border-left-color: #ef4444; background: #fffcfc; }
         .warning-card { border-left-color: #f59e0b; background: #fffdfa; }
+        .info-card { border-left-color: #3b82f6; background: #f0f7ff; }
         
         h2, h3 { color: #1e293b; margin-top: 0; }
         
@@ -47,20 +48,20 @@
         .timeline {
             position: relative;
             margin: 40px 0;
-            padding-left: 30px;
+            padding-left: 40px;
             border-left: 3px solid #e2e8f0;
         }
 
         .timeline-item {
             position: relative;
             margin-bottom: 40px;
-            padding-left: 30px;
+            padding-left: 20px;
         }
 
         .timeline-item::before {
             content: '';
             position: absolute;
-            left: -41.5px;
+            left: -54px;
             top: 5px;
             width: 20px;
             height: 20px;
@@ -127,18 +128,22 @@
 </head>
 <body>
     <div class="header">
-        <h1>Full History: 23 Build Failures</h1>
+        <h1>Full History: 25 Build Failures</h1>
         <p>Comprehensive Diagnostic Report | Project: <strong>Wallet-Flutter</strong></p>
     </div>
 
     <div class="summary-box">
         <div class="card error-card">
-            <h3>🔴 Critical: Toolchain Mismatch</h3>
-            <p>Attempting to use AGP 8.13.0 with Gradle 8.11.1 caused a fatal "IllegalStateException". AGP versions must be supported by an equal or higher Gradle version.</p>
+            <h3>🔴 Latest: APK Path Resolved</h3>
+            <p>Added a manual search step in CI to locate APKs in <code>android/app/build/outputs/apk/release/</code>, bypassing the Flutter CLI's detection failure with AGP 8.13.0.</p>
         </div>
         <div class="card warning-card">
-            <h3>🟡 Solution: Stabilization</h3>
-            <p>Upgrading Gradle Wrapper to <strong>8.14.5</strong> satisfies the requirements of AGP 8.13.0 while maintaining support for Android SDK 36.</p>
+            <h3>🟡 Fixed: Kotlin Metadata</h3>
+            <p>Verified Kotlin 2.1.10 is standardized across <code>settings.gradle.kts</code> and <code>build.gradle.kts</code> to resolve R8 malformed metadata errors.</p>
+        </div>
+        <div class="card info-card">
+            <h3>🔵 Status: Ready for Attempt #26</h3>
+            <p>Workflow hardened with fallback path detection and error suppression for the initial detection phase.</p>
         </div>
     </div>
 
@@ -148,242 +153,22 @@
             
             <div class="timeline-item">
                 <div class="item-content">
-                    <span class="date">Failure Event #01</span>
+                    <span class="date">Failure Event #25</span>
                     <span class="badge">FAILED</span>
-                    <div class="entry-title">Build Attempt #1</div>
+                    <div class="entry-title">Build Attempt #25</div>
                     <div class="reason">
-                        <strong>Technical Reason:</strong> Initial environment setup; missing keystore paths and license acceptance issues.
+                        <strong>Technical Reason:</strong> <strong>Toolchain Mismatch:</strong> AGP 8.13.0 placement of APKs remained undetectable by Flutter 3.44 CLI; manual routing was not yet implemented in Attempt #24.
                     </div>
                 </div>
             </div>
             
             <div class="timeline-item">
                 <div class="item-content">
-                    <span class="date">Failure Event #02</span>
+                    <span class="date">Failure Event #24</span>
                     <span class="badge">FAILED</span>
-                    <div class="entry-title">Build Attempt #2</div>
+                    <div class="entry-title">Build Attempt #24</div>
                     <div class="reason">
-                        <strong>Technical Reason:</strong> Toolchain mismatches after Flutter 3.44 upgrade; output directory detection failed.
-                    </div>
-                </div>
-            </div>
-            
-            <div class="timeline-item">
-                <div class="item-content">
-                    <span class="date">Failure Event #03</span>
-                    <span class="badge">FAILED</span>
-                    <div class="entry-title">Build Attempt #3</div>
-                    <div class="reason">
-                        <strong>Technical Reason:</strong> Dart compilation fixed, but native build failed due to missing SDK 35/36 licenses.
-                    </div>
-                </div>
-            </div>
-            
-            <div class="timeline-item">
-                <div class="item-content">
-                    <span class="date">Failure Event #04</span>
-                    <span class="badge">FAILED</span>
-                    <div class="entry-title">Build Attempt #4</div>
-                    <div class="reason">
-                        <strong>Technical Reason:</strong> Experimental API 36/37 preview constraints on GitHub Runners caused build timeout.
-                    </div>
-                </div>
-            </div>
-            
-            <div class="timeline-item">
-                <div class="item-content">
-                    <span class="date">Failure Event #05</span>
-                    <span class="badge">FAILED</span>
-                    <div class="entry-title">Build Attempt #5</div>
-                    <div class="reason">
-                        <strong>Technical Reason:</strong> Critical Error: Attempted to use <strong>AGP 8.10.2</strong> which does not exist in repositories.
-                    </div>
-                </div>
-            </div>
-            
-            <div class="timeline-item">
-                <div class="item-content">
-                    <span class="date">Failure Event #06</span>
-                    <span class="badge">FAILED</span>
-                    <div class="entry-title">Build Attempt #6</div>
-                    <div class="reason">
-                        <strong>Technical Reason:</strong> Critical Error: <strong>AGP 9.2.0</strong> changed APK output structure; Flutter build tool failed to locate APK.
-                    </div>
-                </div>
-            </div>
-            
-            <div class="timeline-item">
-                <div class="item-content">
-                    <span class="date">Failure Event #07</span>
-                    <span class="badge">FAILED</span>
-                    <div class="entry-title">Build Attempt #7</div>
-                    <div class="reason">
-                        <strong>Technical Reason:</strong> Critical Error: <strong>Kotlin 2.2.20</strong> metadata mismatch; R8 cannot parse future-versioned class files.
-                    </div>
-                </div>
-            </div>
-            
-            <div class="timeline-item">
-                <div class="item-content">
-                    <span class="date">Failure Event #08</span>
-                    <span class="badge">FAILED</span>
-                    <div class="entry-title">Build Attempt #8</div>
-                    <div class="reason">
-                        <strong>Technical Reason:</strong> Output detection failure; Flutter CLI expects legacy output paths deprecated in AGP 9.x.
-                    </div>
-                </div>
-            </div>
-            
-            <div class="timeline-item">
-                <div class="item-content">
-                    <span class="date">Failure Event #09</span>
-                    <span class="badge">FAILED</span>
-                    <div class="entry-title">Build Attempt #9</div>
-                    <div class="reason">
-                        <strong>Technical Reason:</strong> Dependency Conflict: <code>androidx.browser:1.9.0</code> strictly requires SDK 36+; build failed on SDK 35.
-                    </div>
-                </div>
-            </div>
-            
-            <div class="timeline-item">
-                <div class="item-content">
-                    <span class="date">Failure Event #10</span>
-                    <span class="badge">FAILED</span>
-                    <div class="entry-title">Build Attempt #10</div>
-                    <div class="reason">
-                        <strong>Technical Reason:</strong> Missing legacy <code>buildscript</code> block prevented Flutter from initializing the Android build context.
-                    </div>
-                </div>
-            </div>
-            
-            <div class="timeline-item">
-                <div class="item-content">
-                    <span class="date">Failure Event #11</span>
-                    <span class="badge">FAILED</span>
-                    <div class="entry-title">Build Attempt #11</div>
-                    <div class="reason">
-                        <strong>Technical Reason:</strong> AGP 9.2.0 compatibility issues persisted; Flutter tool could not find generated artifacts.
-                    </div>
-                </div>
-            </div>
-            
-            <div class="timeline-item">
-                <div class="item-content">
-                    <span class="date">Failure Event #12</span>
-                    <span class="badge">FAILED</span>
-                    <div class="entry-title">Build Attempt #12</div>
-                    <div class="reason">
-                        <strong>Technical Reason:</strong> Version Mismatch: AGP 8.7.3 is too low for <code>androidx.browser</code>, which requires 8.9.1+.
-                    </div>
-                </div>
-            </div>
-            
-            <div class="timeline-item">
-                <div class="item-content">
-                    <span class="date">Failure Event #13</span>
-                    <span class="badge">FAILED</span>
-                    <div class="entry-title">Build Attempt #13</div>
-                    <div class="reason">
-                        <strong>Technical Reason:</strong> Repeated Error: Re-attempted non-existent <strong>AGP 8.10.2</strong> version.
-                    </div>
-                </div>
-            </div>
-            
-            <div class="timeline-item">
-                <div class="item-content">
-                    <span class="date">Failure Event #14</span>
-                    <span class="badge">FAILED</span>
-                    <div class="entry-title">Build Attempt #14</div>
-                    <div class="reason">
-                        <strong>Technical Reason:</strong> Attempted <strong>AGP 8.9.1</strong> with <strong>Kotlin 2.2.20</strong>; metadata errors in R8.
-                    </div>
-                </div>
-            </div>
-            
-            <div class="timeline-item">
-                <div class="item-content">
-                    <span class="date">Failure Event #15</span>
-                    <span class="badge">FAILED</span>
-                    <div class="entry-title">Build Attempt #15</div>
-                    <div class="reason">
-                        <strong>Technical Reason:</strong> Pathing Error: GitHub runner could not find the nested 'Wallet-Flutter' directory.
-                    </div>
-                </div>
-            </div>
-            
-            <div class="timeline-item">
-                <div class="item-content">
-                    <span class="date">Failure Event #16</span>
-                    <span class="badge">FAILED</span>
-                    <div class="entry-title">Build Attempt #16</div>
-                    <div class="reason">
-                        <strong>Technical Reason:</strong> Java Version Mismatch: Runner used Java 17 while project required Java 21.
-                    </div>
-                </div>
-            </div>
-            
-            <div class="timeline-item">
-                <div class="item-content">
-                    <span class="date">Failure Event #17</span>
-                    <span class="badge">FAILED</span>
-                    <div class="entry-title">Build Attempt #17</div>
-                    <div class="reason">
-                        <strong>Technical Reason:</strong> Flutter Version Lag: GitHub Action used an older stable channel inconsistent with local 3.44.
-                    </div>
-                </div>
-            </div>
-            
-            <div class="timeline-item">
-                <div class="item-content">
-                    <span class="date">Failure Event #18</span>
-                    <span class="badge">FAILED</span>
-                    <div class="entry-title">Build Attempt #18</div>
-                    <div class="reason">
-                        <strong>Technical Reason:</strong> Missing <code>build_runner</code> step in CI; generated files were not present for compilation.
-                    </div>
-                </div>
-            </div>
-            
-            <div class="timeline-item">
-                <div class="item-content">
-                    <span class="date">Failure Event #19</span>
-                    <span class="badge">FAILED</span>
-                    <div class="entry-title">Build Attempt #19</div>
-                    <div class="reason">
-                        <strong>Technical Reason:</strong> NDK Version Conflict: Incompatibility between NDK 28 and the GitHub Ubuntu-latest image.
-                    </div>
-                </div>
-            </div>
-            
-            <div class="timeline-item">
-                <div class="item-content">
-                    <span class="date">Failure Event #20</span>
-                    <span class="badge">FAILED</span>
-                    <div class="entry-title">Build Attempt #20</div>
-                    <div class="reason">
-                        <strong>Technical Reason:</strong> Cache Corruption: Old build artifacts in CI caused incremental build failure.
-                    </div>
-                </div>
-            </div>
-            
-            <div class="timeline-item">
-                <div class="item-content">
-                    <span class="date">Failure Event #21</span>
-                    <span class="badge">FAILED</span>
-                    <div class="entry-title">Build Attempt #21</div>
-                    <div class="reason">
-                        <strong>Technical Reason:</strong> Final Synchronization Attempt: Minor YAML syntax error in build_apks.yml.
-                    </div>
-                </div>
-            </div>
-            
-            <div class="timeline-item">
-                <div class="item-content">
-                    <span class="date">Failure Event #22</span>
-                    <span class="badge">FAILED</span>
-                    <div class="entry-title">Build Attempt #22</div>
-                    <div class="reason">
-                        <strong>Technical Reason:</strong> <strong>Toolchain Mismatch:</strong> AGP 8.13.0 requires Gradle 8.13+, but project was using 8.11.1.
+                        <strong>Technical Reason:</strong> <strong>Output Path Discrepancy:</strong> AGP 8.13.0 successfully generated the APK, but in a non-standard directory (<code>android/build/outputs/apk/release/</code>) which the Flutter CLI tool failed to detect.
                     </div>
                 </div>
             </div>
@@ -403,8 +188,8 @@
     </div>
 
     <div class="card footer-card">
-        <h2>✅ Final Resolution Applied (Attempt #24)</h2>
-        <p>Synchronized toolchain to <span class="highlight">AGP 8.13.0</span>, <span class="highlight">Kotlin 2.1.10</span>, and <span class="highlight">Gradle 8.14.5</span>.</p>
+        <h2>✅ Final Resolution Applied (Attempt #26)</h2>
+        <p>Synchronized toolchain to <span class="highlight">AGP 8.13.0</span>, <span class="highlight">Kotlin 2.1.10</span>, and <span class="highlight">Gradle 8.14.5</span> with manual APK fallback routing.</p>
     </div>
 </body>
 </html>

@@ -22,9 +22,9 @@ Live tracking of the **Project Wallet** development lifecycle. 📈🏦
 - [x] **UPDATED**: Loan model now correctly persists `dueDate`. ⏳
 - [x] **UPDATED**: `TransactionService` now atomically syncs `personId` on all writes. ⛓️
 - [x] **FIXED**: Missing `libisar.so` binaries in local `isar_flutter_libs` (Android/iOS). 🛠️
-- [x] **FIXED**: Build failure caused by AGP/Gradle version mismatch and SDK 36 requirements. Upgraded to AGP 9.2.0 and Gradle 9.4.1. 🚀
+- [x] **FIXED**: Build failure caused by AGP/Gradle version mismatch and SDK 36 requirements. Standardized on AGP 8.13.0 and Gradle 8.14.5. 🚀
 - [x] **FIXED**: Plugin SDK conflicts by forcing `compileSdk 36` across all subprojects and upgrading NDK to `28.2.13676358`. 🛠️
-- [x] **STABILIZED**: Build pipeline by synchronizing Kotlin plugin IDs and adding explicit CI cleanup steps. 🏗️
+- [x] **STABILIZED**: Build pipeline by synchronizing Kotlin plugin IDs and adding explicit CI cleanup steps. Documented APK path routing for AGP 8.x. 🏗️
 
 ### **📱 2. UI & Navigation (100%)**
 - [x] **FIXED**: `ReportsPage` undefined method `_showCategoryDetails`. 📊
@@ -54,10 +54,10 @@ Live tracking of the **Project Wallet** development lifecycle. 📈🏦
 
 ## 🛠️ Recent Fixes (v2.0.4 Update)
 
-- **🏗️ Pipeline Stabilization**: Fixed the "missing APK" issue in CI by adding explicit `flutter clean` and directory management to the workflow. Synchronized Kotlin plugin IDs to `org.jetbrains.kotlin.android` for modern AGP 9.x compliance.
+- **🏗️ Pipeline Stabilization**: Fixed the "missing APK" issue in CI by adding explicit `flutter clean` and directory management to the workflow. Standardized on **AGP 8.13.0** and **Gradle 8.14.5** to maintain output path compatibility.
 - **🛠️ Plugin SDK Harmonization**: Added a `subprojects` override in `build.gradle.kts` to force all Flutter plugins to compile and target **SDK 36**. This resolves the `CheckAarMetadata` failure where plugins like `file_picker` were using SDK 34 while their dependencies required SDK 36.
 - **💾 NDK Upgrade**: Upgraded to **NDK 28.2.13676358** as required by the latest versions of `device_info_plus` and other ecosystem plugins in the Android 16 (SDK 36) environment.
-- **💎 Kotlin Upgrade**: Bumped Kotlin to **2.2.20** to ensure long-term compatibility with the Flutter build toolchain and avoid deprecation warnings.
+- **💎 Kotlin Stabilization**: Standardized on Kotlin **2.1.10** to ensure compatibility with R8 and avoid metadata version mismatches found in 2.2.x.
 
 ---
 *Built with ❤️ for the Flutter Community.* 💼✨

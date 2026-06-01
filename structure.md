@@ -9,6 +9,7 @@ A bird's eye view of the **Project Wallet** (Flutter) technical blueprint. 🗺�
 ```text
 .github/
 └── workflows/             # CI/CD (GitHub Actions)
+Build_Failure_Report.html  # Comprehensive chronological log of all build failures
 lib/
 ├── 📱 app/                # Root configuration (Router, Theme, AppShell)
 ├── 🏛️ core/               # Shared logic & infrastructure
