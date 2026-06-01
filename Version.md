@@ -56,3 +56,11 @@
   - **Kotlin Upgrade:** Upgraded Kotlin Gradle Plugin to `2.2.10` for compatibility with AGP 9.x and SDK 36.
   - **SDK Stability:** Maintained `compileSdk` and `targetSdk` at 36 to satisfy AndroidX requirements.
 - **Status:** 100% (Toolchain synchronized and ready for push).
+
+## [2026-06-01 10:45] - Refined Build Toolchain (Kotlin 2.2.20 & NDK 28)
+- **Action:** Finalized Android toolchain configuration to resolve plugin SDK conflicts and NDK requirements.
+- **Changes:**
+  - **SDK Overrides:** Added `subprojects` block in root `build.gradle.kts` to force `compileSdk` and `targetSdk` to 36 for all modules, resolving AAR metadata conflicts in plugins like `file_picker`.
+  - **NDK Upgrade:** Upgraded `ndkVersion` to `28.2.13676358` to satisfy requirements from `device_info_plus` and other modern plugins.
+  - **Kotlin Upgrade:** Bumped Kotlin to `2.2.20` to avoid upcoming deprecation warnings in the Flutter build pipeline.
+- **Status:** 100% (Toolchain refined and SDKs forced for all subprojects).
