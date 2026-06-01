@@ -33,11 +33,10 @@
 ## [2026-06-01 00:42] - Build Fix & CI Transparency
 - **Action:** Resolved build failure caused by API 36/37 preview issues and improved CI visibility.
 - **Changes:**
-  - **SDK Downgrade:** Reverted compileSdk and 	argetSdk to 35 (Android 15) for stable builds, avoiding API 36/37 preview constraints.
-  - **NDK Stabilization:** Hardcoded 
-dkVersion to "27.0.12077973" in uild.gradle.kts.
+  - **SDK Downgrade:** Reverted compileSdk and targetSdk to 35 (Android 15) for stable builds, avoiding API 36/37 preview constraints.
+  - **NDK Stabilization:** Hardcoded ndkVersion to "27.0.12077973" in build.gradle.kts.
   - **CI Improvement:** Modified GitHub Actions to show full build logs in the console (removed redirection to files).
-  - **CI Improvement:** Hardened license acceptance by removing || true from lutter doctor --android-licenses.
+  - **CI Improvement:** Hardened license acceptance by removing || true from flutter doctor --android-licenses.
   - **CI Improvement:** Added mkdir -p android/app before decoding keystore to prevent path errors.
 - **Status:** 100% (Changes applied, ready for verification via CI).
 
@@ -45,6 +44,15 @@ dkVersion to "27.0.12077973" in uild.gradle.kts.
 - **Action:** Upgraded Android build tools to satisfy dependency requirements discovered in CI.
 - **Changes:**
   - **AGP Upgrade:** Bumped Android Gradle Plugin to 8.10.2 in settings.gradle.kts.
-  - **SDK Upgrade:** Increased compileSdk and 	argetSdk to 36 to support modern AndroidX libraries (browser, activity, core).
+  - **SDK Upgrade:** Increased compileSdk and targetSdk to 36 to support modern AndroidX libraries (browser, activity, core).
   - **Validation:** Previous build logs explicitly requested these versions to resolve CheckAarMetadata errors.
 - **Status:** 100% (Upgraded and ready for CI re-run).
+
+## [2026-06-01 10:15] - Corrected Toolchain Upgrade (AGP 9.2.0 & Gradle 9.4.1)
+- **Action:** Corrected invalid AGP version and synchronized toolchain for SDK 36 support.
+- **Changes:**
+  - **AGP Correction:** Fixed typo where Gradle version (8.10.2) was used as AGP version. Upgraded AGP to `9.2.0` (latest stable).
+  - **Gradle Upgrade:** Upgraded Gradle wrapper to `9.4.1` to support AGP 9.2.0 and modern build features.
+  - **Kotlin Upgrade:** Upgraded Kotlin Gradle Plugin to `2.2.10` for compatibility with AGP 9.x and SDK 36.
+  - **SDK Stability:** Maintained `compileSdk` and `targetSdk` at 36 to satisfy AndroidX requirements.
+- **Status:** 100% (Toolchain synchronized and ready for push).
