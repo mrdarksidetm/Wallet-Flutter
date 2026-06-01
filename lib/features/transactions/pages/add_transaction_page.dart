@@ -17,6 +17,7 @@ import '../../../core/theme/color_extension.dart';
 import '../../../core/database/models/auxiliary_models.dart';
 import '../../../core/widgets/expressive_bottom_sheet.dart';
 import '../../../core/services/currency_engine.dart';
+import '../../people/widgets/person_avatar.dart';
 
 class AddTransactionPage extends ConsumerStatefulWidget {
   final TransactionModel? transaction;
@@ -143,10 +144,12 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
             const SizedBox(height: 16),
             _buildDateTimePicker(colorScheme),
             const SizedBox(height: 16),
-            _buildCategorySelector(colorScheme),
-            const SizedBox(height: 16),
-            _buildIconAndColorOverrides(theme, colorScheme, effectiveIcon, effectiveColor),
-            const SizedBox(height: 24),
+            if (_transactionType != TransactionType.transfer) ...[
+              _buildCategorySelector(colorScheme),
+              const SizedBox(height: 16),
+              _buildIconAndColorOverrides(theme, colorScheme, effectiveIcon, effectiveColor),
+              const SizedBox(height: 24),
+            ],
             _buildPeopleAndLoanSection(theme, colorScheme),
             const SizedBox(height: 24),
             _buildAccountSelector(colorScheme),
@@ -365,7 +368,9 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
         const SizedBox(height: 8),
         ListTile(
           onTap: () => _showPersonPicker(peopleAsync.value ?? []),
-          leading: const Icon(Symbols.person),
+          leading: _selectedPerson != null 
+            ? PersonAvatar(person: _selectedPerson!, radius: 16)
+            : const Icon(Symbols.person),
           title: const Text('With Person'),
           subtitle: Text(_selectedPerson?.name ?? 'None'),
           trailing: _selectedPerson != null 
@@ -433,7 +438,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
       return;
     }
 
-    if (_selectedAccount == null || _selectedCategory == null) {
+    if (_selectedAccount == null || (_transactionType != TransactionType.transfer && _selectedCategory == null)) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select account and category')));
       return;
     }
@@ -487,7 +492,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
       } else {
         await service.addTransaction(
           amount: amount, date: _selectedDateTime, type: _transactionType,
-          account: _selectedAccount!, category: _selectedCategory!,
+          account: _selectedAccount!, category: _selectedCategory,
           note: _noteController.text.isNotEmpty ? _noteController.text : null,
           transferAccount: _selectedTransferAccount, icon: _selectedIcon,
           color: _selectedColor, person: _selectedPerson,
@@ -548,33 +553,84 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
         title: 'Select Person',
         child: Column(
           children: [
+            ListTile(
+              leading: CircleAvatar(
+                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                child: Icon(Icons.add_rounded, color: Theme.of(context).colorScheme.onPrimaryContainer),
+              ),
+              title: const Text('Add New Person', style: TextStyle(fontWeight: FontWeight.bold)),
+              onTap: () {
+                Navigator.pop(context);
+                _showAddPersonDialog();
+              },
+            ),
+            const Divider(height: 1),
             if (people.isEmpty)
-              Padding(
-                padding: const EdgeInsets.all(32.0),
+              const Padding(
+                padding: EdgeInsets.all(32.0),
                 child: Column(
                   children: [
-                    const Icon(Symbols.person_off, size: 48, color: Colors.grey),
-                    const SizedBox(height: 16),
-                    const Text('No people found. Add them in the People tab.'),
-                    const SizedBox(height: 16),
-                    TextButton.icon(
-                      onPressed: () { Navigator.pop(context); context.push('/people'); },
-                      icon: const Icon(Symbols.add),
-                      label: const Text('Go to People'),
-                    )
+                    Icon(Symbols.person_off, size: 48, color: Colors.grey),
+                    SizedBox(height: 16),
+                    Text('No people found.'),
                   ],
                 ),
               ),
-            ...people.map((p) => ListTile(
-              leading: CircleAvatar(
-                backgroundColor: p.color.parseHexColor(),
-                child: Text(p.name[0].toUpperCase(), style: const TextStyle(color: Colors.white)),
-              ),
-              title: Text(p.name),
-              onTap: () { setState(() => _selectedPerson = p); Navigator.pop(context); },
-            )),
+            ...people.map((p) {
+              final color = p.color.parseHexColor();
+              final isSelected = _selectedPerson?.id == p.id;
+              return ListTile(
+                leading: PersonAvatar(person: p, radius: 20),
+                title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: p.contact != null ? Text(p.contact!) : null,
+                trailing: isSelected ? Icon(Icons.check_circle, color: color) : null,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                onTap: () {
+                  setState(() => _selectedPerson = p);
+                  Navigator.pop(context);
+                },
+              );
+            }),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showAddPersonDialog() {
+    final nameController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Add Person'),
+        content: TextField(
+          controller: nameController,
+          decoration: const InputDecoration(labelText: 'Name', hintText: 'Enter name...'),
+          autofocus: true,
+          textCapitalization: TextCapitalization.words,
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
+          TextButton(
+            onPressed: () async {
+              if (nameController.text.isNotEmpty) {
+                final person = Person()
+                  ..name = nameController.text
+                  ..color = '0x${Colors.blue.value.toRadixString(16).toUpperCase()}'
+                  ..createdAt = DateTime.now()
+                  ..updatedAt = DateTime.now();
+                await ref.read(personServiceProvider).savePerson(person);
+                setState(() {
+                  _selectedPerson = person;
+                });
+                if (context.mounted) Navigator.pop(context);
+              }
+            },
+            child: const Text('Add'),
+          ),
+        ],
       ),
     );
   }

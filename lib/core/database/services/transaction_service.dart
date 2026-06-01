@@ -23,7 +23,7 @@ class TransactionService {
     required DateTime date,
     required TransactionType type,
     required Account account,
-    required Category category,
+    Category? category,
     Person? person,
     String? note,
     String? icon,
@@ -39,6 +39,9 @@ class TransactionService {
     if (type == TransactionType.transfer && account.id == transferAccount?.id) {
       throw Exception('Cannot transfer to the same account');
     }
+    if (type != TransactionType.transfer && category == null) {
+      throw Exception('Category is required for income/expense');
+    }
 
     await isar.writeTxn(() async {
       final transaction = TransactionModel()
@@ -46,19 +49,19 @@ class TransactionService {
         ..date = date
         ..type = type
         ..note = note
-        ..icon = icon ?? category.icon // Inherit category icon if null
-        ..color = color ?? category.color // Inherit category color if null
+        ..icon = icon ?? category?.icon ?? 'swap_horiz' // Inherit category icon or use transfer icon
+        ..color = color ?? category?.color ?? '0xFF9E9E9E' // Inherit category color or use grey
         ..tags = tags
         ..createdAt = DateTime.now()
         ..updatedAt = DateTime.now();
 
       transaction.account.value = account;
-      transaction.category.value = category;
+      if (category != null) transaction.category.value = category;
       transaction.person.value = person;
 
       // Sync IDs for faster querying without loading links
       transaction.accountId = account.id;
-      transaction.categoryId = category.id;
+      transaction.categoryId = category?.id ?? 0;
       transaction.personId = person?.id ?? 0;
 
       // 2. Update Balance
@@ -142,15 +145,22 @@ class TransactionService {
       }
 
       // 3. Apply New Balance
-      final newAcc = newTransaction.account.value;
-      final newTransferAcc = newTransaction.transferAccount.value;
+      // Fetch fresh copies of accounts to avoid stale balances after revert
+      final newAccId = newTransaction.account.value?.id;
+      final newTransferAccId = newTransaction.transferAccount.value?.id;
+
+      final newAcc = newAccId != null ? await isar.accounts.get(newAccId) : null;
+      final newTransferAcc = newTransferAccId != null
+          ? await isar.accounts.get(newTransferAccId)
+          : null;
 
       if (newAcc != null) {
         if (newTransaction.type == TransactionType.income) {
           newAcc.balance += newTransaction.amount;
         } else if (newTransaction.type == TransactionType.expense) {
           newAcc.balance -= newTransaction.amount;
-        } else if (newTransaction.type == TransactionType.transfer && newTransferAcc != null) {
+        } else if (newTransaction.type == TransactionType.transfer &&
+            newTransferAcc != null) {
           newAcc.balance -= newTransaction.amount;
           newTransferAcc.balance += newTransaction.amount;
           await isar.accounts.put(newTransferAcc);
@@ -158,7 +168,10 @@ class TransactionService {
 
         // [ACTION]: Apply New Goal progress
         if (newAcc.type == AccountType.savings) {
-          final linkedGoals = await isar.goals.filter().account((q) => q.idEqualTo(newAcc.id)).findAll();
+          final linkedGoals = await isar.goals
+              .filter()
+              .account((q) => q.idEqualTo(newAcc.id))
+              .findAll();
           for (var goal in linkedGoals) {
             if (newTransaction.type == TransactionType.income) {
               goal.currentAmount += newTransaction.amount;
@@ -170,6 +183,12 @@ class TransactionService {
           }
         }
         await isar.accounts.put(newAcc);
+
+        // Update the link in the transaction model with the fresh account
+        newTransaction.account.value = newAcc;
+        if (newTransferAcc != null) {
+          newTransaction.transferAccount.value = newTransferAcc;
+        }
       }
 
       // 4. Inherit category icon/color if null

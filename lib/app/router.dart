@@ -132,8 +132,9 @@ final routerProvider = Provider<GoRouter>((ref) {
               AddTransactionPage(
                   transaction: state.extra as TransactionModel?)),
       _rootRoute('/add_account',
-              (state) => AddEditAccountPage(account: state.extra as Account?)),
-      _rootRoute('/add_loan', (_) => const AddEditLoanPage()),
+          (state) => AddEditAccountPage(account: state.extra as Account?)),
+      _rootRoute('/add_loan',
+          (state) => AddEditLoanPage(loan: state.extra as Loan?)),
       _rootRoute(
           '/add_recurring',
               (state) =>
@@ -317,6 +318,7 @@ class _FAB extends ConsumerWidget {
       '/add_category',
       '/budgets',
       '/bill_splitter',
+      '/activity_heatmap',
     ];
     // Don't hide for /reports anymore
     return hiddenRoutes

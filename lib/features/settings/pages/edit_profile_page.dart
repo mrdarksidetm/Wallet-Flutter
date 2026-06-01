@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import '../../../core/theme/personalization_provider.dart';
 import '../../../core/widgets/primary_atelier_button.dart';
+import '../../../core/services/file_service.dart';
 
 class EditProfilePage extends ConsumerStatefulWidget {
   const EditProfilePage({super.key});
@@ -75,10 +76,18 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       );
       return;
     }
+
+    String? finalPhotoPath = _selectedImagePath;
+    final currentState = ref.read(personalizationProvider);
+    
+    // [ACTION]: Only persist the image if it's a new selection (different from current).
+    if (_selectedImagePath != null && _selectedImagePath != currentState.userPhoto) {
+      finalPhotoPath = await FileService.saveImagePermanently(_selectedImagePath!);
+    }
     
     ref.read(personalizationProvider.notifier).updateProfile(
       name: _nameController.text,
-      photo: _selectedImagePath,
+      photo: finalPhotoPath,
     );
     
     if (mounted) {

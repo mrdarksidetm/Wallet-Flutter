@@ -2,7 +2,7 @@ name: wallet
 description: A new Flutter project.
 publish_to: 'none'
 
-version: 2.0.1+1
+version: 2.6.0+1
 
 environment:
   sdk: ">=3.5.0 <4.0.0"
@@ -61,8 +61,8 @@ dependencies:
   dio: ^5.7.0
   rxdart: ^0.28.0
 
-# Feedback (Phase 14)
-  vibration: ^2.0.1
+  # Feedback (Phase 14)
+  vibration: ^3.1.8
   go_router: ^17.1.0
   device_info_plus: ^11.5.0
   image_picker: ^1.2.1
@@ -72,6 +72,7 @@ dependencies:
   restart_app: ^1.7.3
   smooth_page_indicator: ^2.0.1
   flutter_heatmap_calendar: ^1.0.5
+  archive: ^4.0.9
 
 dev_dependencies:
   flutter_test:

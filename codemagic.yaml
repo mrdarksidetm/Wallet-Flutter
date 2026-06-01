@@ -53,13 +53,16 @@ workflows:
         script: |
           mkdir -p artifacts
           
-          # Single build command to generate both split and universal APKs
+          # 1. Build Universal (Fat) APK
+          flutter build apk --release --no-tree-shake-icons
+          cp build/app/outputs/flutter-apk/app-release.apk artifacts/Wallet-universal.apk
+          
+          # 2. Build Split APKs
           flutter build apk --release --split-per-abi --no-tree-shake-icons
           
-          # Bruteforce find to locate artifacts regardless of path variations
+          # Bruteforce find to locate split artifacts regardless of path variations
           find . -name "app-armeabi-v7a-release.apk" -exec cp {} artifacts/Wallet-armeabi-v7a.apk \;
           find . -name "app-arm64-v8a-release.apk" -exec cp {} artifacts/Wallet-arm64-v8a.apk \;
-          find . -name "app-release.apk" -exec cp {} artifacts/Wallet-universal.apk \;
           
           # Final check
           ls -R artifacts/

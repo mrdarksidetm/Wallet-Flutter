@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/database/providers.dart';
@@ -157,6 +158,7 @@ class LoansPage extends ConsumerWidget {
                       .withValues(alpha: 0.5)
                   : null,
               child: ListTile(
+                onTap: () => context.push('/add_loan', extra: item),
                 leading: item.person.value != null
                     ? PersonAvatar(person: item.person.value!, radius: 24)
                     : CircleAvatar(

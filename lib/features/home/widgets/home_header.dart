@@ -61,18 +61,24 @@ class HomeHeader extends StatelessWidget {
                 onTap: () {
                   context.push('/edit_profile');
                 },
-                child: CircleAvatar(
-                  radius: 20,
-                  backgroundColor: colorScheme.surfaceContainerHighest,
-                  backgroundImage: userPhoto != null ? FileImage(File(userPhoto!)) : null,
-                  child: userPhoto == null
-                      ? Icon(
-                          Symbols.person,
-                          size: 20,
-                          color: colorScheme.onSurfaceVariant,
-                        )
-                      : null,
-                ),
+                child: () {
+                  final bool hasValidPhoto = userPhoto != null && File(userPhoto!).existsSync();
+                  
+                  return CircleAvatar(
+                    radius: 20,
+                    backgroundColor: colorScheme.surfaceContainerHighest,
+                    backgroundImage: hasValidPhoto 
+                        ? FileImage(File(userPhoto!)) 
+                        : null,
+                    child: !hasValidPhoto
+                        ? Icon(
+                            Symbols.person,
+                            size: 20,
+                            color: colorScheme.onSurfaceVariant,
+                          )
+                        : null,
+                  );
+                }(),
               ),
             ],
           ),

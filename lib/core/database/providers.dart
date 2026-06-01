@@ -166,7 +166,7 @@ final jsonServiceProvider = Provider<JsonService>((ref) {
 
 final backupServiceProvider = Provider<BackupService>((ref) {
   final isar = ref.watch(isarProvider).value!;
-  return BackupService(isar);
+  return BackupService(isar, ref);
 });
 
 final performanceAuditServiceProvider =
@@ -197,6 +197,13 @@ final totalAssetBalanceProvider = StreamProvider<double>((ref) {
 });
 
 // --- Settings Providers ---
+enum TransactionSort {
+  date,
+  account,
+}
+
+final transactionSortProvider = StateProvider<TransactionSort>((ref) => TransactionSort.date);
+
 final currencyProvider = Provider<String>((ref) {
   final personalization = ref.watch(personalizationProvider);
   final currency = personalization.defaultCurrency;
@@ -287,6 +294,12 @@ final transactionsStreamProvider =
     StreamProvider<List<TransactionModel>>((ref) {
   final repo = ref.watch(transactionRepositoryProvider);
   return repo.watchLatest();
+});
+
+final allTransactionsStreamProvider =
+    StreamProvider<List<TransactionModel>>((ref) {
+  final repo = ref.watch(transactionRepositoryProvider);
+  return repo.watchAll();
 });
 
 final archivedTransactionsStreamProvider =

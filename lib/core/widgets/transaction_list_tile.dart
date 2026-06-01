@@ -9,8 +9,10 @@ import '../theme/color_extension.dart';
 import '../services/currency_engine.dart';
 import 'icon_picker.dart';
 import 'expressive_bottom_sheet.dart';
+import '../../features/people/widgets/person_avatar.dart';
 
 class TransactionListTile extends ConsumerWidget {
+
   final TransactionModel tx;
   final VoidCallback? onTap;
 
@@ -141,12 +143,26 @@ class TransactionListTile extends ConsumerWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        subtitle: Text(
-          DateFormat.yMMMMd().format(tx.date),
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: colorScheme.onSurface.withValues(alpha: 0.5),
-            fontWeight: FontWeight.bold,
-          ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              DateFormat.yMMMMd().format(tx.date),
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: colorScheme.onSurface.withValues(alpha: 0.5),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                _AccountPill(accountId: tx.accountId),
+                if (tx.personId != 0) _PersonPill(personId: tx.personId),
+              ],
+            ),
+          ],
         ),
         trailing: Text(
           '${isIncome ? '+' : '-'}${CurrencyEngine.formatCurrency(tx.amount, selectedCurrency)}',
@@ -157,6 +173,113 @@ class TransactionListTile extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _AccountPill extends ConsumerWidget {
+  final int accountId;
+  const _AccountPill({required this.accountId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final accountsAsync = ref.watch(accountsStreamProvider);
+    final theme = Theme.of(context);
+
+    return accountsAsync.when(
+      data: (accounts) {
+        final account = accounts.where((a) => a.id == accountId).firstOrNull;
+        if (account == null) return const SizedBox.shrink();
+
+        final accountColor = account.color.parseHexColor();
+        final icon = AppIcons.getIcon(account.icon);
+
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          decoration: BoxDecoration(
+            color: accountColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: accountColor.withValues(alpha: 0.2),
+              width: 0.5,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 10,
+                color: accountColor,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                account.name,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: accountColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 10,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+}
+
+class _PersonPill extends ConsumerWidget {
+  final int personId;
+  const _PersonPill({required this.personId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final personsAsync = ref.watch(personsStreamProvider);
+    final theme = Theme.of(context);
+
+    return personsAsync.when(
+      data: (persons) {
+        final person = persons.where((p) => p.id == personId).firstOrNull;
+        if (person == null) return const SizedBox.shrink();
+
+        final personColor = person.color.parseHexColor();
+
+        return Container(
+          padding: const EdgeInsets.fromLTRB(2, 2, 8, 2),
+          decoration: BoxDecoration(
+            color: personColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(100),
+            border: Border.all(
+              color: personColor.withValues(alpha: 0.2),
+              width: 0.5,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              PersonAvatar(
+                person: person,
+                radius: 8,
+                fontSize: 8,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                person.name,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: personColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 10,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 }

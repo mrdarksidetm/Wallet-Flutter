@@ -96,20 +96,25 @@ class HomePage extends ConsumerWidget {
                       const SizedBox(width: 8),
                       GestureDetector(
                         onTap: () => context.push('/edit_profile'),
-                        child: CircleAvatar(
-                          radius: 18,
-                          backgroundColor: colorScheme.surfaceContainerHighest,
-                          backgroundImage: personalization.userPhoto != null 
-                              ? FileImage(File(personalization.userPhoto!)) 
-                              : null,
-                          child: personalization.userPhoto == null
-                              ? Icon(
-                                  Symbols.person,
-                                  size: 18,
-                                  color: colorScheme.onSurfaceVariant,
-                                )
-                              : null,
-                        ),
+                        child: () {
+                          final photoPath = personalization.userPhoto;
+                          final bool hasValidPhoto = photoPath != null && File(photoPath).existsSync();
+                          
+                          return CircleAvatar(
+                            radius: 18,
+                            backgroundColor: colorScheme.surfaceContainerHighest,
+                            backgroundImage: hasValidPhoto 
+                                ? FileImage(File(photoPath)) 
+                                : null,
+                            child: !hasValidPhoto
+                                ? Icon(
+                                    Symbols.person,
+                                    size: 18,
+                                    color: colorScheme.onSurfaceVariant,
+                                  )
+                                : null,
+                          );
+                        }(),
                       ),
                       const SizedBox(width: 24),
                     ],
@@ -137,7 +142,44 @@ class HomePage extends ConsumerWidget {
                   const SliverToBoxAdapter(child: SizedBox(height: 32)),
                   const _SectionHeader(title: 'Activity Insights'),
                   const SliverToBoxAdapter(child: ActivityInsightsSection()),
-                  const _SectionHeader(title: 'Recent Transactions'),
+                  _SectionHeader(
+                    title: 'Recent Transactions',
+                    trailing: Consumer(
+                      builder: (context, ref, _) {
+                        final sortType = ref.watch(transactionSortProvider);
+                        final colorScheme = Theme.of(context).colorScheme;
+                        return PopupMenuButton<TransactionSort>(
+                          icon: const Icon(Symbols.sort, size: 20),
+                          tooltip: 'Sort Transactions',
+                          onSelected: (value) {
+                            ref.read(transactionSortProvider.notifier).state = value;
+                          },
+                          itemBuilder: (context) => [
+                            PopupMenuItem(
+                              value: TransactionSort.date,
+                              child: Row(
+                                children: [
+                                  Icon(Symbols.calendar_month, size: 18, color: sortType == TransactionSort.date ? colorScheme.primary : null),
+                                  const SizedBox(width: 8),
+                                  const Text('Date'),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem(
+                              value: TransactionSort.account,
+                              child: Row(
+                                children: [
+                                  Icon(Symbols.account_balance_wallet, size: 18, color: sortType == TransactionSort.account ? colorScheme.primary : null),
+                                  const SizedBox(width: 8),
+                                  const Text('Account'),
+                                ],
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
                   const _HomeRecentTransactions(),
                   SliverToBoxAdapter(
                     child: Padding(
@@ -170,19 +212,26 @@ class HomePage extends ConsumerWidget {
 
 class _SectionHeader extends StatelessWidget {
   final String title;
-  const _SectionHeader({required this.title});
+  final Widget? trailing;
+  const _SectionHeader({required this.title, this.trailing});
 
   @override
   Widget build(BuildContext context) {
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 32, 24, 16),
-        child: Text(
-          title,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w900,
-            letterSpacing: -0.5,
-          ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w900,
+                letterSpacing: -0.5,
+              ),
+            ),
+            if (trailing != null) trailing!,
+          ],
         ),
       ),
     );
@@ -307,6 +356,8 @@ class _HomeRecentTransactions extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final transactionsAsync = ref.watch(transactionsStreamProvider);
+    final sortType = ref.watch(transactionSortProvider);
+    final accountsAsync = ref.watch(accountsStreamProvider);
 
     return transactionsAsync.when(
       data: (transactions) {
@@ -321,7 +372,27 @@ class _HomeRecentTransactions extends ConsumerWidget {
           );
         }
 
-        final recentTxs = transactions.take(10).toList();
+        final sortedTxs = [...transactions];
+        
+        if (sortType == TransactionSort.date) {
+          // Already sorted by date desc from provider
+        } else if (sortType == TransactionSort.account) {
+          accountsAsync.whenData((accounts) {
+            sortedTxs.sort((a, b) {
+              final accA = accounts.where((acc) => acc.id == a.accountId).firstOrNull;
+              final accB = accounts.where((acc) => acc.id == b.accountId).firstOrNull;
+              
+              final nameA = accA?.name ?? '';
+              final nameB = accB?.name ?? '';
+              
+              final accountCompare = nameA.compareTo(nameB);
+              if (accountCompare != 0) return accountCompare;
+              return b.date.compareTo(a.date);
+            });
+          });
+        }
+
+        final recentTxs = sortedTxs.take(10).toList();
         return SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           sliver: SliverList(

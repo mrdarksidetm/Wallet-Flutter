@@ -213,7 +213,34 @@ class JsonService {
         await transaction.account.save();
         await transaction.category.save();
       }
+
+      // 6. Recalculate Account Balances after all transactions are imported
+      await _recalculateBalances();
     });
+  }
+
+  Future<void> _recalculateBalances() async {
+    final accounts = await isar.accounts.where().findAll();
+    for (var account in accounts) {
+      final transactions = await isar.transactionModels
+          .filter()
+          .accountIdEqualTo(account.id)
+          .isDeletedEqualTo(false)
+          .findAll();
+
+      double balance = 0.0;
+      for (var tx in transactions) {
+        if (tx.type == TransactionType.income) {
+          balance += tx.amount;
+        } else if (tx.type == TransactionType.expense) {
+          balance -= tx.amount;
+        }
+        // Transfers are tricky if both accounts are in the same backup, 
+        // but for a single account import, we just consider its own involvement.
+      }
+      account.balance = balance;
+      await isar.accounts.put(account);
+    }
   }
 
   Future<void> _importStandardBackup(List<dynamic> jsonList) async {

@@ -49,7 +49,8 @@ class _PaisaDonutChartState extends State<PaisaDonutChart> with SingleTickerProv
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final total = widget.breakdown.values.fold(0.0, (sum, v) => sum + v);
-    final entries = widget.breakdown.entries.toList();
+    // [CLEANUP]: Sort by value to make the chart look more organized (Editorial feel)
+    final entries = widget.breakdown.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
 
     return GestureDetector(
       onTapUp: (details) {
@@ -58,8 +59,8 @@ class _PaisaDonutChartState extends State<PaisaDonutChart> with SingleTickerProv
         final center = Offset(box.size.width / 2, box.size.height / 2);
         final double distance = (localOffset - center).distance;
         
-        // Only trigger if tapping within the donut ring area.
-        if (distance > 60 && distance < 110) {
+        // [PRECISION]: Adjusted hit-testing area for the donut ring
+        if (distance > 50 && distance < 120) {
           final double angle = math.atan2(localOffset.dy - center.dy, localOffset.dx - center.dx) + math.pi / 2;
           final normalizedAngle = angle < 0 ? angle + 2 * math.pi : angle;
           
@@ -98,7 +99,8 @@ class _PaisaDonutChartState extends State<PaisaDonutChart> with SingleTickerProv
               },
             ),
             // Central Label
-            Container(
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
               padding: const EdgeInsets.all(40),
               decoration: const BoxDecoration(shape: BoxShape.circle),
               child: Column(
@@ -112,6 +114,7 @@ class _PaisaDonutChartState extends State<PaisaDonutChart> with SingleTickerProv
                     style: theme.textTheme.labelMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -125,6 +128,7 @@ class _PaisaDonutChartState extends State<PaisaDonutChart> with SingleTickerProv
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w900,
                         letterSpacing: -1.0,
+                        color: _touchedIndex == -1 ? null : entries[_touchedIndex].key.color.parseHexColor(),
                       ),
                     ),
                   ),
@@ -153,13 +157,13 @@ class _PaisaDonutPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    const double baseStrokeWidth = 32.0;
+    const double baseStrokeWidth = 28.0;
     final Offset center = Offset(size.width / 2, size.height / 2);
-    final double radius = (size.width - 60) / 2;
+    final double radius = (size.width - 80) / 2;
 
     final Paint paint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
+      ..strokeCap = StrokeCap.round; // Keep round for premium feel, but manage gaps
 
     if (total == 0) {
       canvas.drawCircle(center, radius, paint..color = Colors.grey.withValues(alpha: 0.1)..strokeWidth = baseStrokeWidth);
@@ -167,22 +171,36 @@ class _PaisaDonutPainter extends CustomPainter {
     }
 
     double currentAngle = -math.pi / 2;
-    final entries = breakdown.entries.toList();
+    // Must sort same as builder
+    final entries = breakdown.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+
+    // Calculate gap in radians (approx 4 degrees)
+    final double gapAngle = entries.length > 1 ? (0.04 * 2 * math.pi) : 0;
+    final double availableAngle = (2 * math.pi) - (gapAngle * entries.length);
 
     for (int i = 0; i < entries.length; i++) {
       final entry = entries[i];
-      final sweepAngle = (entry.value / total) * 2 * math.pi * progress;
+      final double sweepAngle = (entry.value / total) * availableAngle * progress;
       final bool isTouched = i == touchedIndex;
       
       paint.color = entry.key.color.parseHexColor();
-      paint.strokeWidth = isTouched ? baseStrokeWidth + 8 : baseStrokeWidth;
+      paint.strokeWidth = isTouched ? baseStrokeWidth + 12 : baseStrokeWidth;
       
       // Add a slight pop effect for the touched segment
-      final double effectiveRadius = isTouched ? radius + 4 : radius;
+      final double effectiveRadius = isTouched ? radius + 6 : radius;
       final Rect rect = Rect.fromCircle(center: center, radius: effectiveRadius);
 
-      canvas.drawArc(rect, currentAngle, sweepAngle, false, paint);
-      currentAngle += sweepAngle;
+      if (sweepAngle > 0.01) { // Avoid painting tiny artifacts
+        canvas.drawArc(
+          rect, 
+          currentAngle + (gapAngle / 2), 
+          sweepAngle, 
+          false, 
+          paint
+        );
+      }
+      
+      currentAngle += sweepAngle + gapAngle;
     }
   }
 

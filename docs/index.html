@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Project Wallet</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0061A4',
+                        'primary-dim': '#004689',
+                        surface: '#FBF9F9',
+                        'on-surface': '#313234',
+                        'surface-container': '#EFEDEE'
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.5rem",
+                        lg: "1rem",
+                        xl: "1.5rem",
+                        full: "9999px",
+                        'xl-card': '24px'
+                    },
+                    fontFamily: {
+                        sans: ["Google Sans Flex", "Inter", "sans-serif"],
+                        emoji: ["iOS Emoji", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @font-face {
+            font-family: 'Google Sans Flex';
+            src: url('https://mrdarksidetm.github.io/Wallet-Flutter/fonts/google-sans-flex.ttf') format('truetype');
+            font-weight: 100 900;
+        }
+        @font-face {
+            font-family: 'iOS Emoji';
+            src: url('https://mrdarksidetm.github.io/Wallet-Flutter/fonts/ios-emoji.ttf') format('truetype');
+        }
+        body {
+            background-color: #FBF9F9;
+            color: #313234;
+            font-family: 'Google Sans Flex', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .emoji { font-family: 'iOS Emoji', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .bg-grid {
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, rgba(0, 97, 164, 0.03) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(0, 97, 164, 0.03) 1px, transparent 1px);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-grid">
+    
+
+<nav class="fixed top-0 w-full z-50 bg-[#FBF9F9]/80 backdrop-blur-md border-b border-slate-200/50">
+    <div class="max-w-7xl mx-auto px-6 flex justify-between items-center h-20">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20 p-2">
+                <img src="https://mrdarksidetm.github.io/Wallet-Flutter/logo.svg" alt="logo" class="w-full h-full" />
+            </div>
+            <div class="text-2xl font-black tracking-tighter text-slate-900 uppercase">FORGE</div>
+        </div>
+        
+<div class="hidden md:flex items-center gap-6 font-medium tracking-tight">
+    <a class="text-primary font-bold border-b-2 border-primary pb-1" href="./">Features</a>
+    <a class="text-slate-600 hover:text-primary transition-all px-3 py-2" href="https://mrdarksidetm.github.io">Home Hub</a>
+    <a class="text-slate-600 hover:text-primary transition-all px-3 py-2" href="https://github.com/mrdarksidetm/wallet-flutter">GitHub</a>
+</div>
+        
+    </div>
+</nav>
+
+
+    
+<main class="flex-grow pt-32 pb-24 px-6 md:px-12 max-w-7xl mx-auto w-full flex flex-col gap-24">
+    
+<nav class="fixed top-0 w-full z-50 bg-[#FBF9F9]/80 backdrop-blur-md border-b border-slate-200/50">
+    <div class="max-w-7xl mx-auto px-6 flex justify-between items-center h-20">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20 p-2">
+                <img src="https://mrdarksidetm.github.io/Wallet-Flutter/logo.svg" alt="logo" class="w-full h-full" />
+            </div>
+            <div class="text-2xl font-black tracking-tighter text-slate-900 uppercase">FORGE</div>
+        </div>
+        <div class="hidden md:flex items-center gap-6 font-medium tracking-tight">
+            <a class="text-slate-600 hover:text-primary transition-all px-3 py-2" href="https://mrdarksidetm.github.io/">Ecosystem</a>
+            <a class="text-slate-600 hover:text-primary transition-all px-3 py-2" href="https://mrdarksidetm.github.io/WinForge/">WinForge</a>
+            <a class="text-primary font-bold border-b-2 border-primary pb-1" href="https://mrdarksidetm.github.io/Wallet-Flutter/">Wallet</a>
+            <a class="text-slate-600 hover:text-primary transition-all px-3 py-2" href="https://mrdarksidetm.github.io/about.html">About</a>
+        </div>
+        
+    </div>
+</nav>
+
+
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
+        <div class="bg-surface-container rounded-xl-card p-10 group hover:shadow-xl transition-all duration-500">
+            <div class="w-12 h-12 rounded-xl bg-white flex items-center justify-center text-primary shadow-sm mb-6">
+                <span class="material-symbols-outlined">shield</span>
+            </div>
+            <h3 class="text-2xl font-black mb-4">100% Private</h3>
+            <p class="text-slate-600 font-semibold">Your data never leaves your device. No cloud, no leaks.</p>
+        </div>
+        <div class="bg-surface-container rounded-xl-card p-10 group hover:shadow-xl transition-all duration-500">
+            <div class="w-12 h-12 rounded-xl bg-white flex items-center justify-center text-primary shadow-sm mb-6">
+                <span class="material-symbols-outlined">bolt</span>
+            </div>
+            <h3 class="text-2xl font-black mb-4">120 FPS</h3>
+            <p class="text-slate-600 font-semibold">Fluid animations and Material 3 geometry at its finest.</p>
+        </div>
+        <div class="bg-surface-container rounded-xl-card p-10 group hover:shadow-xl transition-all duration-500">
+            <div class="w-12 h-12 rounded-xl bg-white flex items-center justify-center text-primary shadow-sm mb-6">
+                <span class="material-symbols-outlined">analytics</span>
+            </div>
+            <h3 class="text-2xl font-black mb-4">Analytics</h3>
+            <p class="text-slate-600 font-semibold">Powerful heatmaps and budget tracking for power users.</p>
+        </div>
+    </section>
+</main>
+
+    
+
+<footer class="w-full bg-slate-50 border-t border-slate-200 mt-auto py-16">
+    <div class="max-w-7xl mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-10">
+        <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white p-2">
+                <img src="https://mrdarksidetm.github.io/Wallet-Flutter/logo.svg" alt="logo" class="w-full h-full" />
+            </div>
+            <div class="text-2xl font-black text-slate-900 tracking-tighter uppercase">FORGE</div>
+        </div>
+        <div class="flex flex-wrap justify-center gap-10 text-sm font-black uppercase tracking-[0.2em] text-slate-400">
+            <a class="hover:text-primary transition-colors" href="https://github.com/mrdarksidetm">GitHub</a>
+            <a class="hover:text-primary transition-colors" href="mailto:contact.dsidetm@gmail.com">Contact</a>
+        </div>
+        <div class="text-xs text-slate-400 font-black uppercase tracking-[0.2em]">
+            © 2026 Project Wallet <span class="emoji ml-2 text-primary">✨</span>
+        </div>
+    </div>
+</footer>
+
+
+</body>
+</html>
