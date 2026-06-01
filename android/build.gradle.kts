@@ -7,9 +7,8 @@ allprojects {
 
 subprojects {
     afterEvaluate {
-        val extension = extensions.findByName("android")
-        if (extension is com.android.build.gradle.BaseExtension) {
-            extension.apply {
+        if (project.hasProperty("android")) {
+            project.extensions.configure<com.android.build.gradle.BaseExtension>("android") {
                 compileSdkVersion(36)
                 defaultConfig {
                     targetSdk = 36

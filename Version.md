@@ -64,3 +64,11 @@
   - **NDK Upgrade:** Upgraded `ndkVersion` to `28.2.13676358` to satisfy requirements from `device_info_plus` and other modern plugins.
   - **Kotlin Upgrade:** Bumped Kotlin to `2.2.20` to avoid upcoming deprecation warnings in the Flutter build pipeline.
 - **Status:** 100% (Toolchain refined and SDKs forced for all subprojects).
+
+## [2026-06-01 11:15] - Build Pipeline Stabilization (Plugin ID & CI Cleanup)
+- **Action:** Resolved "missing APK" issue and synchronized plugin definitions for AGP 9.x.
+- **Changes:**
+  - **Plugin ID Fix:** Synchronized Kotlin plugin ID in `app/build.gradle.kts` to `org.jetbrains.kotlin.android` to match `settings.gradle.kts` and 2026 Flutter standards.
+  - **SDK Override Refinement:** Optimized the `subprojects` block in `build.gradle.kts` to more reliably target and override Android extensions in multi-project builds.
+  - **CI Workflow Hardening:** Added explicit `flutter clean`, `flutter pub get`, and `mkdir -p` for symbols in the CI workflow to ensure a clean build state and correct output capture.
+- **Status:** 100% (Build pipeline stabilized and ready for production APK generation).
