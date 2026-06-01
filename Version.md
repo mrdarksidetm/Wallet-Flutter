@@ -80,3 +80,11 @@
   - **NDK Revert:** Reverted `ndkVersion` to `27.0.12077973` for broader environment compatibility.
   - **CI Verbosity:** Added `--verbose` and `--no-tree-shake-icons` to GitHub workflow build commands to expose hidden errors and prevent known icon-shaking crashes.
 - **Status:** 100% (Build configuration stabilized and debug flags enabled for next CI run).
+
+## [2026-06-01 16:30] - Mandatory SDK 36 Upgrade for Dependency Compatibility
+- **Action:** Upgraded compileSdk and targetSdk to 36 to resolve CheckAarMetadata errors.
+- **Changes:**
+  - **SDK Upgrade:** Increased `compileSdk` and `targetSdk` to 36 in `app/build.gradle.kts`.
+  - **SDK Override:** Updated root `build.gradle.kts` to force SDK 36 on all subprojects (plugins).
+  - **Root Cause:** Modern versions of `androidx.browser`, `androidx.activity`, and `androidx.core` now strictly require SDK 36+, causing the previous SDK 35 stabilization to fail in CI.
+- **Status:** 100% (SDKs upgraded to 36 to satisfy AAR metadata requirements).
