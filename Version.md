@@ -89,9 +89,11 @@
   - **Root Cause:** Modern versions of `androidx.browser`, `androidx.activity`, and `androidx.core` now strictly require SDK 36+, causing the previous SDK 35 stabilization to fail in CI.
 - **Status:** 100% (SDKs upgraded to 36 to satisfy AAR metadata requirements).
 
-## [2026-06-01 17:00] - Restored Buildscript Classpath for Output Detection
-- **Action:** Re-added the `buildscript` block with AGP/Kotlin classpaths to the root `build.gradle.kts`.
+## [2026-06-01 17:30] - Toolchain Standardization (AGP 8.7.3 & Gradle 8.11)
+- **Action:** Standardized on a stable toolchain to resolve "missing APK" errors in Flutter 3.44.
 - **Changes:**
-  - **Toolchain Fix:** Restored `buildscript { dependencies { classpath(...) } }` in the root Gradle file.     
-  - **Root Cause:** Flutter's build tool relies on the legacy `buildscript` block to correctly identify the AGP version and set up the `build/app/outputs/flutter-apk/` output directory. Without it, the build succeeds but the Flutter CLI fails to "find" the generated APK, causing a CI failure.
-- **Status:** 100% (Output path detection restored and ready for push).
+  - **AGP Downgrade:** Downgraded AGP from 9.2.0 to `8.7.3` in `settings.gradle.kts` and root `build.gradle.kts`.   
+  - **Gradle Downgrade:** Downgraded Gradle from 9.4.1 to `8.11` to maintain compatibility with AGP 8.x.
+  - **SDK Maintenance:** Retained `compileSdk` and `targetSdk` at 36.
+  - **Root Cause:** AGP 9.x changed the APK output structure beyond what the current Flutter CLI expects. AGP 8.7.3 provides the required SDK 36 support while maintaining the output paths that Flutter's build tool can detect.
+- **Status:** 100% (Toolchain standardized for stable APK generation).
