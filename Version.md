@@ -89,6 +89,13 @@
   - **Root Cause:** Modern versions of `androidx.browser`, `androidx.activity`, and `androidx.core` now strictly require SDK 36+, causing the previous SDK 35 stabilization to fail in CI.
 - **Status:** 100% (SDKs upgraded to 36 to satisfy AAR metadata requirements).
 
+## [2026-06-01 17:00] - Restored Buildscript Classpath for Output Detection
+- **Action:** Re-added the `buildscript` block with AGP/Kotlin classpaths to the root `build.gradle.kts`.
+- **Changes:**
+  - **Toolchain Fix:** Restored `buildscript { dependencies { classpath(...) } }` in the root Gradle file.     
+  - **Root Cause:** Flutter's build tool relies on the legacy `buildscript` block to correctly identify the AGP version and set up the `build/app/outputs/flutter-apk/` output directory. Without it, the build succeeds but the Flutter CLI fails to "find" the generated APK, causing a CI failure.
+- **Status:** 100% (Output path detection restored and ready for push).
+
 ## [2026-06-01 17:30] - Toolchain Standardization (AGP 8.7.3 & Gradle 8.11)
 - **Action:** Standardized on a stable toolchain to resolve "missing APK" errors in Flutter 3.44.
 - **Changes:**
@@ -97,3 +104,11 @@
   - **SDK Maintenance:** Retained `compileSdk` and `targetSdk` at 36.
   - **Root Cause:** AGP 9.x changed the APK output structure beyond what the current Flutter CLI expects. AGP 8.7.3 provides the required SDK 36 support while maintaining the output paths that Flutter's build tool can detect.
 - **Status:** 100% (Toolchain standardized for stable APK generation).
+
+## [2026-06-01 18:30] - Final Toolchain Alignment (AGP 8.10.2 & Gradle 8.11)
+- **Action:** Aligned toolchain to satisfy the minimum AGP requirements of core dependencies.
+- **Changes:**
+  - **AGP Upgrade:** Upgraded AGP from 8.7.3 to `8.10.2` (satisfying the 8.9.1+ requirement from `androidx.browser` and `androidx.activity`).
+  - **Gradle Maintenance:** Kept Gradle at `8.11` for stability.
+  - **Root Cause:** The previous build failed because dependencies like `androidx.browser:1.9.0` explicitly require AGP 8.9.1 or higher. AGP 8.10.2 fulfills this requirement while remaining within the AGP 8.x family, which preserves the APK output paths expected by Flutter 3.44.
+- **Status:** 100% (Toolchain aligned to 8.10.2 for full dependency compatibility).
