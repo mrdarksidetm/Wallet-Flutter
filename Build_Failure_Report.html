@@ -127,18 +127,18 @@
 </head>
 <body>
     <div class="header">
-        <h1>Full History: 21 Build Failures</h1>
+        <h1>Full History: 23 Build Failures</h1>
         <p>Comprehensive Diagnostic Report | Project: <strong>Wallet-Flutter</strong></p>
     </div>
 
     <div class="summary-box">
         <div class="card error-card">
-            <h3>🔴 Critical: Hallucination Loop</h3>
-            <p>Recent failures stemmed from assuming AGP versions like 8.10.2 and 9.2.0 existed. These were non-existent, causing "Plugin not found" errors.</p>
+            <h3>🔴 Critical: Toolchain Mismatch</h3>
+            <p>Attempting to use AGP 8.13.0 with Gradle 8.11.1 caused a fatal "IllegalStateException". AGP versions must be supported by an equal or higher Gradle version.</p>
         </div>
         <div class="card warning-card">
-            <h3>🟡 Root Cause: Toolchain Lag</h3>
-            <p>GitHub Runners were using Java 17/Flutter older versions, while the code demanded Java 21/Flutter 3.44 for SDK 36 compatibility.</p>
+            <h3>🟡 Solution: Stabilization</h3>
+            <p>Upgrading Gradle Wrapper to <strong>8.14.5</strong> satisfies the requirements of AGP 8.13.0 while maintaining support for Android SDK 36.</p>
         </div>
     </div>
 
@@ -377,12 +377,34 @@
                 </div>
             </div>
             
+            <div class="timeline-item">
+                <div class="item-content">
+                    <span class="date">Failure Event #22</span>
+                    <span class="badge">FAILED</span>
+                    <div class="entry-title">Build Attempt #22</div>
+                    <div class="reason">
+                        <strong>Technical Reason:</strong> <strong>Toolchain Mismatch:</strong> AGP 8.13.0 requires Gradle 8.13+, but project was using 8.11.1.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="timeline-item">
+                <div class="item-content">
+                    <span class="date">Failure Event #23</span>
+                    <span class="badge">FAILED</span>
+                    <div class="entry-title">Build Attempt #23</div>
+                    <div class="reason">
+                        <strong>Technical Reason:</strong> <strong>Incremental Push Error:</strong> Metadata update push did not yet contain the Gradle 8.14 fix.
+                    </div>
+                </div>
+            </div>
+            
         </div>
     </div>
 
     <div class="card footer-card">
-        <h2>✅ Final Resolution Applied</h2>
-        <p>The latest push (Entry #22) synchronizes the toolchain to <span class="highlight">AGP 8.13.0</span>, <span class="highlight">Kotlin 2.1.10</span>, and <span class="highlight">Java 21</span>, while fixing the GitHub Runner directory paths.</p>
+        <h2>✅ Final Resolution Applied (Attempt #24)</h2>
+        <p>Synchronized toolchain to <span class="highlight">AGP 8.13.0</span>, <span class="highlight">Kotlin 2.1.10</span>, and <span class="highlight">Gradle 8.14.5</span>.</p>
     </div>
 </body>
 </html>

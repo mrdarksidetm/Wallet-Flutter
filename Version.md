@@ -139,3 +139,11 @@
   - **Local Script Fix:** Synchronized `build_release.sh` by removing path prefixes and adding `--no-tree-shake-icons`.
   - **Root Cause:** The GitHub runner was failing because it couldn't find the project directory (nested path error) and was using an older toolchain inconsistent with the recent SDK 36 upgrade.
 - **Status:** 100% (CI and build scripts synchronized; ready for remote build).
+
+## [2026-06-01 21:15] - Gradle Wrapper Upgrade for AGP 8.13 Compatibility
+- **Action:** Resolved "IllegalStateException" in remote builds by upgrading the Gradle wrapper.
+- **Changes:**
+  - **Gradle Upgrade:** Bumped Gradle from 8.11.1 to `8.14.5` in `gradle-wrapper.properties`.
+  - **Technical Reason:** AGP 8.13.0 strictly requires Gradle version 8.13 or higher. 
+  - **Report Update:** Updated `Build_Failure_Report.html` to account for all 23 failed attempts and documented the Gradle version mismatch as the latest root cause.
+- **Status:** 100% (Gradle synchronized for AGP 8.13; ready for Attempt #24).
