@@ -88,3 +88,10 @@
   - **SDK Override:** Updated root `build.gradle.kts` to force SDK 36 on all subprojects (plugins).
   - **Root Cause:** Modern versions of `androidx.browser`, `androidx.activity`, and `androidx.core` now strictly require SDK 36+, causing the previous SDK 35 stabilization to fail in CI.
 - **Status:** 100% (SDKs upgraded to 36 to satisfy AAR metadata requirements).
+
+## [2026-06-01 17:00] - Restored Buildscript Classpath for Output Detection
+- **Action:** Re-added the `buildscript` block with AGP/Kotlin classpaths to the root `build.gradle.kts`.
+- **Changes:**
+  - **Toolchain Fix:** Restored `buildscript { dependencies { classpath(...) } }` in the root Gradle file.     
+  - **Root Cause:** Flutter's build tool relies on the legacy `buildscript` block to correctly identify the AGP version and set up the `build/app/outputs/flutter-apk/` output directory. Without it, the build succeeds but the Flutter CLI fails to "find" the generated APK, causing a CI failure.
+- **Status:** 100% (Output path detection restored and ready for push).
