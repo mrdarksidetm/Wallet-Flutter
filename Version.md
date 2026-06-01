@@ -112,3 +112,11 @@
   - **Gradle Maintenance:** Kept Gradle at `8.11` for stability.
   - **Root Cause:** The previous build failed because dependencies like `androidx.browser:1.9.0` explicitly require AGP 8.9.1 or higher. AGP 8.10.2 fulfills this requirement while remaining within the AGP 8.x family, which preserves the APK output paths expected by Flutter 3.44.
 - **Status:** 100% (Toolchain aligned to 8.10.2 for full dependency compatibility).
+
+## [2026-06-01 19:30] - Exact AGP 8.9.1 & Gradle 8.11.1 Synchronization
+- **Action:** Applied the exact minimum required toolchain to satisfy all modern AndroidX constraints.
+- **Changes:**
+  - **AGP Alignment:** Set AGP to `8.9.1` (the specific minimum required by `androidx.browser:1.9.0`).
+  - **Gradle Upgrade:** Upgraded Gradle to `8.11.1` to ensure compatibility with AGP 8.9.1.
+  - **Root Cause:** Previous attempt with 8.10.2 failed because the specific version was not found in repositories. Reverting to the exact known-compatible minimum (8.9.1) while maintaining SDK 36 support.
+- **Status:** 100% (Toolchain synchronized to 8.9.1 and ready for CI verification).
