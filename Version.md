@@ -163,7 +163,7 @@
   - **CI Workflow:** Modified \.github/workflows/build_apks.yml\ to include a manual search and copy step for APKs in \ndroid/app/build/outputs/apk/release/\.
   - **CI Workflow:** Added \|| true\ to initial build steps to allow for manual artifact capture on detection failure.
   - **Report Update:** Updated \Build_Failure_Report.html\ to version 25 and documented the output path discrepancy.
-  - **Source Control:** Committed and pushed all toolchain and workflow fixes to the \Improv\ branch.
+  - **Source Source Control:** Committed and pushed all toolchain and workflow fixes to the \Improv\ branch.
 - **Status:** 100% (Fixes pushed; awaiting CI results for Attempt #26).
 
 ## [2026-06-01 23:15] - CI/CD Pipeline Success (Attempt #26)
@@ -225,3 +225,22 @@ ont_awesome_flutter\ v11 APIs.
 - **Changes:**
   - **Deletion:** Removed `lib/onboarding_preview.dart` as it was a detached prototype and not part of the production application flow.
 - **Status:** 100% (Unrelated files removed).
+
+## [2026-06-03 12:00] - Project Instructions & Design Guidelines Formalization
+- **Action:** Created `GEMINI.md` to establish project-specific architectural and design mandates.
+- **Changes:**
+  - **Documentation:** Defined the core purpose as a "Premium, offline-first personal finance dashboard."
+  - **Architecture:** Formalized mandates for Riverpod 2.0 (state), Isar DB (persistence), and GoRouter (navigation).
+  - **Design System:** Extracted and documented "Material 3 Expressive" design tokens, including color palettes (Atelier system), variable font typography (GoogleSansFlex), and geometry constants (24-32px radii).
+  - **Directory Mapping:** Identified critical files and directories to guide future development and maintenance.
+- **Status:** 100% (Project source of truth established in `GEMINI.md`).
+
+## [2026-06-03 16:30] - Onboarding UX Refinement & Theme Logic
+- **Action:** Refined the onboarding flow with premium UI enhancements and integrated theme control.
+- **Changes:**
+  - **Page 1 (Welcome):** Added app logo with a dynamic shadow (sigma 6.0) and a theme toggle icon (Sun/Moon) that adapts to platform brightness.
+  - **Theme Integration:** Connected onboarding to `themeControllerProvider` to allow seamless light/dark mode switching during setup.
+  - **Typography & Icons:** Upgraded titles across all 5 pages to `headlineSmall` (bold, expressive) and added descriptive icons (`account_circle`, `payments`, `shield_with_heart`, `done_all`).
+  - **Permissions Logic:** Implemented reactive state for permission tracking. Replaced "Allow Permission" text with a check icon and animated transition once granted, maintaining button geometry.
+  - **Platform Consistency:** Synchronized the logo shadow effect with the existing `HomeHeader` implementation.
+- **Status:** 100% (Onboarding refined and verified with `flutter analyze`).

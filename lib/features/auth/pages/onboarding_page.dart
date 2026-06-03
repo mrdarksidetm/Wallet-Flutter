@@ -8,8 +8,9 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:restart_app/restart_app.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'dart:ui' show lerpDouble;
+import 'dart:ui';
 import '../../../core/theme/personalization_provider.dart';
+import '../../../core/theme/theme_provider.dart';
 import '../../../core/services/file_service.dart';
 import '../../../core/database/providers.dart';
 
@@ -33,9 +34,13 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> with SingleTick
   double _rippleRadius = 0;
   Offset _rippleOffset = Offset.zero;
 
+  bool _storagePermissionGranted = false;
+  bool _notificationPermissionGranted = false;
+
   @override
   void initState() {
     super.initState();
+    _checkPermissions();
     _pageController = PageController();
     _pageController.addListener(() {
       if (mounted) {
@@ -44,6 +49,20 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> with SingleTick
         });
       }
     });
+  }
+
+  Future<void> _checkPermissions() async {
+    final storageStatus = Platform.isAndroid 
+        ? await Permission.manageExternalStorage.status 
+        : await Permission.storage.status;
+    final notificationStatus = await Permission.notification.status;
+    
+    if (mounted) {
+      setState(() {
+        _storagePermissionGranted = storageStatus.isGranted;
+        _notificationPermissionGranted = notificationStatus.isGranted;
+      });
+    }
   }
 
   @override
@@ -198,6 +217,58 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> with SingleTick
     });
   }
 
+  Widget _buildDynamicShadowLogo() {
+    const double logoSize = 48.0;
+    const String logoPath = 'assets/images/logo.svg';
+
+    return Stack(
+      children: [
+        Transform.translate(
+          offset: const Offset(0, 4),
+          child: ImageFiltered(
+            imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+            child: Opacity(
+              opacity: 0.4,
+              child: SvgPicture.asset(
+                logoPath,
+                width: logoSize,
+                height: logoSize,
+              ),
+            ),
+          ),
+        ),
+        SvgPicture.asset(
+          logoPath,
+          width: logoSize,
+          height: logoSize,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildThemeToggle(ColorScheme colorScheme) {
+    final themeMode = ref.watch(themeControllerProvider).themeMode;
+    final isDarkMode = themeMode == ThemeMode.dark ||
+        (themeMode == ThemeMode.system &&
+            MediaQuery.of(context).platformBrightness == Brightness.dark);
+
+    return IconButton.filledTonal(
+      onPressed: () {
+        ref.read(themeControllerProvider.notifier).setThemeMode(
+              isDarkMode ? ThemeMode.light : ThemeMode.dark,
+            );
+      },
+      icon: Icon(
+        isDarkMode ? Symbols.light_mode : Symbols.dark_mode,
+        size: 24,
+      ),
+      style: IconButton.styleFrom(
+        backgroundColor: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+        foregroundColor: colorScheme.primary,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -246,52 +317,69 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> with SingleTick
   // --- PAGE BUILDERS ---
 
   Widget _buildWelcomePage(ThemeData theme, ColorScheme colorScheme) {
-    return Stack(
-      children: [
-        Positioned.fill(
-          child: Image.asset(
-            'assets/images/developer.png',
-            fit: BoxFit.cover,
+    return Container(
+      color: colorScheme.surface,
+      child: Stack(
+        children: [
+          Positioned(
+            top: 100,
+            left: 0,
+            right: 0,
+            child: Image.asset(
+              'assets/images/welcome_hero.png',
+              fit: BoxFit.contain,
+              height: 400,
+            ),
           ),
-        ),
-        Positioned.fill(
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.transparent,
-                  Colors.black.withOpacity(0.2),
-                  Colors.black.withOpacity(0.8),
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildDynamicShadowLogo(),
+                      _buildThemeToggle(colorScheme),
+                    ],
+                  ),
+                  const Spacer(),
+                  Text(
+                    'Welcome to\nWallet',
+                    style: theme.textTheme.displayLarge?.copyWith(
+                      color: colorScheme.onSurface,
+                      fontWeight: FontWeight.w900,
+                      height: 1.1,
+                    ),
+                  ),
+                  const SizedBox(height: 160), // Room for buttons
                 ],
-                stops: const [0.4, 0.7, 1.0],
               ),
             ),
           ),
-        ),
-        const SafeArea(
-          child: Padding(
-            padding: EdgeInsets.all(24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Spacer(),
-                Text(
-                  'Welcome to\nWallet',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 48,
-                    fontWeight: FontWeight.w900,
-                    height: 1.1,
-                  ),
-                ),
-                SizedBox(height: 160), // Room for buttons
-              ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPageHeader(ThemeData theme, ColorScheme colorScheme, IconData icon, String title) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: Row(
+        children: [
+          Icon(icon, color: colorScheme.primary, size: 28),
+          const SizedBox(width: 12),
+          Text(
+            title,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              color: colorScheme.primary,
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.5,
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -302,14 +390,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> with SingleTick
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 16),
-            Text(
-              'Profile',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: colorScheme.primary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            _buildPageHeader(theme, colorScheme, Symbols.account_circle, 'Profile'),
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
@@ -429,14 +510,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> with SingleTick
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 16),
-            Text(
-              'Currency',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: colorScheme.primary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            _buildPageHeader(theme, colorScheme, Symbols.payments, 'Currency'),
             const SizedBox(height: 40),
             Center(
               child: Text(
@@ -525,14 +599,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> with SingleTick
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 16),
-            Text(
-              'Permissions',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: colorScheme.primary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            _buildPageHeader(theme, colorScheme, Symbols.shield_with_heart, 'Permissions'),
             const SizedBox(height: 60),
             Center(
               child: Text(
@@ -549,12 +616,12 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> with SingleTick
               icon: Symbols.folder_open,
               title: "All Files Access",
               reason: "Required to create and restore backups of your financial data safely.",
+              isGranted: _storagePermissionGranted,
               onTap: () async {
-                if (Platform.isAndroid) {
-                   await Permission.manageExternalStorage.request();
-                } else {
-                   await Permission.storage.request();
-                }
+                final status = Platform.isAndroid
+                    ? await Permission.manageExternalStorage.request()
+                    : await Permission.storage.request();
+                setState(() => _storagePermissionGranted = status.isGranted);
               },
             ),
             const SizedBox(height: 24),
@@ -564,8 +631,10 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> with SingleTick
               icon: Symbols.notifications,
               title: "Notifications",
               reason: "Get reminders for your upcoming bills and recurring transactions.",
+              isGranted: _notificationPermissionGranted,
               onTap: () async {
-                await Permission.notification.request();
+                final status = await Permission.notification.request();
+                setState(() => _notificationPermissionGranted = status.isGranted);
               },
             ),
           ],
@@ -580,6 +649,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> with SingleTick
     required IconData icon,
     required String title,
     required String reason,
+    required bool isGranted,
     required VoidCallback onTap,
   }) {
     return Container(
@@ -610,11 +680,27 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> with SingleTick
           SizedBox(
             width: double.infinity,
             child: FilledButton.tonal(
-              onPressed: onTap,
+              onPressed: isGranted ? null : onTap,
               style: FilledButton.styleFrom(
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                disabledBackgroundColor: colorScheme.surfaceContainerHighest,
               ),
-              child: const Text("Allow Permission"),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: isGranted
+                    ? Icon(
+                        Symbols.check,
+                        key: const ValueKey('granted'),
+                        color: colorScheme.primary,
+                        size: 28,
+                      )
+                    : const Text(
+                        "Allow Permission",
+                        key: ValueKey('not_granted'),
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+              ),
             ),
           ),
         ],
@@ -625,32 +711,40 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> with SingleTick
   Widget _buildFinalPage(ThemeData theme, ColorScheme colorScheme) {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.symmetric(horizontal: 24.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Spacer(),
-            SvgPicture.asset(
-              'assets/images/open-source.svg',
-              height: 140,
-              colorFilter: ColorFilter.mode(colorScheme.primary, BlendMode.srcIn),
-            ),
-            const SizedBox(height: 48),
-            Text(
-              "Open Source & Private",
-              style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Text(
-                "Wallet is fully open source and works offline. Your data never leaves your device.",
-                style: theme.textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant),
-                textAlign: TextAlign.center,
+            _buildPageHeader(theme, colorScheme, Symbols.done_all, 'All Set'),
+            Expanded(
+              child: Column(
+                children: [
+                  const Spacer(),
+                  SvgPicture.asset(
+                    'assets/images/open-source.svg',
+                    height: 140,
+                    colorFilter: ColorFilter.mode(colorScheme.primary, BlendMode.srcIn),
+                  ),
+                  const SizedBox(height: 48),
+                  Text(
+                    "Open Source & Private",
+                    style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Text(
+                      "Wallet is fully open source and works offline. Your data never leaves your device.",
+                      style: theme.textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const Spacer(),
+                  const SizedBox(height: 100), // Space for big button
+                ],
               ),
             ),
-            const Spacer(),
-            const SizedBox(height: 100), // Space for big button
           ],
         ),
       ),
