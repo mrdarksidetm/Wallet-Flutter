@@ -126,27 +126,55 @@ class AppIcons {
 
   static IconData? _getFaIcon(String name) {
     final Map<String, IconData> faMap = {
+      // Finance & Commerce
       'wallet': FontAwesomeIcons.wallet.data, 'bank': FontAwesomeIcons.bank.data, 'credit-card': FontAwesomeIcons.creditCard.data,
-      'money-bill': FontAwesomeIcons.moneyBill.data, 'chart-pie': FontAwesomeIcons.chartPie.data, 'car': FontAwesomeIcons.car.data,
-      'house': FontAwesomeIcons.house.data, 'burger': FontAwesomeIcons.burger.data, 'gift': FontAwesomeIcons.gift.data,
-      'heart': FontAwesomeIcons.heart.data, 'star': FontAwesomeIcons.star.data, 'user': FontAwesomeIcons.user.data,
-      'gear': FontAwesomeIcons.gear.data, 'bell': FontAwesomeIcons.bell.data, 'camera': FontAwesomeIcons.camera.data,
-      'envelope': FontAwesomeIcons.envelope.data, 'phone': FontAwesomeIcons.phone.data, 'location-dot': FontAwesomeIcons.locationDot.data,
-      'bicycle': FontAwesomeIcons.bicycle.data, 'bus': FontAwesomeIcons.bus.data, 'plane': FontAwesomeIcons.plane.data,
-      'train': FontAwesomeIcons.train.data, 'gas-pump': FontAwesomeIcons.gasPump.data, 'laptop': FontAwesomeIcons.laptop.data,
-      'mobile': FontAwesomeIcons.mobile.data, 'tv': FontAwesomeIcons.tv.data, 'gamepad': FontAwesomeIcons.gamepad.data,
-      'music': FontAwesomeIcons.music.data, 'film': FontAwesomeIcons.film.data, 'ticket': FontAwesomeIcons.ticket.data,
+      'money-bill': FontAwesomeIcons.moneyBill.data, 'coins': FontAwesomeIcons.coins.data, 'money-check-dollar': FontAwesomeIcons.moneyCheckDollar.data,
+      'receipt': FontAwesomeIcons.receipt.data, 'piggy-bank': FontAwesomeIcons.piggyBank.data, 'landmark': FontAwesomeIcons.landmark.data,
+      'dollar-sign': FontAwesomeIcons.dollarSign.data, 'euro-sign': FontAwesomeIcons.euroSign.data, 'bitcoin': FontAwesomeIcons.bitcoin.data,
       'shopping-bag': FontAwesomeIcons.shoppingBag.data, 'shopping-cart': FontAwesomeIcons.shoppingCart.data, 'tag': FontAwesomeIcons.tag.data,
-      'coffee': FontAwesomeIcons.coffee.data, 'utensils': FontAwesomeIcons.utensils.data, 'wine-glass': FontAwesomeIcons.wineGlass.data,
-      'mug-hot': FontAwesomeIcons.mugHot.data, 'ice-cream': FontAwesomeIcons.iceCream.data, 'apple-whole': FontAwesomeIcons.appleWhole.data,
-      'carrot': FontAwesomeIcons.carrot.data, 'pizza-slice': FontAwesomeIcons.pizzaSlice.data, 'shirt': FontAwesomeIcons.shirt.data,
-      'graduation-cap': FontAwesomeIcons.graduationCap.data, 'briefcase': FontAwesomeIcons.briefcase.data, 'tools': FontAwesomeIcons.tools.data,
-      'wrench': FontAwesomeIcons.wrench.data, 'hammer': FontAwesomeIcons.hammer.data, 'medkit': FontAwesomeIcons.medkit.data,
-      'stethoscope': FontAwesomeIcons.stethoscope.data, 'pills': FontAwesomeIcons.pills.data, 'dumbbell': FontAwesomeIcons.dumbbell.data,
-      'soccer-ball': FontAwesomeIcons.soccerBall.data, 'basketball': FontAwesomeIcons.basketball.data, 'trophy': FontAwesomeIcons.trophy.data,
-      'coins': FontAwesomeIcons.coins.data, 'money-check-dollar': FontAwesomeIcons.moneyCheckDollar.data, 'receipt': FontAwesomeIcons.receipt.data,
-      'piggy-bank': FontAwesomeIcons.piggyBank.data, 'landmark': FontAwesomeIcons.landmark.data, 'dollar-sign': FontAwesomeIcons.dollarSign.data,
-      'euro-sign': FontAwesomeIcons.euroSign.data, 'bitcoin': FontAwesomeIcons.bitcoin.data,
+      'store': FontAwesomeIcons.store.data, 'briefcase': FontAwesomeIcons.briefcase.data, 'sack-dollar': FontAwesomeIcons.sackDollar.data,
+      'hand-holding-dollar': FontAwesomeIcons.handHoldingDollar.data, 'money-bill-transfer': FontAwesomeIcons.moneyBillTransfer.data,
+      
+      // Transport & Travel
+      'car': FontAwesomeIcons.car.data, 'bicycle': FontAwesomeIcons.bicycle.data, 'bus': FontAwesomeIcons.bus.data,
+      'plane': FontAwesomeIcons.plane.data, 'train': FontAwesomeIcons.train.data, 'gas-pump': FontAwesomeIcons.gasPump.data,
+      'motorcycle': FontAwesomeIcons.motorcycle.data, 'truck': FontAwesomeIcons.truck.data, 'taxi': FontAwesomeIcons.taxi.data,
+      'ship': FontAwesomeIcons.ship.data, 'hotel': FontAwesomeIcons.hotel.data, 'passport': FontAwesomeIcons.passport.data,
+      
+      // Food & Drink
+      'burger': FontAwesomeIcons.burger.data, 'coffee': FontAwesomeIcons.coffee.data, 'utensils': FontAwesomeIcons.utensils.data,
+      'wine-glass': FontAwesomeIcons.wineGlass.data, 'mug-hot': FontAwesomeIcons.mugHot.data, 'ice-cream': FontAwesomeIcons.iceCream.data,
+      'apple-whole': FontAwesomeIcons.appleWhole.data, 'carrot': FontAwesomeIcons.carrot.data, 'pizza-slice': FontAwesomeIcons.pizzaSlice.data,
+      'bowl-food': FontAwesomeIcons.bowlFood.data, 'cake-candles': FontAwesomeIcons.cakeCandles.data, 'glass-water': FontAwesomeIcons.glassWater.data,
+      
+      // Social & People
+      'heart': FontAwesomeIcons.heart.data, 'star': FontAwesomeIcons.star.data, 'user': FontAwesomeIcons.user.data,
+      'bell': FontAwesomeIcons.bell.data, 'camera': FontAwesomeIcons.camera.data, 'envelope': FontAwesomeIcons.envelope.data,
+      'phone': FontAwesomeIcons.phone.data, 'location-dot': FontAwesomeIcons.locationDot.data, 'users': FontAwesomeIcons.users.data,
+      'user-group': FontAwesomeIcons.userGroup.data, 'comment': FontAwesomeIcons.comment.data, 'share-nodes': FontAwesomeIcons.shareNodes.data,
+      
+      // Tech & Media
+      'laptop': FontAwesomeIcons.laptop.data, 'mobile': FontAwesomeIcons.mobile.data, 'tv': FontAwesomeIcons.tv.data,
+      'gamepad': FontAwesomeIcons.gamepad.data, 'music': FontAwesomeIcons.music.data, 'film': FontAwesomeIcons.film.data,
+      'ticket': FontAwesomeIcons.ticket.data, 'headset': FontAwesomeIcons.headset.data, 'camera-retro': FontAwesomeIcons.cameraRetro.data,
+      'microphone': FontAwesomeIcons.microphone.data, 'wifi': FontAwesomeIcons.wifi.data, 'bluetooth': FontAwesomeIcons.bluetooth.data,
+      
+      // Lifestyle & Home
+      'house': FontAwesomeIcons.house.data, 'gift': FontAwesomeIcons.gift.data, 'shirt': FontAwesomeIcons.shirt.data,
+      'graduation-cap': FontAwesomeIcons.graduationCap.data, 'couch': FontAwesomeIcons.couch.data, 'bed': FontAwesomeIcons.bed.data,
+      'bath': FontAwesomeIcons.bath.data, 'umbrella': FontAwesomeIcons.umbrella.data, 'mountain': FontAwesomeIcons.mountain.data,
+      'tree': FontAwesomeIcons.tree.data, 'sun': FontAwesomeIcons.sun.data, 'moon': FontAwesomeIcons.moon.data,
+      
+      // Health & Sports
+      'medkit': FontAwesomeIcons.medkit.data, 'stethoscope': FontAwesomeIcons.stethoscope.data, 'pills': FontAwesomeIcons.pills.data,
+      'dumbbell': FontAwesomeIcons.dumbbell.data, 'soccer-ball': FontAwesomeIcons.soccerBall.data, 'basketball': FontAwesomeIcons.basketball.data,
+      'trophy': FontAwesomeIcons.trophy.data, 'heart-pulse': FontAwesomeIcons.heartPulse.data, 'prescription-bottle': FontAwesomeIcons.prescriptionBottle.data,
+      'baseball': FontAwesomeIcons.baseball.data, 'football': FontAwesomeIcons.football.data,
+      
+      // Tools & Others
+      'gear': FontAwesomeIcons.gear.data, 'tools': FontAwesomeIcons.tools.data, 'wrench': FontAwesomeIcons.wrench.data,
+      'hammer': FontAwesomeIcons.hammer.data, 'screwdriver-wrench': FontAwesomeIcons.screwdriverWrench.data, 'brush': FontAwesomeIcons.brush.data,
+      'key': FontAwesomeIcons.key.data, 'lock': FontAwesomeIcons.lock.data, 'trash': FontAwesomeIcons.trash.data,
     };
     return faMap[name];
   }
@@ -197,23 +225,150 @@ class _IconPickerWidgetState extends ConsumerState<IconPickerWidget> {
       final List<IconMetadata> mdi = MdiIcons.values.map((icon) {
         final meta = MdiIcons.maybeMetadataOf(icon);
         final name = meta?.name ?? '';
+        final List<String> cats = [];
+        
+        // Heuristic categorization for MDI
+        final lowerName = name.toLowerCase();
+        if (RegExp(r'cash|bank|wallet|money|credit|currency|account-balance|finance|check|bill|coins|receipt').hasMatch(lowerName)) cats.add('finance');
+        if (RegExp(r'food|restaurant|coffee|fruit|vegetable|beer|cup|pizza|burger|ice-cream|cafe|drink').hasMatch(lowerName)) cats.add('food');
+        if (RegExp(r'car|bus|train|plane|bike|truck|transport|navigation|map|location|gps|travel').hasMatch(lowerName)) cats.add('transport');
+        if (RegExp(r'account|person|human|chat|message|social|user|heart|star|friends|family|people').hasMatch(lowerName)) cats.add('social');
+        if (RegExp(r'health|medical|hospital|heart|doctor|pill|fitness|gym|running|wellness').hasMatch(lowerName)) cats.add('health');
+        if (RegExp(r'tool|wrench|hammer|cog|setting|build|repair|maintenance|config').hasMatch(lowerName)) cats.add('tools');
+        if (RegExp(r'shopping|cart|bag|tag|store|commerce|sell|buy|price').hasMatch(lowerName)) cats.add('shopping');
+        if (RegExp(r'laptop|mobile|tv|gamepad|computer|phone|tech|digital|electronics').hasMatch(lowerName)) cats.add('tech');
+        if (RegExp(r'house|home|building|lifestyle|music|film|movie|ticket|art|design|style').hasMatch(lowerName)) cats.add('lifestyle');
+        
         return IconMetadata(
           name: 'mdi:$name',
-          categories: ['mdi'],
+          categories: cats.isEmpty ? ['mdi'] : cats,
           tags: [name.replaceAll('-', ' ')],
           source: 'mdi'
         );
       }).where((m) => m.name != 'mdi:').toList();
 
-      // 3. Comprehensive FontAwesome list (The core of Paisa's extra variety)
+      // 3. Comprehensive FontAwesome list with explicit categories
       final List<IconMetadata> fa = [
-        'wallet', 'bank', 'credit-card', 'money-bill', 'chart-pie', 'car', 'house', 'burger', 'gift', 'heart', 'star', 'user', 'gear', 'bell', 'camera', 'envelope', 'phone', 'location-dot', 'bicycle', 'bus', 'plane', 'train', 'gas-pump', 'laptop', 'mobile', 'tv', 'gamepad', 'music', 'film', 'ticket', 'shopping-bag', 'shopping-cart', 'tag', 'coffee', 'utensils', 'wine-glass', 'mug-hot', 'ice-cream', 'apple-whole', 'carrot', 'pizza-slice', 'shirt', 'graduation-cap', 'briefcase', 'tools', 'wrench', 'hammer', 'medkit', 'stethoscope', 'pills', 'dumbbell', 'soccer-ball', 'basketball', 'trophy', 'coins', 'money-check-dollar', 'receipt', 'piggy-bank', 'landmark', 'dollar-sign', 'euro-sign', 'bitcoin'
-      ].map((name) => IconMetadata(
-        name: 'fa:$name',
-        categories: ['fa'],
-        tags: [name.replaceAll('-', ' ')],
-        source: 'fa'
-      )).toList();
+        // Finance
+        IconMetadata(name: 'fa:wallet', categories: ["finance"], tags: ['wallet'], source: 'fa'),
+        IconMetadata(name: 'fa:bank', categories: ["finance"], tags: ['bank'], source: 'fa'),
+        IconMetadata(name: 'fa:credit-card', categories: ["finance"], tags: ['credit card'], source: 'fa'),
+        IconMetadata(name: 'fa:money-bill', categories: ["finance"], tags: ['money bill'], source: 'fa'),
+        IconMetadata(name: 'fa:coins', categories: ["finance"], tags: ['coins'], source: 'fa'),
+        IconMetadata(name: 'fa:money-check-dollar', categories: ["finance"], tags: ['money check dollar'], source: 'fa'),
+        IconMetadata(name: 'fa:receipt', categories: ["finance"], tags: ['receipt'], source: 'fa'),
+        IconMetadata(name: 'fa:piggy-bank', categories: ["finance"], tags: ['piggy bank'], source: 'fa'),
+        IconMetadata(name: 'fa:landmark', categories: ["finance"], tags: ['landmark'], source: 'fa'),
+        IconMetadata(name: 'fa:dollar-sign', categories: ["finance"], tags: ['dollar sign'], source: 'fa'),
+        IconMetadata(name: 'fa:euro-sign', categories: ["finance"], tags: ['euro sign'], source: 'fa'),
+        IconMetadata(name: 'fa:bitcoin', categories: ["finance"], tags: ['bitcoin'], source: 'fa'),
+        IconMetadata(name: 'fa:sack-dollar', categories: ["finance"], tags: ['sack dollar'], source: 'fa'),
+        IconMetadata(name: 'fa:hand-holding-dollar', categories: ["finance"], tags: ['hand holding dollar'], source: 'fa'),
+        IconMetadata(name: 'fa:money-bill-transfer', categories: ["finance"], tags: ['money bill transfer'], source: 'fa'),
+        
+        // Transport
+        IconMetadata(name: 'fa:car', categories: ["transport"], tags: ['car'], source: 'fa'),
+        IconMetadata(name: 'fa:bicycle', categories: ["transport"], tags: ['bicycle'], source: 'fa'),
+        IconMetadata(name: 'fa:bus', categories: ["transport"], tags: ['bus'], source: 'fa'),
+        IconMetadata(name: 'fa:plane', categories: ["transport"], tags: ['plane'], source: 'fa'),
+        IconMetadata(name: 'fa:train', categories: ["transport"], tags: ['train'], source: 'fa'),
+        IconMetadata(name: 'fa:gas-pump', categories: ["transport"], tags: ['gas pump'], source: 'fa'),
+        IconMetadata(name: 'fa:motorcycle', categories: ["transport"], tags: ['motorcycle'], source: 'fa'),
+        IconMetadata(name: 'fa:truck', categories: ["transport"], tags: ['truck'], source: 'fa'),
+        IconMetadata(name: 'fa:taxi', categories: ["transport"], tags: ['taxi'], source: 'fa'),
+        IconMetadata(name: 'fa:ship', categories: ["transport"], tags: ['ship'], source: 'fa'),
+        IconMetadata(name: 'fa:hotel', categories: ["transport"], tags: ['hotel'], source: 'fa'),
+        IconMetadata(name: 'fa:passport', categories: ["transport"], tags: ['passport'], source: 'fa'),
+        
+        // Food
+        IconMetadata(name: 'fa:burger', categories: ["food"], tags: ['burger'], source: 'fa'),
+        IconMetadata(name: 'fa:coffee', categories: ["food"], tags: ['coffee'], source: 'fa'),
+        IconMetadata(name: 'fa:utensils', categories: ["food"], tags: ['utensils'], source: 'fa'),
+        IconMetadata(name: 'fa:wine-glass', categories: ["food"], tags: ['wine glass'], source: 'fa'),
+        IconMetadata(name: 'fa:mug-hot', categories: ["food"], tags: ['mug hot'], source: 'fa'),
+        IconMetadata(name: 'fa:ice-cream', categories: ["food"], tags: ['ice cream'], source: 'fa'),
+        IconMetadata(name: 'fa:apple-whole', categories: ["food"], tags: ['apple whole'], source: 'fa'),
+        IconMetadata(name: 'fa:carrot', categories: ["food"], tags: ['carrot'], source: 'fa'),
+        IconMetadata(name: 'fa:pizza-slice', categories: ["food"], tags: ['pizza slice'], source: 'fa'),
+        IconMetadata(name: 'fa:bowl-food', categories: ["food"], tags: ['bowl food'], source: 'fa'),
+        IconMetadata(name: 'fa:cake-candles', categories: ["food"], tags: ['cake candles'], source: 'fa'),
+        IconMetadata(name: 'fa:glass-water', categories: ["food"], tags: ['glass water'], source: 'fa'),
+        
+        // Social
+        IconMetadata(name: 'fa:heart', categories: ["social"], tags: ['heart'], source: 'fa'),
+        IconMetadata(name: 'fa:star', categories: ["social"], tags: ['star'], source: 'fa'),
+        IconMetadata(name: 'fa:user', categories: ["social"], tags: ['user'], source: 'fa'),
+        IconMetadata(name: 'fa:bell', categories: ["social"], tags: ['bell'], source: 'fa'),
+        IconMetadata(name: 'fa:camera', categories: ["social"], tags: ['camera'], source: 'fa'),
+        IconMetadata(name: 'fa:envelope', categories: ["social"], tags: ['envelope'], source: 'fa'),
+        IconMetadata(name: 'fa:phone', categories: ["social"], tags: ['phone'], source: 'fa'),
+        IconMetadata(name: 'fa:location-dot', categories: ["social"], tags: ['location dot'], source: 'fa'),
+        IconMetadata(name: 'fa:users', categories: ["social"], tags: ['users'], source: 'fa'),
+        IconMetadata(name: 'fa:user-group', categories: ["social"], tags: ['user group'], source: 'fa'),
+        IconMetadata(name: 'fa:comment', categories: ["social"], tags: ['comment'], source: 'fa'),
+        IconMetadata(name: 'fa:share-nodes', categories: ["social"], tags: ['share nodes'], source: 'fa'),
+        
+        // Tech
+        IconMetadata(name: 'fa:laptop', categories: ["tech"], tags: ['laptop'], source: 'fa'),
+        IconMetadata(name: 'fa:mobile', categories: ["tech"], tags: ['mobile'], source: 'fa'),
+        IconMetadata(name: 'fa:tv', categories: ["tech"], tags: ['tv'], source: 'fa'),
+        IconMetadata(name: 'fa:gamepad', categories: ["tech"], tags: ['gamepad'], source: 'fa'),
+        IconMetadata(name: 'fa:headset', categories: ["tech"], tags: ['headset'], source: 'fa'),
+        IconMetadata(name: 'fa:camera-retro', categories: ["tech"], tags: ['camera retro'], source: 'fa'),
+        IconMetadata(name: 'fa:microphone', categories: ["tech"], tags: ['microphone'], source: 'fa'),
+        IconMetadata(name: 'fa:wifi', categories: ["tech"], tags: ['wifi'], source: 'fa'),
+        IconMetadata(name: 'fa:bluetooth', categories: ["tech"], tags: ['bluetooth'], source: 'fa'),
+        
+        // Tools
+        IconMetadata(name: 'fa:gear', categories: ["tools"], tags: ['gear'], source: 'fa'),
+        IconMetadata(name: 'fa:tools', categories: ["tools"], tags: ['tools'], source: 'fa'),
+        IconMetadata(name: 'fa:wrench', categories: ["tools"], tags: ['wrench'], source: 'fa'),
+        IconMetadata(name: 'fa:hammer', categories: ["tools"], tags: ['hammer'], source: 'fa'),
+        IconMetadata(name: 'fa:briefcase', categories: ["tools"], tags: ['briefcase'], source: 'fa'),
+        IconMetadata(name: 'fa:screwdriver-wrench', categories: ["tools"], tags: ['screwdriver wrench'], source: 'fa'),
+        IconMetadata(name: 'fa:brush', categories: ["tools"], tags: ['brush'], source: 'fa'),
+        IconMetadata(name: 'fa:key', categories: ["tools"], tags: ['key'], source: 'fa'),
+        IconMetadata(name: 'fa:lock', categories: ["tools"], tags: ['lock'], source: 'fa'),
+        IconMetadata(name: 'fa:trash', categories: ["tools"], tags: ['trash'], source: 'fa'),
+        
+        // Health
+        IconMetadata(name: 'fa:medkit', categories: ["health"], tags: ['medkit'], source: 'fa'),
+        IconMetadata(name: 'fa:stethoscope', categories: ["health"], tags: ['stethoscope'], source: 'fa'),
+        IconMetadata(name: 'fa:pills', categories: ["health"], tags: ['pills'], source: 'fa'),
+        IconMetadata(name: 'fa:dumbbell', categories: ["health"], tags: ['dumbbell'], source: 'fa'),
+        IconMetadata(name: 'fa:heart-pulse', categories: ["health"], tags: ['heart pulse'], source: 'fa'),
+        IconMetadata(name: 'fa:prescription-bottle', categories: ["health"], tags: ['prescription bottle'], source: 'fa'),
+        
+        // Sports
+        IconMetadata(name: 'fa:soccer-ball', categories: ["sports"], tags: ['soccer ball'], source: 'fa'),
+        IconMetadata(name: 'fa:basketball', categories: ["sports"], tags: ['basketball'], source: 'fa'),
+        IconMetadata(name: 'fa:trophy', categories: ["sports"], tags: ['trophy'], source: 'fa'),
+        IconMetadata(name: 'fa:baseball', categories: ["sports"], tags: ['baseball'], source: 'fa'),
+        IconMetadata(name: 'fa:football', categories: ["sports"], tags: ['football'], source: 'fa'),
+        
+        // Shopping
+        IconMetadata(name: 'fa:shopping-bag', categories: ["shopping"], tags: ['shopping bag'], source: 'fa'),
+        IconMetadata(name: 'fa:shopping-cart', categories: ["shopping"], tags: ['shopping cart'], source: 'fa'),
+        IconMetadata(name: 'fa:tag', categories: ["shopping"], tags: ['tag'], source: 'fa'),
+        IconMetadata(name: 'fa:store', categories: ["shopping"], tags: ['store'], source: 'fa'),
+        
+        // Lifestyle
+        IconMetadata(name: 'fa:house', categories: ["lifestyle"], tags: ['house'], source: 'fa'),
+        IconMetadata(name: 'fa:gift', categories: ["lifestyle"], tags: ['gift'], source: 'fa'),
+        IconMetadata(name: 'fa:music', categories: ["lifestyle"], tags: ['music'], source: 'fa'),
+        IconMetadata(name: 'fa:film', categories: ["lifestyle"], tags: ['film'], source: 'fa'),
+        IconMetadata(name: 'fa:ticket', categories: ["lifestyle"], tags: ['ticket'], source: 'fa'),
+        IconMetadata(name: 'fa:shirt', categories: ["lifestyle"], tags: ['shirt'], source: 'fa'),
+        IconMetadata(name: 'fa:graduation-cap', categories: ["lifestyle"], tags: ['graduation cap'], source: 'fa'),
+        IconMetadata(name: 'fa:couch', categories: ["lifestyle"], tags: ['couch'], source: 'fa'),
+        IconMetadata(name: 'fa:bed', categories: ["lifestyle"], tags: ['bed'], source: 'fa'),
+        IconMetadata(name: 'fa:bath', categories: ["lifestyle"], tags: ['bath'], source: 'fa'),
+        IconMetadata(name: 'fa:umbrella', categories: ["lifestyle"], tags: ['umbrella'], source: 'fa'),
+        IconMetadata(name: 'fa:mountain', categories: ["lifestyle"], tags: ['mountain'], source: 'fa'),
+        IconMetadata(name: 'fa:tree', categories: ["lifestyle"], tags: ['tree'], source: 'fa'),
+        IconMetadata(name: 'fa:sun', categories: ["lifestyle"], tags: ['sun'], source: 'fa'),
+        IconMetadata(name: 'fa:moon', categories: ["lifestyle"], tags: ['moon'], source: 'fa'),
+      ];
 
       final allLoaded = [...symbols, ...mdi, ...fa];
 
@@ -239,12 +394,12 @@ class _IconPickerWidgetState extends ConsumerState<IconPickerWidget> {
         }
       } catch (_) {}
 
-      // Extract dynamic categories from Material Symbols
+      // Extract dynamic categories from ALL icons
       final Set<String> categories = {};
       for (var icon in allLoaded) {
-        if (icon.source == 'ms') {
-          for (var cat in icon.categories) {
-            if (cat.isNotEmpty && cat != 'symbols') categories.add(cat);
+        for (var cat in icon.categories) {
+          if (cat.isNotEmpty && cat != 'symbols' && cat != 'mdi' && cat != 'fa') {
+            categories.add(cat);
           }
         }
       }

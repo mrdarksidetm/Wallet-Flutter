@@ -220,9 +220,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> with SingleTick
     });
   }
 
-  Widget _buildDynamicShadowLogo({String logoPath = 'assets/images/logo.svg'}) {
-    const double logoSize = 48.0;
-
+  Widget _buildDynamicShadowLogo({String logoPath = 'assets/images/logo.svg', double size = 48.0}) {
     return Stack(
       children: [
         Transform.translate(
@@ -233,16 +231,16 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> with SingleTick
               opacity: 0.4,
               child: SvgPicture.asset(
                 logoPath,
-                width: logoSize,
-                height: logoSize,
+                width: size,
+                height: size,
               ),
             ),
           ),
         ),
         SvgPicture.asset(
           logoPath,
-          width: logoSize,
-          height: logoSize,
+          width: size,
+          height: size,
         ),
       ],
     );
@@ -325,7 +323,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> with SingleTick
                 child: ClipPath(
                   clipper: CircleClipper(_rippleRadius, _rippleOffset),
                   child: Container(
-                    color: Colors.blue[600],
+                    color: colorScheme.primary,
                   ),
                 ),
               ),
@@ -753,9 +751,11 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> with SingleTick
             ),
             Expanded(
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const Spacer(),
-                  _buildDynamicShadowLogo(logoPath: 'assets/images/logo.svg'),
+                  _buildDynamicShadowLogo(logoPath: 'assets/images/logo.svg', size: 120),
                   const SizedBox(height: 48),
                   Text(
                     "Open Source & Private",
