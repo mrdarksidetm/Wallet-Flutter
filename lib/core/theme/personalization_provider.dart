@@ -35,7 +35,7 @@ class PersonalizationState {
     this.opticalSize = 12,
     this.fillIcons = false,
     this.shouldRestartOnCurrencyChange = true,
-    this.colorSchemeVariant = 'tonalSpot',
+    this.colorSchemeVariant = 'vibrant',
     this.isOnboardingComplete = false,
     this.useDynamicColor = true,
     this.userName,
@@ -121,12 +121,12 @@ class PersonalizationState {
       weight: (map['weight'] as num?)?.toDouble() ?? 400,
       slant: (map['slant'] as num?)?.toDouble() ?? 0,
       width: (map['width'] as num?)?.toDouble() ?? 100,
-      roundness: (map['roundness'] as num?)?.toDouble() ?? 28,
-      fontRoundness: (map['fontRoundness'] as num?)?.toDouble() ?? 0,
+      roundness: (map['roundness'] as num?)?.toDouble() ?? 32,
+      fontRoundness: (map['fontRoundness'] as num?)?.toDouble() ?? 100,
       opticalSize: (map['opticalSize'] as num?)?.toDouble() ?? 12,
       fillIcons: map['fillIcons'] as bool? ?? false,
       shouldRestartOnCurrencyChange: map['shouldRestartOnCurrencyChange'] as bool? ?? true,
-      colorSchemeVariant: map['colorSchemeVariant'] as String? ?? 'tonalSpot',
+      colorSchemeVariant: map['colorSchemeVariant'] as String? ?? 'vibrant',
       isOnboardingComplete: map['isOnboardingComplete'] as bool? ?? false,
       useDynamicColor: map['useDynamicColor'] as bool? ?? true,
       userName: map['userName'] as String?,
@@ -233,6 +233,7 @@ class PersonalizationNotifier extends Notifier<PersonalizationState> {
       roundness: 32,
       fontRoundness: 100,
       opticalSize: 12,
+      colorSchemeVariant: 'vibrant',
     );
     _save();
   }
