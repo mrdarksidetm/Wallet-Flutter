@@ -33,6 +33,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> with SingleTick
   bool _showBlueScreen = false;
   double _rippleRadius = 0;
   Offset _rippleOffset = Offset.zero;
+  late AnimationController _rippleController;
 
   bool _storagePermissionGranted = false;
   bool _notificationPermissionGranted = false;
@@ -46,6 +47,17 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> with SingleTick
       if (mounted) {
         setState(() {
           _currentPage = _pageController.page ?? 0;
+        });
+      }
+    });
+
+    _rippleController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    )..addListener(() {
+      if (mounted) {
+        setState(() {
+          _rippleRadius = _rippleController.value * MediaQuery.of(context).size.longestSide * 1.5;
         });
       }
     });
@@ -70,6 +82,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> with SingleTick
     _pageController.dispose();
     _nameController.dispose();
     _focusNode.dispose();
+    _rippleController.dispose();
     super.dispose();
   }
 
@@ -202,24 +215,13 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> with SingleTick
       _showBlueScreen = true;
     });
     
-    // Animate ripple radius
-    Future.delayed(Duration.zero, () {
-      if (mounted) {
-        setState(() {
-          _rippleRadius = MediaQuery.of(context).size.longestSide * 1.5;
-        });
-      }
-    });
-
-    // Navigate after animation
-    Future.delayed(const Duration(milliseconds: 800), () {
+    _rippleController.forward().then((_) {
       _finishOnboarding();
     });
   }
 
-  Widget _buildDynamicShadowLogo() {
+  Widget _buildDynamicShadowLogo({String logoPath = 'assets/images/logo.svg'}) {
     const double logoSize = 48.0;
-    const String logoPath = 'assets/images/logo.svg';
 
     return Stack(
       children: [
@@ -248,23 +250,42 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> with SingleTick
 
   Widget _buildThemeToggle(ColorScheme colorScheme) {
     final themeMode = ref.watch(themeControllerProvider).themeMode;
-    final isDarkMode = themeMode == ThemeMode.dark ||
-        (themeMode == ThemeMode.system &&
-            MediaQuery.of(context).platformBrightness == Brightness.dark);
+    
+    IconData getIcon() {
+      switch (themeMode) {
+        case ThemeMode.system: return Symbols.settings_brightness;
+        case ThemeMode.light: return Symbols.light_mode;
+        case ThemeMode.dark: return Symbols.dark_mode;
+      }
+    }
 
-    return IconButton.filledTonal(
-      onPressed: () {
-        ref.read(themeControllerProvider.notifier).setThemeMode(
-              isDarkMode ? ThemeMode.light : ThemeMode.dark,
-            );
-      },
-      icon: Icon(
-        isDarkMode ? Symbols.light_mode : Symbols.dark_mode,
-        size: 24,
-      ),
-      style: IconButton.styleFrom(
-        backgroundColor: colorScheme.surfaceContainerHighest.withOpacity(0.5),
-        foregroundColor: colorScheme.primary,
+    String getLabel() {
+      switch (themeMode) {
+        case ThemeMode.system: return 'System';
+        case ThemeMode.light: return 'Light';
+        case ThemeMode.dark: return 'Dark';
+      }
+    }
+
+    return Tooltip(
+      message: 'Theme: ${getLabel()}',
+      child: IconButton.filledTonal(
+        onPressed: () {
+          final nextMode = themeMode == ThemeMode.system 
+              ? ThemeMode.light 
+              : themeMode == ThemeMode.light 
+                  ? ThemeMode.dark 
+                  : ThemeMode.system;
+          ref.read(themeControllerProvider.notifier).setThemeMode(nextMode);
+        },
+        icon: Icon(
+          getIcon(),
+          size: 24,
+        ),
+        style: IconButton.styleFrom(
+          backgroundColor: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+          foregroundColor: colorScheme.primary,
+        ),
       ),
     );
   }
@@ -325,10 +346,11 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> with SingleTick
             top: 100,
             left: 0,
             right: 0,
-            child: Image.asset(
-              'assets/images/welcome_hero.png',
+            child: SvgPicture.asset(
+              'assets/images/welcome.svg',
               fit: BoxFit.contain,
               height: 400,
+              colorFilter: ColorFilter.mode(colorScheme.primary, BlendMode.srcIn),
             ),
           ),
           SafeArea(
@@ -492,9 +514,9 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> with SingleTick
 
   Widget _buildCurrencyPage(ThemeData theme, ColorScheme colorScheme) {
     final currencies = [
+      {'code': 'INR', 'name': 'Indian Rupee', 'symbol': '₹'},
       {'code': 'USD', 'name': 'United States Dollar', 'symbol': r'$'},
       {'code': 'EUR', 'name': 'Euro', 'symbol': '€'},
-      {'code': 'INR', 'name': 'Indian Rupee', 'symbol': '₹'},
       {'code': 'GBP', 'name': 'British Pound', 'symbol': '£'},
       {'code': 'JPY', 'name': 'Japanese Yen', 'symbol': '¥'},
       {'code': 'CAD', 'name': 'Canadian Dollar', 'symbol': r'CA$'},
@@ -715,16 +737,25 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> with SingleTick
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildPageHeader(theme, colorScheme, Symbols.done_all, 'All Set'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildPageHeader(theme, colorScheme, Symbols.done_all, 'All Set'),
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: SvgPicture.asset(
+                    'assets/images/open-source.svg',
+                    height: 28,
+                    colorFilter: ColorFilter.mode(colorScheme.primary, BlendMode.srcIn),
+                  ),
+                ),
+              ],
+            ),
             Expanded(
               child: Column(
                 children: [
                   const Spacer(),
-                  SvgPicture.asset(
-                    'assets/images/open-source.svg',
-                    height: 140,
-                    colorFilter: ColorFilter.mode(colorScheme.primary, BlendMode.srcIn),
-                  ),
+                  _buildDynamicShadowLogo(logoPath: 'assets/images/logo.svg'),
                   const SizedBox(height: 48),
                   Text(
                     "Open Source & Private",

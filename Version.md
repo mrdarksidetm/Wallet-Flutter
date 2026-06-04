@@ -244,3 +244,14 @@ ont_awesome_flutter\ v11 APIs.
   - **Permissions Logic:** Implemented reactive state for permission tracking. Replaced "Allow Permission" text with a check icon and animated transition once granted, maintaining button geometry.
   - **Platform Consistency:** Synchronized the logo shadow effect with the existing `HomeHeader` implementation.
 - **Status:** 100% (Onboarding refined and verified with `flutter analyze`).
+
+## [2026-06-04 12:00] - Design Polish & UX Enhancements (v3.0.5)
+- **Action:** Upgraded project to version 3.0.5 and applied premium design refinements.
+- **Changes:**
+  - **Version Upgrade:** Bumped application version to `3.0.5` across all files (`pubspec.yaml`, `about_page.dart`, `settings_page.dart`).
+  - **Welcome Page:** Replaced PNG hero image with `welcome.svg` using dynamic primary color filtering for Material 3 alignment.
+  - **Theme Toggle:** Enhanced onboarding theme toggle to support a tri-state logic (System/Light/Dark) with corresponding Material Symbols and tooltips.
+  - **Personalization:** Set default UI roundness to `32dp` (100% slider value) to fulfill "Expressive" mandates.
+  - **Onboarding Page 5:** Replaced center image with high-res `original.svg` logo and added a secondary `logo.svg` to the header horizon for brand consistency.
+  - **Ripple Effect:** Re-engineered the "Let's Dive In" transition using an `AnimationController` for a smooth, visible 800ms full-screen ripple.
+- **Status:** 100% (Verified with `flutter analyze`).

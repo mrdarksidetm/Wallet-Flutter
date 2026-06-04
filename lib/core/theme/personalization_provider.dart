@@ -30,8 +30,8 @@ class PersonalizationState {
     this.weight = 400,
     this.slant = 0,
     this.width = 100,
-    this.roundness = 28,
-    this.fontRoundness = 0,
+    this.roundness = 32,
+    this.fontRoundness = 100,
     this.opticalSize = 12,
     this.fillIcons = false,
     this.shouldRestartOnCurrencyChange = true,
@@ -230,8 +230,8 @@ class PersonalizationNotifier extends Notifier<PersonalizationState> {
       weight: 400,
       slant: 0,
       width: 100,
-      roundness: 28,
-      fontRoundness: 0,
+      roundness: 32,
+      fontRoundness: 100,
       opticalSize: 12,
     );
     _save();

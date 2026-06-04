@@ -17,7 +17,7 @@ class SettingsPage extends ConsumerStatefulWidget {
 }
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
-  String _currentVersion = '1.28';
+  String _currentVersion = '3.0.5';
 
   @override
   void initState() {
@@ -300,7 +300,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           const SizedBox(height: 48),
           Center(
             child: Text(
-              'Wallet v$_currentVersion (March 2026)',
+              'Wallet v$_currentVersion (June 2026)',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
               ),
