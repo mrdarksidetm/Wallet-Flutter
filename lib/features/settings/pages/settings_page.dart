@@ -17,7 +17,7 @@ class SettingsPage extends ConsumerStatefulWidget {
 }
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
-  String _currentVersion = '3.0.5';
+  String _currentVersion = '3.1.0';
 
   @override
   void initState() {

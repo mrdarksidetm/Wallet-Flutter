@@ -34,7 +34,7 @@ class AboutPage extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Version 3.0.5',
+              'Version 3.1.0',
               style: theme.textTheme.labelLarge?.copyWith(
                 color: colorScheme.primary,
                 fontWeight: FontWeight.bold,
@@ -89,7 +89,7 @@ class AboutPage extends ConsumerWidget {
               onTap: () => showLicensePage(
                 context: context,
                 applicationName: 'Wallet',
-                applicationVersion: '3.0.5',
+                applicationVersion: '3.1.0',
               ),
             ),
             const SizedBox(height: 64),
