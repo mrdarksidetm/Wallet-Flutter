@@ -255,3 +255,12 @@ ont_awesome_flutter\ v11 APIs.
   - **Onboarding Page 5:** Replaced center image with high-res `original.svg` logo and added a secondary `logo.svg` to the header horizon for brand consistency.
   - **Ripple Effect:** Re-engineered the "Let's Dive In" transition using an `AnimationController` for a smooth, visible 800ms full-screen ripple.
 - **Status:** 100% (Verified with `flutter analyze`).
+
+## [2026-06-05 16:30] - UI Refinement & Onboarding Polish (v3.1.0)
+- **Action:** Finalized the Onboarding UX and unified the visual identity with Material 3 Expressive refinements.
+- **Changes:**
+  - **UI/UX:** Refined onboarding logo with dynamic shadows and improved theme toggle responsiveness.
+  - **Theming:** Set 'Vibrant' as the default ColorScheme variant for a more expressive UI.
+  - **Icons:** Expanded icon categories and unified app colors across all features.
+  - **Architecture:** Cleaned up redundant onboarding logic and synchronized state providers.
+- **Status:** 100% (Changes verified and ready for production release).
