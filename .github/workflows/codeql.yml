@@ -1,0 +1,58 @@
+# Name of the workflow that will appear in the GitHub Actions tab
+name: "CodeQL Advanced Setup"
+
+# This section dictates when the CodeQL scan should automatically run
+on:
+  push:
+    # Triggers the scan every time code is pushed to the main branch
+    branches: [ "main" ]
+  pull_request:
+    # Triggers the scan on pull requests targeting the main branch to catch vulnerabilities early
+    branches: [ "main" ]
+  schedule:
+    # Runs a routine scan every Thursday at 06:17 UTC, ensuring consistent security checks
+    - cron: '17 6 * * 4'
+
+jobs:
+  analyze:
+    name: Analyze
+    # Specifies the virtual machine environment (Ubuntu Linux) to run the analysis on
+    runs-on: ubuntu-latest
+    
+    # Required permissions for the GitHub token to upload security alerts to your repository's Security tab
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # THIS IS THE CRITICAL FIX AREA:
+        # We define the exact languages CodeQL should scan here. 
+        # By omitting 'ruby' from this list, we force CodeQL to ignore it entirely.
+        # This resolves the "No Ruby code found" build error you are seeing.
+        language: [ 'java-kotlin', 'c-cpp', 'javascript-typescript', 'rust' ]
+
+    steps:
+    # Step 1: Checks out your repository's code onto the GitHub Actions runner so it can be analyzed
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # Step 2: Initializes the CodeQL tools with the exact languages defined in the matrix above
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: ${{ matrix.language }}
+        
+    # Step 3: Automatically attempts to build compiled languages (like C++, Java).
+    # This step pulls together the necessary binaries for CodeQL to trace data flows.
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v3
+
+    # Step 4: Performs the actual security analysis on the built code
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        # Groups the results by language in the GitHub Security tab for easier reading
+        category: "/language:${{matrix.language}}"
