@@ -98,6 +98,7 @@ class _AddEditGoalPageState extends ConsumerState<AddEditGoalPage> {
 
     if (widget.goal != null) {
       goal.id = widget.goal!.id;
+      goal.uuid = widget.goal!.uuid;
     }
 
     await ref.read(goalServiceProvider).saveGoal(goal);

@@ -15,6 +15,13 @@ analyzer:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
     - "isar_community/**"
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
 
   errors:
     deprecated_member_use: ignore

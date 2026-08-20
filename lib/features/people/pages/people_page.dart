@@ -186,7 +186,7 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
     final nameController = TextEditingController();
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Add Person'),
         content: TextField(
           controller: nameController,
@@ -196,7 +196,7 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(dialogContext),
               child: const Text('Cancel')),
           TextButton(
             onPressed: () async {
@@ -207,13 +207,13 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
                   ..createdAt = DateTime.now()
                   ..updatedAt = DateTime.now();
                 await ref.read(personServiceProvider).savePerson(person);
-                if (context.mounted) Navigator.pop(context);
+                if (dialogContext.mounted) Navigator.pop(dialogContext);
               }
             },
             child: const Text('Add'),
           ),
         ],
       ),
-    );
+    ).then((_) => nameController.dispose());
   }
 }

@@ -63,6 +63,7 @@ class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
 
     if (widget.category != null) {
       category.id = widget.category!.id;
+      category.uuid = widget.category!.uuid;
     }
 
     await ref.read(categoryServiceProvider).saveCategory(category);

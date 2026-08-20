@@ -5,6 +5,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:ota_update/ota_update.dart';
 import 'package:restart_app/restart_app.dart';
 import '../../../core/services/update_service.dart';
+import '../../../core/services/data_shredder.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/theme/personalization_provider.dart';
 import '../../auth/providers/auth_provider.dart';
@@ -233,6 +234,45 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Restore failed: $e')),
                   );
+                }
+              }
+            },
+          ),
+          _buildSettingsTile(
+            context,
+            icon: Symbols.delete_forever,
+            title: 'Factory Reset',
+            subtitle: 'Permanently wipe all data and reset app',
+            onTap: () async {
+              final confirmed = await showDialog<bool>(
+                context: context,
+                builder: (dialogContext) => AlertDialog(
+                  title: const Text('Factory Reset?'),
+                  content: const Text(
+                      'This will permanently delete all transactions, accounts, categories, and settings. This action cannot be undone.'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(dialogContext, false),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(dialogContext, true),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Theme.of(context).colorScheme.error,
+                      ),
+                      child: const Text('Reset Everything'),
+                    ),
+                  ],
+                ),
+              );
+
+              if (confirmed == true && context.mounted) {
+                final isar = ref.read(isarProvider).value;
+                if (isar != null) {
+                  final success = await DataShredder.factoryReset(isar);
+                  if (success && context.mounted) {
+                    Restart.restartApp();
+                  }
                 }
               }
             },
@@ -501,7 +541,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         ),
         child: Icon(icon,
             size: 28,
-            fill: ref.watch(personalizationProvider).fillIcons ? 1.0 : 0.0),
+            fill: ref.watch(personalizationProvider.select((p) => p.fillIcons))
+                ? 1.0
+                : 0.0),
       ),
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
       subtitle: Text(subtitle),

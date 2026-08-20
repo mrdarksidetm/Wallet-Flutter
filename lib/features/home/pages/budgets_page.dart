@@ -146,7 +146,7 @@ class _BudgetCard extends ConsumerWidget {
         text: currentLimit > 0 ? currentLimit.toString() : '');
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text('Set Budget for ${category.name}'),
         content: TextField(
           controller: controller,
@@ -159,7 +159,7 @@ class _BudgetCard extends ConsumerWidget {
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(dialogContext),
               child: const Text('Cancel')),
           if (currentLimit > 0)
             TextButton(
@@ -167,8 +167,7 @@ class _BudgetCard extends ConsumerWidget {
                 await ref
                     .read(categoryServiceProvider)
                     .setBudget(category.id, 0);
-                
-                if (context.mounted) Navigator.pop(context);
+                if (dialogContext.mounted) Navigator.pop(dialogContext);
               },
               child: const Text('Remove', style: TextStyle(color: Colors.red)),
             ),
@@ -178,14 +177,13 @@ class _BudgetCard extends ConsumerWidget {
               await ref
                   .read(categoryServiceProvider)
                   .setBudget(category.id, limitValue);
-              
-              if (context.mounted) Navigator.pop(context);
+              if (dialogContext.mounted) Navigator.pop(dialogContext);
             },
             child: const Text('Save'),
           ),
         ],
       ),
-    );
+    ).then((_) => controller.dispose());
   }
 }
 

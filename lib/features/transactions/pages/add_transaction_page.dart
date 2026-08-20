@@ -601,7 +601,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
     final nameController = TextEditingController();
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Add Person'),
         content: TextField(
           controller: nameController,
@@ -611,7 +611,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(dialogContext),
               child: const Text('Cancel')),
           TextButton(
             onPressed: () async {
@@ -625,14 +625,14 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
                 setState(() {
                   _selectedPerson = person;
                 });
-                if (context.mounted) Navigator.pop(context);
+                if (dialogContext.mounted) Navigator.pop(dialogContext);
               }
             },
             child: const Text('Add'),
           ),
         ],
       ),
-    );
+    ).then((_) => nameController.dispose());
   }
 
   void _showCategoryPicker(List<Category> categories) {

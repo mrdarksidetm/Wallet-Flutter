@@ -61,7 +61,8 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
             return const Center(child: Text('No accounts found'));
           }
 
-          final currentAccount = accounts[_currentPage];
+          final pageIndex = _currentPage.clamp(0, accounts.length - 1);
+          final currentAccount = accounts[pageIndex];
           
           return CustomScrollView(
             physics: const BouncingScrollPhysics(),

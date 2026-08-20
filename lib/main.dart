@@ -10,6 +10,7 @@ import 'app/router.dart';
 import 'core/database/providers.dart';
 import 'core/widgets/global_error_screen.dart';
 import 'core/services/log_service.dart';
+import 'core/services/notification_service.dart';
 import 'core/widgets/safe_runtime_fixer.dart';
 
 void main() async {
@@ -23,6 +24,9 @@ void main() async {
       sharedPreferencesProvider.overrideWithValue(sharedPrefs),
     ],
   );
+
+  // 2. Initialize local notification channels
+  await container.read(notificationServiceProvider).init();
 
   // 2. Capture Flutter Framework errors
   FlutterError.onError = (FlutterErrorDetails details) {

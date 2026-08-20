@@ -73,6 +73,7 @@ class _AddEditRecurringPageState extends ConsumerState<AddEditRecurringPage> {
 
     if (widget.recurring != null) {
       recurring.id = widget.recurring!.id;
+      recurring.uuid = widget.recurring!.uuid;
     }
 
     await ref.read(recurringServiceProvider).saveRecurring(recurring);

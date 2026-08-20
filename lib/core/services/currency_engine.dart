@@ -79,6 +79,7 @@ class CurrencyEngine {
 
   /// Returns only the currency symbol for the given code.
   static String getSymbol(String currencyCode) {
-    return NumberFormat.simpleCurrency(name: currencyCode).currencySymbol;
+    final locale = getLocaleForCurrency(currencyCode);
+    return NumberFormat.simpleCurrency(locale: locale, name: currencyCode).currencySymbol;
   }
 }

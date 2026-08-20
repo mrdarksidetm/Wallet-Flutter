@@ -19,6 +19,12 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   String _query = '';
 
   @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -124,7 +130,7 @@ class _SearchResults extends ConsumerWidget {
             subtitle:
                 '${DateFormat.yMMMd().format(t.date)} • ${currencyFormat.format(t.amount)}',
             icon: Symbols.receipt_long,
-            onTap: () {},
+            onTap: () => context.push('/add_transaction', extra: t),
           ),
         ),
       ],

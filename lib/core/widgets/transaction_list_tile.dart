@@ -29,7 +29,7 @@ class TransactionListTile extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (context) => ExpressiveBottomSheet(
+      builder: (sheetContext) => ExpressiveBottomSheet(
         title: 'Transaction Options',
         child: Column(
           children: [
@@ -37,15 +37,17 @@ class TransactionListTile extends ConsumerWidget {
               leading: const Icon(Symbols.edit),
               title: const Text('Edit'),
               onTap: () {
-                Navigator.pop(context);
-                context.push('/add_transaction', extra: tx);
+                Navigator.pop(sheetContext);
+                if (context.mounted) {
+                  context.push('/add_transaction', extra: tx);
+                }
               },
             ),
             ListTile(
               leading: Icon(tx.isArchived ? Symbols.unarchive : Symbols.archive),
               title: Text(tx.isArchived ? 'Unarchive' : 'Archive'),
               onTap: () async {
-                Navigator.pop(context);
+                Navigator.pop(sheetContext);
                 if (tx.isArchived) {
                   await ref.read(transactionRepositoryProvider).unarchive(tx.id);
                 } else {
@@ -57,16 +59,17 @@ class TransactionListTile extends ConsumerWidget {
               leading: Icon(Symbols.delete, color: colorScheme.error),
               title: Text('Delete', style: TextStyle(color: colorScheme.error)),
               onTap: () async {
-                Navigator.pop(context);
+                Navigator.pop(sheetContext);
+                if (!context.mounted) return;
                 final confirmed = await showDialog<bool>(
                   context: context,
-                  builder: (context) => AlertDialog(
+                  builder: (dialogContext) => AlertDialog(
                     title: const Text('Delete Transaction?'),
                     content: const Text('This will permanently delete this transaction and update your balance.'),
                     actions: [
-                      TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+                      TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel')),
                       TextButton(
-                        onPressed: () => Navigator.pop(context, true),
+                        onPressed: () => Navigator.pop(dialogContext, true),
                         style: TextButton.styleFrom(foregroundColor: colorScheme.error),
                         child: const Text('Delete'),
                       ),

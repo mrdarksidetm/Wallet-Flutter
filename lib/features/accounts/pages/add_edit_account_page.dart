@@ -64,6 +64,7 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
 
     if (widget.account != null) {
       account.id = widget.account!.id;
+      account.uuid = widget.account!.uuid;
     }
 
     await ref.read(accountServiceProvider).saveAccount(account);

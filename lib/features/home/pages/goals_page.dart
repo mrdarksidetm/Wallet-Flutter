@@ -34,8 +34,9 @@ class GoalsPage extends ConsumerWidget {
               final goal = goals[index];
               if (goal.isDeleted) return const SizedBox.shrink();
 
-              final percent =
-                  (goal.currentAmount / goal.targetAmount).clamp(0.0, 1.0);
+              final percent = goal.targetAmount > 0
+                  ? (goal.currentAmount / goal.targetAmount).clamp(0.0, 1.0)
+                  : 0.0;
               final color = goal.color.parseHexColor();
               final isCompleted = goal.isCompleted;
 
