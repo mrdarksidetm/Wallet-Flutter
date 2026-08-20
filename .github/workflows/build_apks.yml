@@ -35,7 +35,7 @@ jobs:
       - name: Install Dependencies
         run: |
           flutter doctor -v
-          yes | flutter doctor --android-licenses
+          yes | flutter doctor --android-licenses || true
           flutter pub get
 
       - name: Setup Signing (Optional)
@@ -45,35 +45,38 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         run: |
-          if [ ! -z "$KEYSTORE_BASE64" ]; then
+          if [ -n "$KEYSTORE_BASE64" ]; then
             echo "Decoding keystore..."
             mkdir -p android/app
-            echo $KEYSTORE_BASE64 | base64 --decode > android/app/upload-keystore.jks
-            echo "storePassword=$KEYSTORE_PASSWORD" > android/key.properties
-            echo "keyPassword=$KEY_PASSWORD" >> android/key.properties
-            echo "keyAlias=$KEY_ALIAS" >> android/key.properties
-            echo "storeFile=upload-keystore.jks" >> android/key.properties
+            echo "$KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
+            cat <<EOF > android/key.properties
+storePassword=$KEYSTORE_PASSWORD
+keyPassword=$KEY_PASSWORD
+keyAlias=$KEY_ALIAS
+storeFile=upload-keystore.jks
+EOF
           else
-            echo "No signing secrets found. Building unsigned APKs."
+            echo "No signing secrets found. Falling back to debug signing."
           fi
 
       - name: Code Generation (Build Runner)
         run: dart run build_runner build --delete-conflicting-outputs
 
+      - name: Prepare Output Directories
+        run: |
+          mkdir -p build/app/outputs/symbols
+          mkdir -p build/app/outputs/final-apks
+
       - name: Build Universal APK
-        id: build_universal
         run: |
           echo "Building Universal (Fat) APK..."
-          flutter clean
-          flutter pub get
-          mkdir -p build/app/outputs/symbols
           flutter build apk --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --verbose
           
-          # Manually locate APK if standard path is empty
-          if [ ! -f build/app/outputs/flutter-apk/app-release.apk ]; then
-            echo "Standard APK path not found. Searching in android/app/build/outputs/apk/release/..."
-            mkdir -p build/app/outputs/flutter-apk
-            cp android/app/build/outputs/apk/release/app-release.apk build/app/outputs/flutter-apk/app-release.apk || echo "APK not found in android/app path either."
+          # Immediately preserve universal APK before split-abi build overwrites outputs
+          if [ -f build/app/outputs/flutter-apk/app-release.apk ]; then
+            cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/final-apks/wallet-universal.apk
+          elif [ -f android/app/build/outputs/apk/release/app-release.apk ]; then
+            cp android/app/build/outputs/apk/release/app-release.apk build/app/outputs/final-apks/wallet-universal.apk
           fi
 
       - name: Build Split APKs
@@ -81,35 +84,35 @@ jobs:
           echo "Building Split-ABI APKs..."
           flutter build apk --split-per-abi --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --verbose
           
-          # Manually locate Split APKs
-          if [ ! -f build/app/outputs/flutter-apk/app-arm64-v8a-release.apk ]; then
-             echo "Split APKs not found in standard path. Searching in android/app/build/outputs/apk/release/..."
-             cp android/app/build/outputs/apk/release/app-arm64-v8a-release.apk build/app/outputs/flutter-apk/app-arm64-v8a-release.apk || true
-             cp android/app/build/outputs/apk/release/app-armeabi-v7a-release.apk build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk || true
-             cp android/app/build/outputs/apk/release/app-x86_64-release.apk build/app/outputs/flutter-apk/app-x86_64-release.apk || true
-          fi
-
-      - name: Process & Rename APKs
-        if: success()
-        run: |
-          mkdir -p build/app/outputs/final-apks
-          
-          # Check for Universal APK
-          if [ -f build/app/outputs/flutter-apk/app-release.apk ]; then
-            mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/final-apks/wallet-universal.apk
-          fi
-          
-          # Check for Split APKs
+          # Preserve split APKs
           if [ -f build/app/outputs/flutter-apk/app-arm64-v8a-release.apk ]; then
-            mv build/app/outputs/flutter-apk/app-arm64-v8a-release.apk build/app/outputs/final-apks/wallet-arm64-v8a.apk
+            cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk build/app/outputs/final-apks/wallet-arm64-v8a.apk
+          elif [ -f android/app/build/outputs/apk/release/app-arm64-v8a-release.apk ]; then
+            cp android/app/build/outputs/apk/release/app-arm64-v8a-release.apk build/app/outputs/final-apks/wallet-arm64-v8a.apk
           fi
           
           if [ -f build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk ]; then
-            mv build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk build/app/outputs/final-apks/wallet-arm-v7a.apk
+            cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk build/app/outputs/final-apks/wallet-arm-v7a.apk
+          elif [ -f android/app/build/outputs/apk/release/app-armeabi-v7a-release.apk ]; then
+            cp android/app/build/outputs/apk/release/app-armeabi-v7a-release.apk build/app/outputs/final-apks/wallet-arm-v7a.apk
+          fi
+
+          if [ -f build/app/outputs/flutter-apk/app-x86_64-release.apk ]; then
+            cp build/app/outputs/flutter-apk/app-x86_64-release.apk build/app/outputs/final-apks/wallet-x86_64.apk
+          elif [ -f android/app/build/outputs/apk/release/app-x86_64-release.apk ]; then
+            cp android/app/build/outputs/apk/release/app-x86_64-release.apk build/app/outputs/final-apks/wallet-x86_64.apk
+          fi
+
+      - name: Verify Output APKs
+        run: |
+          echo "Generated APKs in final-apks:"
+          ls -lah build/app/outputs/final-apks/
+          if [ ! -f build/app/outputs/final-apks/wallet-universal.apk ] && [ ! -f build/app/outputs/final-apks/wallet-arm64-v8a.apk ]; then
+            echo "::error::No APKs were generated in final-apks!"
+            exit 1
           fi
 
       - name: Upload Build Artifacts
-        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: Wallet-APKs
@@ -118,9 +121,9 @@ jobs:
           retention-days: 7
 
       - name: Upload Debug Symbols
-        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: Debug-Symbols
           path: build/app/outputs/symbols/*
+          if-no-files-found: warn
           retention-days: 7
