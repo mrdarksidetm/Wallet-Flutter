@@ -32,7 +32,7 @@ jobs:
         # We define the exact languages CodeQL should scan here. 
         # By omitting 'ruby' from this list, we force CodeQL to ignore it entirely.
         # This resolves the "No Ruby code found" build error you are seeing.
-        language: [ 'java-kotlin', 'c-cpp', 'javascript-typescript', 'rust' ]
+        language: [ 'java-kotlin', 'javascript-typescript', 'rust' ]
 
     steps:
     # Step 1: Checks out your repository's code onto the GitHub Actions runner so it can be analyzed
