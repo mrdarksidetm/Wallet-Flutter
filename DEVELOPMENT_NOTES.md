@@ -68,7 +68,7 @@ Internal technical documentation for maintaining the **Project Wallet** ecosyste
 - **Strategy**: The app is built for `Universal`, `arm64-v8a`, and `armeabi-v7a` architectures to ensure maximum compatibility and optimized delivery.
 - **Workflow**: Managed via `.github/workflows/build_apks.yml`.
 - **Transparent Logging**: To simplify debugging, build logs are streamed directly to the console instead of being redirected to files. Failures are automatically surfaced by the GitHub Actions runner.
-- **Toolchain Stability**: Project uses **AGP 8.13.0** and **Gradle 8.14.5** to support **Android SDK 36 (Android 16)** while maintaining legacy APK output paths required by the Flutter CLI.
+- **Toolchain Stability**: Project uses **AGP 8.7.3** and **Gradle 8.11.1** targeting **Android SDK 35 (Android 15)** with Java 17 and Kotlin **2.1.10** for full compatibility with Android D8 desugaring and the Flutter CLI.
 - **Kotlin Integration**: Uses Kotlin **2.1.10** to avoid R8 metadata errors found in newer versions.
 - **APK Location**: Note that AGP 8.x may place APKs in `android/build/outputs/apk/release/` instead of `build/app/outputs/flutter-apk/`. CI must handle this.
 

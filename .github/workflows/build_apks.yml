@@ -23,7 +23,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '21'
+          java-version: '17'
           cache: 'gradle'
 
       - name: Setup Flutter
@@ -74,12 +74,7 @@ jobs:
       - name: Build Universal APK
         run: |
           echo "Building Universal (Fat) APK..."
-          if ! flutter build apk --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --verbose > build_universal.log 2>&1; then
-            echo "::error title=Universal APK Build Failed::$(tail -n 25 build_universal.log | tr '\n' ' ')"
-            cat build_universal.log
-            exit 1
-          fi
-          cat build_universal.log
+          flutter build apk --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --verbose
           
           # Immediately preserve universal APK before split-abi build overwrites outputs
           if [ -f build/app/outputs/flutter-apk/app-release.apk ]; then
@@ -93,12 +88,7 @@ jobs:
       - name: Build Split APKs
         run: |
           echo "Building Split-ABI APKs..."
-          if ! flutter build apk --split-per-abi --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --verbose > build_split.log 2>&1; then
-            echo "::error title=Split APK Build Failed::$(tail -n 25 build_split.log | tr '\n' ' ')"
-            cat build_split.log
-            exit 1
-          fi
-          cat build_split.log
+          flutter build apk --split-per-abi --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --verbose
           
           # Preserve split APKs
           if [ -f build/app/outputs/flutter-apk/app-arm64-v8a-release.apk ]; then

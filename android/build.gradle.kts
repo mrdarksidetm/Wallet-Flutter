@@ -20,13 +20,13 @@ subprojects {
     plugins.withId("com.android.library") {
         val android = extensions.findByName("android")
         if (android is com.android.build.gradle.LibraryExtension) {
-            android.compileSdk = 36
+            android.compileSdk = 35
         }
     }
     plugins.withId("com.android.application") {
         val android = extensions.findByName("android")
         if (android is com.android.build.gradle.AppExtension) {
-            android.compileSdk = 36
+            android.compileSdk = 35
         }
     }
 }
