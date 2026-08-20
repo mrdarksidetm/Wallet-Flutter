@@ -47,6 +47,19 @@ jobs:
         
     # Step 3: Automatically attempts to build compiled languages (like C++, Java).
     # This step pulls together the necessary binaries for CodeQL to trace data flows.
+    - name: Setup Flutter (Java/Kotlin)
+      if: matrix.language == 'java-kotlin'
+      uses: subosito/flutter-action@v2
+      with:
+        channel: stable
+
+    - name: Create Android local.properties (Java/Kotlin)
+      if: matrix.language == 'java-kotlin'
+      run: |
+        FLUTTER_ROOT="${FLUTTER_ROOT:-$(dirname "$(dirname "$(which flutter)")")}"
+        ANDROID_SDK_PATH="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+        printf "flutter.sdk=%s\nsdk.dir=%s\n" "$FLUTTER_ROOT" "$ANDROID_SDK_PATH" > android/local.properties
+
     - name: Autobuild
       uses: github/codeql-action/autobuild@v3
 
