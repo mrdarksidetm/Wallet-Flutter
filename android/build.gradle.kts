@@ -17,34 +17,16 @@ allprojects {
 }
 
 subprojects {
-    afterEvaluate {
-        val project = this
-        if (project.hasProperty("android")) {
-            val android = project.extensions.getByName("android")
-            try {
-                // Set compileSdk via reflection for maximum compatibility
-                android.javaClass.getMethod("setCompileSdk", Integer::class.java).invoke(android, 36)
-            } catch (e: Exception) {
-                try {
-                    android.javaClass.getMethod("compileSdkVersion", Int::class.javaPrimitiveType).invoke(android, 36)
-                } catch (e2: Exception) {
-                    // Ignore
-                }
-            }
-
-            // Also ensure targetSdk is set to 36
-            try {
-                val defaultConfig = android.javaClass.getMethod("getDefaultConfig").invoke(android)
-                defaultConfig.javaClass.getMethod("setTargetSdk", Integer::class.java).invoke(defaultConfig, 36)
-            } catch (e: Exception) {
-                // Fallback to direct setting if reflection fails or if it's a standard extension
-                try {
-                    @Suppress("UNCHECKED_CAST")
-                    (android as com.android.build.gradle.BaseExtension).defaultConfig.targetSdk = 36
-                } catch (e2: Exception) {
-                    // Ignore
-                }
-            }
+    plugins.withId("com.android.library") {
+        val android = extensions.findByName("android")
+        if (android is com.android.build.gradle.LibraryExtension) {
+            android.compileSdk = 36
+        }
+    }
+    plugins.withId("com.android.application") {
+        val android = extensions.findByName("android")
+        if (android is com.android.build.gradle.AppExtension) {
+            android.compileSdk = 36
         }
     }
 }
