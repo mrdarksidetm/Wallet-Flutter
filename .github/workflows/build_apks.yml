@@ -67,8 +67,7 @@ jobs:
           flutter clean
           flutter pub get
           mkdir -p build/app/outputs/symbols
-          # Run build and allow it to fail if APK is not found, we will check manual paths next
-          flutter build apk --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --verbose || true
+          flutter build apk --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --verbose
           
           # Manually locate APK if standard path is empty
           if [ ! -f build/app/outputs/flutter-apk/app-release.apk ]; then
@@ -78,10 +77,9 @@ jobs:
           fi
 
       - name: Build Split APKs
-        if: success() || failure()
         run: |
           echo "Building Split-ABI APKs..."
-          flutter build apk --split-per-abi --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --verbose || true
+          flutter build apk --split-per-abi --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --verbose
           
           # Manually locate Split APKs
           if [ ! -f build/app/outputs/flutter-apk/app-arm64-v8a-release.apk ]; then
@@ -89,16 +87,6 @@ jobs:
              cp android/app/build/outputs/apk/release/app-arm64-v8a-release.apk build/app/outputs/flutter-apk/app-arm64-v8a-release.apk || true
              cp android/app/build/outputs/apk/release/app-armeabi-v7a-release.apk build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk || true
              cp android/app/build/outputs/apk/release/app-x86_64-release.apk build/app/outputs/flutter-apk/app-x86_64-release.apk || true
-          fi
-
-      - name: Error Analysis (On Failure)
-        if: failure()
-        run: |
-          echo "::error::Build failed! Analyzing logs for critical errors..."
-          # Final check if any APK was actually generated
-          if [ ! -f build/app/outputs/flutter-apk/app-release.apk ]; then
-             echo "CRITICAL: No APK found after manual search. Build is truly failed."
-             exit 1
           fi
 
       - name: Process & Rename APKs
@@ -126,6 +114,7 @@ jobs:
         with:
           name: Wallet-APKs
           path: build/app/outputs/final-apks/*.apk
+          if-no-files-found: error
           retention-days: 7
 
       - name: Upload Debug Symbols
