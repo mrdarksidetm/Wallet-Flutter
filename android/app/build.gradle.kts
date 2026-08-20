@@ -41,6 +41,16 @@ android {
     packaging {
         jniLibs {
             useLegacyPackaging = true
+            pickFirsts += listOf(
+                "**/libisar.so",
+                "**/libc++_shared.so",
+                "lib/**/libisar.so"
+            )
+        }
+        resources {
+            pickFirsts += listOf(
+                "META-INF/**"
+            )
         }
     }
 
