@@ -77,7 +77,12 @@ jobs:
           flutter build apk --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --verbose --android-skip-build-dependency-validation 2>&1 | tee build_universal.log
           BUILD_STATUS="${PIPESTATUS[0]}"
           if [ "$BUILD_STATUS" -ne 0 ]; then
-            echo "### ❌ Universal APK Build Failed (exit code $BUILD_STATUS)" >> $GITHUB_STEP_SUMMARY
+            ERR_MSG=$(grep -i -E "error:|exception:|failed" build_universal.log | tail -n 15 | tr '\n' ' | ' | sed 's/[^a-zA-Z0-9 ._:\/|-]/ /g')
+            if [ -z "$ERR_MSG" ]; then
+              ERR_MSG=$(tail -n 25 build_universal.log | tr '\n' ' | ' | sed 's/[^a-zA-Z0-9 ._:\/|-]/ /g')
+            fi
+            echo "::error title=Universal APK Build Failed::$ERR_MSG"
+            echo "### ❌ Universal APK Build Failed" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
             tail -n 80 build_universal.log >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
@@ -106,7 +111,12 @@ jobs:
           flutter build apk --split-per-abi --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --verbose --android-skip-build-dependency-validation 2>&1 | tee build_split.log
           BUILD_STATUS="${PIPESTATUS[0]}"
           if [ "$BUILD_STATUS" -ne 0 ]; then
-            echo "### ❌ Split APK Build Failed (exit code $BUILD_STATUS)" >> $GITHUB_STEP_SUMMARY
+            ERR_MSG=$(grep -i -E "error:|exception:|failed" build_split.log | tail -n 15 | tr '\n' ' | ' | sed 's/[^a-zA-Z0-9 ._:\/|-]/ /g')
+            if [ -z "$ERR_MSG" ]; then
+              ERR_MSG=$(tail -n 25 build_split.log | tr '\n' ' | ' | sed 's/[^a-zA-Z0-9 ._:\/|-]/ /g')
+            fi
+            echo "::error title=Split APK Build Failed::$ERR_MSG"
+            echo "### ❌ Split APK Build Failed" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
             tail -n 80 build_split.log >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
