@@ -73,19 +73,14 @@ jobs:
 
       - name: Build Universal APK
         run: |
+          set -eo pipefail
           echo "Building Universal (Fat) APK..."
-          if ! flutter build apk --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --verbose --android-skip-build-dependency-validation 2>&1 | tee build_universal.log; then
-            echo "### ❌ Universal APK Build Failed" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            tail -n 60 build_universal.log >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            exit 1
-          fi
+          flutter build apk --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --verbose --android-skip-build-dependency-validation 2>&1 | tee build_universal.log
           
           # Immediately preserve universal APK before split-abi build overwrites outputs
           echo "Locating Universal APK..."
-          for apk in $(find build android -name "*.apk" 2>/dev/null); do
-            if [[ "$apk" != *"arm"* ]] && [[ "$apk" != *"x86"* ]]; then
+          for apk in $(find build android /home/runner/work -name "*.apk" 2>/dev/null); do
+            if [[ "$apk" != *"arm"* ]] && [[ "$apk" != *"x86"* ]] && [[ "$apk" != *"final-apks"* ]]; then
               echo "Found Universal APK at: $apk"
               cp "$apk" build/app/outputs/final-apks/wallet-universal.apk
               break
@@ -103,18 +98,16 @@ jobs:
 
       - name: Build Split APKs
         run: |
+          set -eo pipefail
           echo "Building Split-ABI APKs..."
-          if ! flutter build apk --split-per-abi --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --verbose --android-skip-build-dependency-validation 2>&1 | tee build_split.log; then
-            echo "### ❌ Split APK Build Failed" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            tail -n 60 build_split.log >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            exit 1
-          fi
+          flutter build apk --split-per-abi --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --verbose --android-skip-build-dependency-validation 2>&1 | tee build_split.log
           
           # Preserve split APKs
           echo "Locating Split APKs..."
-          for apk in $(find build android -name "*.apk" 2>/dev/null); do
+          for apk in $(find build android /home/runner/work -name "*.apk" 2>/dev/null); do
+            if [[ "$apk" == *"final-apks"* ]]; then
+              continue
+            fi
             if [[ "$apk" == *"arm64"* ]]; then
               echo "Found arm64 APK at: $apk"
               cp "$apk" build/app/outputs/final-apks/wallet-arm64-v8a.apk
@@ -130,7 +123,7 @@ jobs:
       - name: Verify Output APKs
         run: |
           echo "All APKs generated across workspace:"
-          find build android -name "*.apk" 2>/dev/null || true
+          find build android /home/runner/work -name "*.apk" 2>/dev/null || true
           echo "Final APKs staged for artifact upload:"
           ls -lah build/app/outputs/final-apks/ || true
           if [ ! -f build/app/outputs/final-apks/wallet-universal.apk ] && [ ! -f build/app/outputs/final-apks/wallet-arm64-v8a.apk ]; then
