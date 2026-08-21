@@ -83,12 +83,22 @@ jobs:
           fi
           
           # Immediately preserve universal APK before split-abi build overwrites outputs
-          if [ -f build/app/outputs/flutter-apk/app-release.apk ]; then
-            cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/final-apks/wallet-universal.apk
-          elif [ -f android/app/build/outputs/apk/release/app-release.apk ]; then
-            cp android/app/build/outputs/apk/release/app-release.apk build/app/outputs/final-apks/wallet-universal.apk
-          elif [ -f build/app/outputs/flutter-apk/app-release-unsigned.apk ]; then
-            cp build/app/outputs/flutter-apk/app-release-unsigned.apk build/app/outputs/final-apks/wallet-universal.apk
+          echo "Locating Universal APK..."
+          for apk in $(find build android -name "*.apk" 2>/dev/null); do
+            if [[ "$apk" != *"arm"* ]] && [[ "$apk" != *"x86"* ]]; then
+              echo "Found Universal APK at: $apk"
+              cp "$apk" build/app/outputs/final-apks/wallet-universal.apk
+              break
+            fi
+          done
+          if [ ! -f build/app/outputs/final-apks/wallet-universal.apk ]; then
+            if [ -f build/app/outputs/flutter-apk/app-release.apk ]; then
+              cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/final-apks/wallet-universal.apk
+            elif [ -f android/app/build/outputs/apk/release/app-release.apk ]; then
+              cp android/app/build/outputs/apk/release/app-release.apk build/app/outputs/final-apks/wallet-universal.apk
+            elif [ -f build/app/outputs/flutter-apk/app-release-unsigned.apk ]; then
+              cp build/app/outputs/flutter-apk/app-release-unsigned.apk build/app/outputs/final-apks/wallet-universal.apk
+            fi
           fi
 
       - name: Build Split APKs
@@ -103,30 +113,28 @@ jobs:
           fi
           
           # Preserve split APKs
-          if [ -f build/app/outputs/flutter-apk/app-arm64-v8a-release.apk ]; then
-            cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk build/app/outputs/final-apks/wallet-arm64-v8a.apk
-          elif [ -f android/app/build/outputs/apk/release/app-arm64-v8a-release.apk ]; then
-            cp android/app/build/outputs/apk/release/app-arm64-v8a-release.apk build/app/outputs/final-apks/wallet-arm64-v8a.apk
-          fi
-          
-          if [ -f build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk ]; then
-            cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk build/app/outputs/final-apks/wallet-arm-v7a.apk
-          elif [ -f android/app/build/outputs/apk/release/app-armeabi-v7a-release.apk ]; then
-            cp android/app/build/outputs/apk/release/app-armeabi-v7a-release.apk build/app/outputs/final-apks/wallet-arm-v7a.apk
-          fi
-
-          if [ -f build/app/outputs/flutter-apk/app-x86_64-release.apk ]; then
-            cp build/app/outputs/flutter-apk/app-x86_64-release.apk build/app/outputs/final-apks/wallet-x86_64.apk
-          elif [ -f android/app/build/outputs/apk/release/app-x86_64-release.apk ]; then
-            cp android/app/build/outputs/apk/release/app-x86_64-release.apk build/app/outputs/final-apks/wallet-x86_64.apk
-          fi
+          echo "Locating Split APKs..."
+          for apk in $(find build android -name "*.apk" 2>/dev/null); do
+            if [[ "$apk" == *"arm64"* ]]; then
+              echo "Found arm64 APK at: $apk"
+              cp "$apk" build/app/outputs/final-apks/wallet-arm64-v8a.apk
+            elif [[ "$apk" == *"armeabi"* ]] || [[ "$apk" == *"arm-v7a"* ]]; then
+              echo "Found arm-v7a APK at: $apk"
+              cp "$apk" build/app/outputs/final-apks/wallet-arm-v7a.apk
+            elif [[ "$apk" == *"x86_64"* ]]; then
+              echo "Found x86_64 APK at: $apk"
+              cp "$apk" build/app/outputs/final-apks/wallet-x86_64.apk
+            fi
+          done
 
       - name: Verify Output APKs
         run: |
-          echo "Generated APKs in final-apks:"
-          ls -lah build/app/outputs/final-apks/
+          echo "All APKs generated across workspace:"
+          find build android -name "*.apk" 2>/dev/null || true
+          echo "Final APKs staged for artifact upload:"
+          ls -lah build/app/outputs/final-apks/ || true
           if [ ! -f build/app/outputs/final-apks/wallet-universal.apk ] && [ ! -f build/app/outputs/final-apks/wallet-arm64-v8a.apk ]; then
-            echo "::error::No APKs were generated in final-apks!"
+            echo "::error::No APKs were preserved in final-apks!"
             exit 1
           fi
 
