@@ -31,6 +31,7 @@ class LoansPage extends ConsumerWidget {
           }
 
           return ListView(
+            physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.all(16),
             children: [
               if (borrowed.isNotEmpty)
@@ -40,7 +41,7 @@ class LoansPage extends ConsumerWidget {
                   'Borrowed',
                   'You owe others',
                   borrowed,
-                  Colors.red,
+                  const Color(0xFFEF4444),
                   currencyFormat,
                 ),
               if (borrowed.isNotEmpty && lent.isNotEmpty)
@@ -52,7 +53,7 @@ class LoansPage extends ConsumerWidget {
                   'Lent',
                   'Others owe you',
                   lent,
-                  Colors.green,
+                  const Color(0xFF10B981),
                   currencyFormat,
                 ),
             ],
@@ -74,6 +75,9 @@ class LoansPage extends ConsumerWidget {
     NumberFormat format,
   ) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -132,42 +136,53 @@ class LoansPage extends ConsumerWidget {
             background: Container(
               margin: const EdgeInsets.only(bottom: 12),
               decoration: BoxDecoration(
-                color: isPaid ? Colors.orange : Colors.green,
-                borderRadius: BorderRadius.circular(16),
+                color: isPaid ? Colors.orange.withValues(alpha: 0.2) : colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(20),
               ),
               alignment: Alignment.centerLeft,
               padding: const EdgeInsets.only(left: 24),
               child: Icon(isPaid ? Symbols.undo : Symbols.check_circle,
-                  color: Colors.white),
+                  color: isPaid ? Colors.orange : colorScheme.onPrimaryContainer),
             ),
             secondaryBackground: Container(
               margin: const EdgeInsets.only(bottom: 12),
               decoration: BoxDecoration(
-                color: theme.colorScheme.error,
-                borderRadius: BorderRadius.circular(16),
+                color: colorScheme.errorContainer,
+                borderRadius: BorderRadius.circular(20),
               ),
               alignment: Alignment.centerRight,
               padding: const EdgeInsets.only(right: 24),
-              child: const Icon(Symbols.delete, color: Colors.white),
+              child: Icon(Symbols.delete, color: colorScheme.onErrorContainer),
             ),
-            child: Card(
+            child: Container(
               margin: const EdgeInsets.only(bottom: 12),
-              elevation: isPaid ? 0 : 1,
-              color: isPaid
-                  ? theme.colorScheme.surfaceContainerHighest
-                      .withValues(alpha: 0.5)
-                  : null,
+              decoration: BoxDecoration(
+                color: isPaid
+                    ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.4)
+                    : (isDark ? colorScheme.surfaceContainer : colorScheme.surfaceContainerLow),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.3 : 0.4),
+                  width: 1,
+                ),
+              ),
               child: ListTile(
                 onTap: () => context.push('/add_loan', extra: item),
                 leading: item.person.value != null
                     ? PersonAvatar(person: item.person.value!, radius: 24)
-                    : CircleAvatar(
-                        backgroundColor: color.withValues(alpha: isPaid ? 0.05 : 0.1),
+                    : Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: isPaid ? 0.05 : (isDark ? 0.2 : 0.12)),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
                         child: Icon(
                             item.type == LoanType.lent
                                 ? Icons.arrow_upward_rounded
                                 : Icons.arrow_downward_rounded,
-                            color: isPaid ? color.withValues(alpha: 0.5) : color),
+                            color: isPaid ? color.withValues(alpha: 0.5) : color,
+                            size: 22),
                       ),
                 title: Text(
                   personName,

@@ -54,6 +54,7 @@ class _BudgetList extends ConsumerWidget {
 
     return budgetsAsync.when(
       data: (budgets) => ListView.builder(
+        physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.all(16),
         itemCount: categories.length,
         itemBuilder: (context, index) {
@@ -103,9 +104,20 @@ class _BudgetCard extends ConsumerWidget {
     final double percent = budgetData['percent'] as double;
     final bool hasBudget = limit > 0;
     final color = category.color.parseHexColor();
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: isDark ? colorScheme.surfaceContainer : colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.3 : 0.4),
+          width: 1,
+        ),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -113,9 +125,14 @@ class _BudgetCard extends ConsumerWidget {
           children: [
             Row(
               children: [
-                CircleAvatar(
-                  backgroundColor: color.withValues(alpha: 0.1),
-                  child: Icon(AppIcons.getIcon(category.icon), color: color),
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: isDark ? 0.2 : 0.12),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(AppIcons.getIcon(category.icon), color: color, size: 22),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -127,7 +144,7 @@ class _BudgetCard extends ConsumerWidget {
                         currencyFormat: currencyFormat)),
                 IconButton(
                   icon: Icon(hasBudget ? Symbols.edit : Symbols.add_circle,
-                      color: Theme.of(context).colorScheme.primary),
+                      color: colorScheme.primary),
                   onPressed: () => _showSetBudgetDialog(
                       context, ref, category, limit, currencyFormat),
                 ),

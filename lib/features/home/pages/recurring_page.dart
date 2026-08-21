@@ -26,6 +26,7 @@ class RecurringPage extends ConsumerWidget {
             return const Center(child: Text('No recurring transactions found'));
           }
           return ListView.builder(
+            physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.all(16),
             itemCount: items.length,
             itemBuilder: (context, index) {
@@ -34,6 +35,8 @@ class RecurringPage extends ConsumerWidget {
                   ? item.category.value!.color.parseHexColor()
                   : Theme.of(context).colorScheme.primary;
               final isActive = item.isActive;
+              final colorScheme = Theme.of(context).colorScheme;
+              final isDark = Theme.of(context).brightness == Brightness.dark;
 
               return Dismissible(
                 key: ValueKey(item.id),
@@ -59,8 +62,7 @@ class RecurringPage extends ConsumerWidget {
                           TextButton(
                             onPressed: () => Navigator.pop(context, true),
                             style: TextButton.styleFrom(
-                                foregroundColor:
-                                    Theme.of(context).colorScheme.error),
+                                foregroundColor: colorScheme.error),
                             child: const Text('Delete'),
                           ),
                         ],
@@ -77,44 +79,53 @@ class RecurringPage extends ConsumerWidget {
                 background: Container(
                   margin: const EdgeInsets.only(bottom: 12),
                   decoration: BoxDecoration(
-                    color: isActive ? Colors.orange : Colors.green,
-                    borderRadius: BorderRadius.circular(16),
+                    color: isActive ? Colors.orange.withValues(alpha: 0.2) : colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(20),
                   ),
                   alignment: Alignment.centerLeft,
                   padding: const EdgeInsets.only(left: 24),
                   child: Icon(isActive ? Symbols.cancel : Symbols.check_circle,
-                      color: Colors.white),
+                      color: isActive ? Colors.orange : colorScheme.onPrimaryContainer),
                 ),
                 secondaryBackground: Container(
                   margin: const EdgeInsets.only(bottom: 12),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.error,
-                    borderRadius: BorderRadius.circular(16),
+                    color: colorScheme.errorContainer,
+                    borderRadius: BorderRadius.circular(20),
                   ),
                   alignment: Alignment.centerRight,
                   padding: const EdgeInsets.only(right: 24),
-                  child: const Icon(Symbols.delete, color: Colors.white),
+                  child: Icon(Symbols.delete, color: colorScheme.onErrorContainer),
                 ),
-                child: Card(
+                child: Container(
                   margin: const EdgeInsets.only(bottom: 12),
-                  elevation: isActive ? 1 : 0,
-                  color: isActive
-                      ? null
-                      : Theme.of(context)
-                          .colorScheme
-                          .surfaceContainerHighest
-                          .withValues(alpha: 0.5),
+                  decoration: BoxDecoration(
+                    color: isActive
+                        ? (isDark ? colorScheme.surfaceContainer : colorScheme.surfaceContainerLow)
+                        : colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.3 : 0.4),
+                      width: 1,
+                    ),
+                  ),
                   child: ListTile(
                     onTap: () => context.push('/add_recurring', extra: item),
-                    leading: CircleAvatar(
-                      backgroundColor: categoryColor.withValues(
-                          alpha: isActive ? 0.1 : 0.05),
+                    leading: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: categoryColor.withValues(
+                            alpha: isActive ? (isDark ? 0.2 : 0.12) : 0.05),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                       child: Icon(
                           AppIcons.getIcon(
                               item.category.value?.icon ?? 'repeat'),
                           color: isActive
                               ? categoryColor
-                              : categoryColor.withValues(alpha: 0.5)),
+                              : categoryColor.withValues(alpha: 0.5),
+                          size: 22),
                     ),
                     title: Text(
                       item.name,
@@ -145,7 +156,8 @@ class RecurringPage extends ConsumerWidget {
                           isActive ? 'Active' : 'Inactive',
                           style: TextStyle(
                             fontSize: 12,
-                            color: isActive ? Colors.green : Colors.grey,
+                            fontWeight: FontWeight.bold,
+                            color: isActive ? const Color(0xFF10B981) : colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],

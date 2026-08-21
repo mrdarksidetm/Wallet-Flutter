@@ -28,6 +28,7 @@ class GoalsPage extends ConsumerWidget {
                 child: Text('No goals set. Create one to start saving!'));
           }
           return ListView.builder(
+            physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.all(16),
             itemCount: goals.length,
             itemBuilder: (context, index) {
@@ -39,6 +40,8 @@ class GoalsPage extends ConsumerWidget {
                   : 0.0;
               final color = goal.color.parseHexColor();
               final isCompleted = goal.isCompleted;
+              final colorScheme = theme.colorScheme;
+              final isDark = theme.brightness == Brightness.dark;
 
               return Dismissible(
                 key: ValueKey(goal.id),
@@ -82,31 +85,36 @@ class GoalsPage extends ConsumerWidget {
                 background: Container(
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
-                    color: isCompleted ? Colors.orange : Colors.green,
-                    borderRadius: BorderRadius.circular(16),
+                    color: isCompleted ? Colors.orange.withValues(alpha: 0.2) : colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(24),
                   ),
                   alignment: Alignment.centerLeft,
                   padding: const EdgeInsets.only(left: 24),
                   child: Icon(isCompleted ? Symbols.undo : Symbols.check_circle,
-                      color: Colors.white),
+                      color: isCompleted ? Colors.orange : colorScheme.onPrimaryContainer),
                 ),
                 secondaryBackground: Container(
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.error,
-                    borderRadius: BorderRadius.circular(16),
+                    color: colorScheme.errorContainer,
+                    borderRadius: BorderRadius.circular(24),
                   ),
                   alignment: Alignment.centerRight,
                   padding: const EdgeInsets.only(right: 24),
-                  child: const Icon(Symbols.delete, color: Colors.white),
+                  child: Icon(Symbols.delete, color: colorScheme.onErrorContainer),
                 ),
-                child: Card(
+                child: Container(
                   margin: const EdgeInsets.only(bottom: 16),
-                  elevation: isCompleted ? 0 : 1,
-                  color: isCompleted
-                      ? theme.colorScheme.surfaceContainerHighest
-                          .withValues(alpha: 0.5)
-                      : null,
+                  decoration: BoxDecoration(
+                    color: isCompleted
+                        ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.4)
+                        : (isDark ? colorScheme.surfaceContainer : colorScheme.surfaceContainerLow),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.3 : 0.4),
+                      width: 1,
+                    ),
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
@@ -114,13 +122,19 @@ class GoalsPage extends ConsumerWidget {
                       children: [
                         Row(
                           children: [
-                            CircleAvatar(
-                              backgroundColor: color.withValues(
-                                  alpha: isCompleted ? 0.05 : 0.1),
+                            Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: color.withValues(
+                                    alpha: isCompleted ? 0.05 : (isDark ? 0.2 : 0.12)),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
                               child: Icon(AppIcons.getIcon(goal.icon),
                                   color: isCompleted
                                       ? color.withValues(alpha: 0.5)
-                                      : color),
+                                      : color,
+                                  size: 22),
                             ),
                             const SizedBox(width: 16),
                             Expanded(

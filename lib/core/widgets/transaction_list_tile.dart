@@ -107,12 +107,10 @@ class TransactionListTile extends ConsumerWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        // [ACTION]: Applying a subtle background hue for grouping.
-        // [M3 UPDATE]: Using surfaceContainerHighest to provide a dynamic hue separation.
-        color: isDark ? colorScheme.surfaceContainer : Colors.white,
+        color: isDark ? colorScheme.surfaceContainer : colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+          color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.3 : 0.4),
           width: 0.5,
         ),
       ),
@@ -127,7 +125,7 @@ class TransactionListTile extends ConsumerWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: categoryColor.withValues(alpha: 0.1),
+              color: categoryColor.withValues(alpha: isDark ? 0.2 : 0.12),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(
@@ -171,7 +169,7 @@ class TransactionListTile extends ConsumerWidget {
           '${isIncome ? '+' : '-'}${CurrencyEngine.formatCurrency(tx.amount, selectedCurrency)}',
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w900,
-            color: isIncome ? Colors.green : Colors.red,
+            color: isIncome ? AppColors.income : AppColors.expense,
             letterSpacing: -0.5,
           ),
         ),

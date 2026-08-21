@@ -39,9 +39,7 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
     final currency = ref.watch(currencyProvider);
 
     return Scaffold(
-      backgroundColor: Theme.of(context).brightness == Brightness.dark 
-          ? colorScheme.surface 
-          : const Color(0xFFF8F9FA),
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
         title: const Text('Accounts & Wallets', style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
@@ -199,9 +197,9 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
         children: [
           Row(
             children: [
-              _buildStatCard(context, 'Income', totalIncome, Colors.green, Symbols.trending_up, currency),
+              _buildStatCard(context, 'Income', totalIncome, const Color(0xFF10B981), Symbols.trending_up, currency),
               const SizedBox(width: 16),
-              _buildStatCard(context, 'Expense', totalExpense, Colors.red, Symbols.trending_down, currency),
+              _buildStatCard(context, 'Expense', totalExpense, const Color(0xFFEF4444), Symbols.trending_down, currency),
             ],
           ),
           const SizedBox(height: 32),

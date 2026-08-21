@@ -119,6 +119,7 @@ class _AllTransactionsPageState extends ConsumerState<AllTransactionsPage> {
           }
 
           return ListView.builder(
+            physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.all(16),
             itemCount: sortedTxs.length,
             itemBuilder: (context, index) {
@@ -159,38 +160,40 @@ class _AllTransactionsPageState extends ConsumerState<AllTransactionsPage> {
   }
 
   Widget _buildDeleteBackground(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       alignment: Alignment.centerLeft,
       padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
-        color: Colors.redAccent,
+        color: colorScheme.errorContainer,
         borderRadius: BorderRadius.circular(20),
       ),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(Symbols.delete_forever, color: Colors.white),
-          SizedBox(width: 8),
-          Text('Delete', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          Icon(Symbols.delete_forever, color: colorScheme.onErrorContainer),
+          const SizedBox(width: 8),
+          Text('Delete', style: TextStyle(color: colorScheme.onErrorContainer, fontWeight: FontWeight.bold)),
         ],
       ),
     );
   }
 
   Widget _buildArchiveBackground(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       alignment: Alignment.centerRight,
       padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
-        color: Colors.blueAccent,
+        color: colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           Text(_showArchived ? 'Unarchive' : 'Archive', 
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              style: TextStyle(color: colorScheme.onPrimaryContainer, fontWeight: FontWeight.bold)),
           const SizedBox(width: 8),
-          Icon(_showArchived ? Symbols.unarchive : Symbols.archive, color: Colors.white),
+          Icon(_showArchived ? Symbols.unarchive : Symbols.archive, color: colorScheme.onPrimaryContainer),
         ],
       ),
     );

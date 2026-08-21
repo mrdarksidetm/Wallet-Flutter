@@ -211,7 +211,7 @@ class _BalanceSection extends StatelessWidget {
               Expanded(child: _TrendCard(
                 title: 'Income',
                 amount: totalIncome,
-                color: Colors.green,
+                color: const Color(0xFF10B981),
                 currency: currency,
                 icon: Symbols.trending_up,
               )),
@@ -219,7 +219,7 @@ class _BalanceSection extends StatelessWidget {
               Expanded(child: _TrendCard(
                 title: 'Expense',
                 amount: totalExpense,
-                color: Colors.red,
+                color: const Color(0xFFEF4444),
                 currency: currency,
                 icon: Symbols.trending_down,
               )),

@@ -71,7 +71,11 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
           final loans = loansAsync.value ?? [];
           final txs = transactionsAsync.value ?? [];
 
+          final colorScheme = Theme.of(context).colorScheme;
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+
           return ListView.builder(
+            physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.all(16),
             itemCount: people.length,
             itemBuilder: (context, index) {
@@ -91,64 +95,74 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
               final personTxs = txs.where((t) => t.person.value?.id == person.id);
               final txCount = personTxs.length;
 
-              return Card(
+              return Container(
                 margin: const EdgeInsets.only(bottom: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                child: InkWell(
-                  onTap: () => context.push('/person_details', extra: person),
-                  onLongPress: () => _showDeleteConfirmation(context, ref, person),
+                decoration: BoxDecoration(
+                  color: isDark ? colorScheme.surfaceContainer : colorScheme.surfaceContainerLow,
                   borderRadius: BorderRadius.circular(20),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        PersonAvatar(
-                          person: person,
-                          radius: 28,
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                  border: Border.all(
+                    color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.3 : 0.4),
+                    width: 1,
+                  ),
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => context.push('/person_details', extra: person),
+                    onLongPress: () => _showDeleteConfirmation(context, ref, person),
+                    borderRadius: BorderRadius.circular(20),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          PersonAvatar(
+                            person: person,
+                            radius: 28,
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  person.name,
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Icon(Symbols.receipt_long, size: 14, color: colorScheme.onSurfaceVariant),
+                                    const SizedBox(width: 4),
+                                    Text('$txCount transactions', style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 12)),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
-                                person.name,
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                              ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  Icon(Symbols.receipt_long, size: 14, color: Colors.grey.shade600),
-                                  const SizedBox(width: 4),
-                                  Text('$txCount transactions', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              totalDebt == 0 ? 'Settled' : (totalDebt > 0 ? 'Owes you' : 'You owe'),
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: totalDebt == 0 ? Colors.grey : (totalDebt > 0 ? Colors.green : Colors.red),
-                              ),
-                            ),
-                            if (totalDebt != 0)
-                              Text(
-                                format.format(totalDebt.abs()),
+                                totalDebt == 0 ? 'Settled' : (totalDebt > 0 ? 'Owes you' : 'You owe'),
                                 style: TextStyle(
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 16,
-                                  color: totalDebt > 0 ? Colors.green : Colors.red,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: totalDebt == 0 ? colorScheme.onSurfaceVariant : (totalDebt > 0 ? const Color(0xFF10B981) : const Color(0xFFEF4444)),
                                 ),
                               ),
-                          ],
-                        ),
-                      ],
+                              if (totalDebt != 0)
+                                Text(
+                                  format.format(totalDebt.abs()),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 16,
+                                    color: totalDebt > 0 ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
