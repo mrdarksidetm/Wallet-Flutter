@@ -6,6 +6,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../database/providers.dart';
 import '../database/models/transaction_model.dart';
 import '../theme/color_extension.dart';
+import '../theme/colors.dart';
 import '../services/currency_engine.dart';
 import 'icon_picker.dart';
 import 'expressive_bottom_sheet.dart';
