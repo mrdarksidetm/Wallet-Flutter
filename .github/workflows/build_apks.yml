@@ -74,7 +74,7 @@ jobs:
       - name: Build Universal APK
         run: |
           echo "Building Universal (Fat) APK..."
-          flutter build apk --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --verbose
+          flutter build apk --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --verbose --android-skip-build-dependency-validation
           
           # Immediately preserve universal APK before split-abi build overwrites outputs
           if [ -f build/app/outputs/flutter-apk/app-release.apk ]; then
@@ -88,7 +88,7 @@ jobs:
       - name: Build Split APKs
         run: |
           echo "Building Split-ABI APKs..."
-          flutter build apk --split-per-abi --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --verbose
+          flutter build apk --split-per-abi --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --verbose --android-skip-build-dependency-validation
           
           # Preserve split APKs
           if [ -f build/app/outputs/flutter-apk/app-arm64-v8a-release.apk ]; then
