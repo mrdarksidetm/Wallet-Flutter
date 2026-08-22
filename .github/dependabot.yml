@@ -1,0 +1,13 @@
+version: 2
+updates:
+  # Dependabot configuration for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+
+  # Dependabot configuration for Flutter / Dart (pub)
+  - package-ecosystem: "pub"
+    directory: "/"
+    schedule:
+      interval: "monthly"

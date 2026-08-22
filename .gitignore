@@ -44,10 +44,17 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# Keys and Release Config
-/android/key.properties
-/android/app/*.jks
-/android/app/*.keystore
+# Keys and Release Secrets (Ignored everywhere)
+*.jks
+*.keystore
+*.jceks
+*.p12
+*.pfx
+*.bks
+*.pem
+*.pk8
+*key.properties
+key.properties
 
 # UI References
 /Goal/
