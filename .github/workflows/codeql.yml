@@ -51,8 +51,9 @@ jobs:
         with:
           languages: ${{ matrix.language }}
 
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
+      - name: Build Android Code for CodeQL Extraction
+        run: |
+          flutter build apk --debug --no-tree-shake-icons
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
