@@ -60,68 +60,94 @@ jobs:
             echo "Decoding release keystore..."
             echo "$KEYSTORE_BASE64" | tr -d '\r\n ' | base64 --decode > android/app/upload-keystore.jks 2>/dev/null || true
             
-            TARGET_KEY_PASS="${KEY_PASSWORD:-$KEYSTORE_PASSWORD}"
-            
             if [ -s android/app/upload-keystore.jks ]; then
-              # Test opening keystore with storepass
-              if keytool -list -keystore android/app/upload-keystore.jks -storepass "$KEYSTORE_PASSWORD" > /dev/null 2>&1; then
-                # Check if specified KEY_ALIAS exists in keystore
-                if [ -n "$KEY_ALIAS" ] && keytool -list -keystore android/app/upload-keystore.jks -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" > /dev/null 2>&1; then
-                  echo "Found matching key alias: $KEY_ALIAS"
-                  TARGET_ALIAS="$KEY_ALIAS"
-                else
-                  # Auto-detect private key alias from keystore
-                  DETECTED_ALIAS=$(keytool -list -v -keystore android/app/upload-keystore.jks -storepass "$KEYSTORE_PASSWORD" 2>/dev/null | grep -i "Alias name:" | head -n 1 | sed 's/[Aa]lias name:\s*//' | tr -d '\r\n')
-                  if [ -z "$DETECTED_ALIAS" ]; then
-                    DETECTED_ALIAS=$(keytool -list -keystore android/app/upload-keystore.jks -storepass "$KEYSTORE_PASSWORD" 2>/dev/null | awk -F',' '/PrivateKeyEntry/ {print $1}' | head -n 1 | tr -d '\r\n ')
-                  fi
-                  
-                  if [ -n "$DETECTED_ALIAS" ]; then
-                    echo "Auto-detected key alias in keystore: $DETECTED_ALIAS (configured was: '$KEY_ALIAS')"
-                    TARGET_ALIAS="$DETECTED_ALIAS"
-                  else
-                    echo "::warning::No PrivateKeyEntry found in provided release keystore."
-                  fi
+              # Detect or match key alias
+              TARGET_ALIAS=""
+              if [ -n "$KEY_ALIAS" ] && keytool -list -keystore android/app/upload-keystore.jks -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" > /dev/null 2>&1; then
+                echo "Found matching key alias: $KEY_ALIAS"
+                TARGET_ALIAS="$KEY_ALIAS"
+              else
+                DETECTED_ALIAS=$(keytool -list -v -keystore android/app/upload-keystore.jks -storepass "$KEYSTORE_PASSWORD" 2>/dev/null | grep -i "Alias name:" | head -n 1 | sed 's/[Aa]lias name:\s*//' | tr -d '\r\n')
+                if [ -z "$DETECTED_ALIAS" ]; then
+                  DETECTED_ALIAS=$(keytool -list -keystore android/app/upload-keystore.jks -storepass "$KEYSTORE_PASSWORD" 2>/dev/null | awk -F',' '/PrivateKeyEntry/ {print $1}' | head -n 1 | tr -d '\r\n ')
                 fi
+                if [ -n "$DETECTED_ALIAS" ]; then
+                  echo "Auto-detected key alias in keystore: $DETECTED_ALIAS (configured was: '$KEY_ALIAS')"
+                  TARGET_ALIAS="$DETECTED_ALIAS"
+                fi
+              fi
 
-                if [ -n "$TARGET_ALIAS" ]; then
-                  KEY_VERIFIED=false
-                  
-                  # 1. Test key access via certreq with TARGET_KEY_PASS
-                  if keytool -certreq -keystore android/app/upload-keystore.jks -storepass "$KEYSTORE_PASSWORD" -alias "$TARGET_ALIAS" -keypass "$TARGET_KEY_PASS" -file /dev/null > /dev/null 2>&1; then
-                    KEY_VERIFIED=true
-                  # 2. Test key access with KEYSTORE_PASSWORD if TARGET_KEY_PASS didn't work
-                  elif [ -n "$KEY_PASSWORD" ] && keytool -certreq -keystore android/app/upload-keystore.jks -storepass "$KEYSTORE_PASSWORD" -alias "$TARGET_ALIAS" -keypass "$KEYSTORE_PASSWORD" -file /dev/null > /dev/null 2>&1; then
-                    echo "Key password matches store password."
-                    TARGET_KEY_PASS="$KEYSTORE_PASSWORD"
-                    KEY_VERIFIED=true
-                  # 3. For legacy JKS format, test keypasswd
-                  elif keytool -keypasswd -keystore android/app/upload-keystore.jks -storepass "$KEYSTORE_PASSWORD" -alias "$TARGET_ALIAS" -keypass "$TARGET_KEY_PASS" -new "$TARGET_KEY_PASS" > /dev/null 2>&1; then
-                    KEY_VERIFIED=true
-                  # 4. In PKCS12 keystores (Java 9+ standard), validating entry with storepass confirms valid access
-                  elif keytool -list -keystore android/app/upload-keystore.jks -storepass "$KEYSTORE_PASSWORD" -alias "$TARGET_ALIAS" > /dev/null 2>&1; then
-                    echo "Keystore entry validated with store password (PKCS12 standard)."
-                    TARGET_KEY_PASS="${KEY_PASSWORD:-$KEYSTORE_PASSWORD}"
-                    KEY_VERIFIED=true
-                  fi
-                  
-                  if [ "$KEY_VERIFIED" = "true" ]; then
-                    SIGNING_CONFIGURED=true
-                    SIGNING_MODE="Production Release Keystore (Alias: $TARGET_ALIAS)"
-                  else
-                    echo "::warning::Could not decrypt private key for alias '$TARGET_ALIAS' with provided KEY_PASSWORD or KEYSTORE_PASSWORD."
-                  fi
+              if [ -n "$TARGET_ALIAS" ]; then
+                # Pre-flight check: Test if private key can be decrypted using Java KeyStore API (exact same as Gradle)
+                cat << 'EOF' > TestKey.java
+                import java.io.File;
+                import java.io.FileInputStream;
+                import java.security.Key;
+                import java.security.KeyStore;
+
+                public class TestKey {
+                    public static void main(String[] args) {
+                        if (args.length < 4) System.exit(1);
+                        String ksPath = args[0];
+                        String storePass = args[1];
+                        String alias = args[2];
+                        String keyPass = args[3];
+                        try {
+                            File f = new File(ksPath);
+                            KeyStore ks;
+                            try {
+                                ks = KeyStore.getInstance("PKCS12");
+                                try (FileInputStream fis = new FileInputStream(f)) {
+                                    ks.load(fis, storePass.toCharArray());
+                                }
+                            } catch (Exception e) {
+                                ks = KeyStore.getInstance("JKS");
+                                try (FileInputStream fis = new FileInputStream(f)) {
+                                    ks.load(fis, storePass.toCharArray());
+                                }
+                            }
+                            Key k = ks.getKey(alias, keyPass.toCharArray());
+                            if (k != null) {
+                                System.exit(0);
+                            }
+                        } catch (Exception e) {
+                            System.exit(2);
+                        }
+                        System.exit(3);
+                    }
+                }
+EOF
+                
+                KEY_VERIFIED=false
+                TARGET_KEY_PASS=""
+                
+                # Test 1: Try KEY_PASSWORD if provided
+                if [ -n "$KEY_PASSWORD" ] && java TestKey.java android/app/upload-keystore.jks "$KEYSTORE_PASSWORD" "$TARGET_ALIAS" "$KEY_PASSWORD" > /dev/null 2>&1; then
+                  echo "Private key verified with KEY_PASSWORD."
+                  TARGET_KEY_PASS="$KEY_PASSWORD"
+                  KEY_VERIFIED=true
+                # Test 2: Try KEYSTORE_PASSWORD as key password
+                elif [ -n "$KEYSTORE_PASSWORD" ] && java TestKey.java android/app/upload-keystore.jks "$KEYSTORE_PASSWORD" "$TARGET_ALIAS" "$KEYSTORE_PASSWORD" > /dev/null 2>&1; then
+                  echo "Private key verified with KEYSTORE_PASSWORD."
+                  TARGET_KEY_PASS="$KEYSTORE_PASSWORD"
+                  KEY_VERIFIED=true
+                fi
+                
+                rm -f TestKey.java
+                
+                if [ "$KEY_VERIFIED" = "true" ]; then
+                  SIGNING_CONFIGURED=true
+                  SIGNING_MODE="Production Release Keystore (Alias: $TARGET_ALIAS)"
+                  printf "storePassword=%s\nkeyPassword=%s\nkeyAlias=%s\nstoreFile=upload-keystore.jks\n" "$KEYSTORE_PASSWORD" "$TARGET_KEY_PASS" "$TARGET_ALIAS" > android/key.properties
+                  echo "Successfully configured release signing with alias: $TARGET_ALIAS"
+                else
+                  echo "::warning title=Keystore Key Password Mismatch::Could not decrypt private key for alias '$TARGET_ALIAS' with KEY_PASSWORD or KEYSTORE_PASSWORD. Falling back to CI debug keystore."
                 fi
               else
-                echo "::warning::Failed to verify provided release keystore with KEYSTORE_PASSWORD."
+                echo "::warning title=No Key Alias Found::No PrivateKeyEntry found in provided release keystore. Falling back to CI debug keystore."
               fi
             else
-              echo "::warning::Decoded release keystore is empty or invalid base64."
-            fi
-            
-            if [ "$SIGNING_CONFIGURED" = "true" ]; then
-              printf "storePassword=%s\nkeyPassword=%s\nkeyAlias=%s\nstoreFile=upload-keystore.jks\n" "$KEYSTORE_PASSWORD" "$TARGET_KEY_PASS" "$TARGET_ALIAS" > android/key.properties
-              echo "Successfully configured release signing with alias: $TARGET_ALIAS"
+              echo "::warning title=Invalid Keystore::Decoded release keystore is empty or invalid base64. Falling back to CI debug keystore."
             fi
           fi
           
