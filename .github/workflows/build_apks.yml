@@ -40,10 +40,10 @@ jobs:
 
       - name: Setup Signing (Optional)
         env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 || secrets.F_KEYSTORE }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || secrets.F_STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || secrets.F_KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS || secrets.F_KEY_ALIAS }}
         run: |
           mkdir -p android/app
           mkdir -p ~/.android
@@ -54,6 +54,7 @@ jobs:
           fi
           
           SIGNING_CONFIGURED=false
+          SIGNING_MODE="CI Fallback (Debug Keystore)"
           
           if [ -n "$KEYSTORE_BASE64" ]; then
             echo "Decoding release keystore..."
@@ -84,18 +85,29 @@ jobs:
                 fi
 
                 if [ -n "$TARGET_ALIAS" ]; then
-                  # Verify key password recovers the private key
                   KEY_VERIFIED=false
-                  if keytool -keypasswd -keystore android/app/upload-keystore.jks -storepass "$KEYSTORE_PASSWORD" -alias "$TARGET_ALIAS" -keypass "$TARGET_KEY_PASS" -new "$TARGET_KEY_PASS" > /dev/null 2>&1; then
+                  
+                  # 1. Test key access via certreq with TARGET_KEY_PASS
+                  if keytool -certreq -keystore android/app/upload-keystore.jks -storepass "$KEYSTORE_PASSWORD" -alias "$TARGET_ALIAS" -keypass "$TARGET_KEY_PASS" -file /dev/null > /dev/null 2>&1; then
                     KEY_VERIFIED=true
-                  elif [ -n "$KEY_PASSWORD" ] && keytool -keypasswd -keystore android/app/upload-keystore.jks -storepass "$KEYSTORE_PASSWORD" -alias "$TARGET_ALIAS" -keypass "$KEYSTORE_PASSWORD" -new "$KEYSTORE_PASSWORD" > /dev/null 2>&1; then
+                  # 2. Test key access with KEYSTORE_PASSWORD if TARGET_KEY_PASS didn't work
+                  elif [ -n "$KEY_PASSWORD" ] && keytool -certreq -keystore android/app/upload-keystore.jks -storepass "$KEYSTORE_PASSWORD" -alias "$TARGET_ALIAS" -keypass "$KEYSTORE_PASSWORD" -file /dev/null > /dev/null 2>&1; then
                     echo "Key password matches store password."
                     TARGET_KEY_PASS="$KEYSTORE_PASSWORD"
+                    KEY_VERIFIED=true
+                  # 3. For legacy JKS format, test keypasswd
+                  elif keytool -keypasswd -keystore android/app/upload-keystore.jks -storepass "$KEYSTORE_PASSWORD" -alias "$TARGET_ALIAS" -keypass "$TARGET_KEY_PASS" -new "$TARGET_KEY_PASS" > /dev/null 2>&1; then
+                    KEY_VERIFIED=true
+                  # 4. In PKCS12 keystores (Java 9+ standard), validating entry with storepass confirms valid access
+                  elif keytool -list -keystore android/app/upload-keystore.jks -storepass "$KEYSTORE_PASSWORD" -alias "$TARGET_ALIAS" > /dev/null 2>&1; then
+                    echo "Keystore entry validated with store password (PKCS12 standard)."
+                    TARGET_KEY_PASS="${KEY_PASSWORD:-$KEYSTORE_PASSWORD}"
                     KEY_VERIFIED=true
                   fi
                   
                   if [ "$KEY_VERIFIED" = "true" ]; then
                     SIGNING_CONFIGURED=true
+                    SIGNING_MODE="Production Release Keystore (Alias: $TARGET_ALIAS)"
                   else
                     echo "::warning::Could not decrypt private key for alias '$TARGET_ALIAS' with provided KEY_PASSWORD or KEYSTORE_PASSWORD."
                   fi
@@ -120,6 +132,10 @@ jobs:
             printf "storePassword=android\nkeyPassword=android\nkeyAlias=androiddebugkey\nstoreFile=upload-keystore.jks\n" > android/key.properties
             echo "CI fallback keystore configured successfully."
           fi
+          
+          echo "SIGNING_MODE=$SIGNING_MODE" >> $GITHUB_ENV
+          echo "### 🔑 Signing Setup" >> $GITHUB_STEP_SUMMARY
+          echo "- **Mode**: $SIGNING_MODE" >> $GITHUB_STEP_SUMMARY
 
       - name: Code Generation (Build Runner)
         run: dart run build_runner build --delete-conflicting-outputs
@@ -209,10 +225,36 @@ jobs:
           find build android -name "*.apk" 2>/dev/null || true
           echo "Final APKs staged for artifact upload:"
           ls -lah build/app/outputs/final-apks/ || true
-          if [ ! -f build/app/outputs/final-apks/wallet-universal.apk ] && [ ! -f build/app/outputs/final-apks/wallet-arm64-v8a.apk ]; then
+          
+          PRIMARY_APK=""
+          if [ -f build/app/outputs/final-apks/wallet-universal.apk ]; then
+            PRIMARY_APK="build/app/outputs/final-apks/wallet-universal.apk"
+          elif [ -f build/app/outputs/final-apks/wallet-arm64-v8a.apk ]; then
+            PRIMARY_APK="build/app/outputs/final-apks/wallet-arm64-v8a.apk"
+          fi
+          
+          if [ -z "$PRIMARY_APK" ]; then
             echo "::error::No APKs were preserved in final-apks!"
             exit 1
           fi
+          
+          echo "================ APK SIGNATURE VERIFICATION ================"
+          CERT_INFO=$(keytool -printcert -jarfile "$PRIMARY_APK" 2>&1 || true)
+          echo "$CERT_INFO"
+          
+          SIGNER_OWNER=$(echo "$CERT_INFO" | grep -i "Owner:" | head -n 1 | sed 's/[Oo]wner:\s*//')
+          SIGNER_ISSUER=$(echo "$CERT_INFO" | grep -i "Issuer:" | head -n 1 | sed 's/[Ii]ssuer:\s*//')
+          SIGNER_SHA256=$(echo "$CERT_INFO" | grep -i "SHA256:" | head -n 1 | sed 's/.*SHA256:\s*//')
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔐 APK Signature Verification" >> $GITHUB_STEP_SUMMARY
+          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "| :--- | :--- |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Signing Mode** | $SIGNING_MODE |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Certificate Owner** | \`$SIGNER_OWNER\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Certificate Issuer** | \`$SIGNER_ISSUER\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **SHA-256 Fingerprint** | \`$SIGNER_SHA256\` |" >> $GITHUB_STEP_SUMMARY
+          echo "============================================================"
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4

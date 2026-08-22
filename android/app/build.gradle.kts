@@ -62,7 +62,14 @@ android {
             val keyPassProp = (keystoreProperties["keyPassword"] as String?) ?: storePassProp
 
             if (!storeFileProp.isNullOrBlank() && !storePassProp.isNullOrBlank() && !keyAliasProp.isNullOrBlank()) {
-                val propFile = file(storeFileProp)
+                val propFile = if (file(storeFileProp).exists()) {
+                    file(storeFileProp)
+                } else if (rootProject.file(storeFileProp).exists()) {
+                    rootProject.file(storeFileProp)
+                } else {
+                    file(storeFileProp)
+                }
+
                 if (propFile.exists()) {
                     storeFile = propFile
                     storePassword = storePassProp
