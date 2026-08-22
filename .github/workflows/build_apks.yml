@@ -53,14 +53,56 @@ jobs:
             keytool -genkey -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
           fi
           
+          SIGNING_CONFIGURED=false
+          
           if [ -n "$KEYSTORE_BASE64" ]; then
             echo "Decoding release keystore..."
-            echo "$KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
-            printf "storePassword=%s\nkeyPassword=%s\nkeyAlias=%s\nstoreFile=upload-keystore.jks\n" "$KEYSTORE_PASSWORD" "$KEY_PASSWORD" "$KEY_ALIAS" > android/key.properties
-          else
-            echo "No signing secrets found. Creating CI fallback keystore."
+            echo "$KEYSTORE_BASE64" | tr -d '\r\n ' | base64 --decode > android/app/upload-keystore.jks 2>/dev/null || true
+            
+            TARGET_KEY_PASS="${KEY_PASSWORD:-$KEYSTORE_PASSWORD}"
+            
+            if [ -s android/app/upload-keystore.jks ]; then
+              # Test opening keystore with storepass
+              if keytool -list -keystore android/app/upload-keystore.jks -storepass "$KEYSTORE_PASSWORD" > /dev/null 2>&1; then
+                # Check if specified KEY_ALIAS exists in keystore
+                if [ -n "$KEY_ALIAS" ] && keytool -list -keystore android/app/upload-keystore.jks -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" > /dev/null 2>&1; then
+                  echo "Found matching key alias: $KEY_ALIAS"
+                  TARGET_ALIAS="$KEY_ALIAS"
+                  SIGNING_CONFIGURED=true
+                else
+                  # Auto-detect private key alias from keystore
+                  DETECTED_ALIAS=$(keytool -list -v -keystore android/app/upload-keystore.jks -storepass "$KEYSTORE_PASSWORD" 2>/dev/null | grep -i "Alias name:" | head -n 1 | sed 's/[Aa]lias name:\s*//' | tr -d '\r\n')
+                  if [ -z "$DETECTED_ALIAS" ]; then
+                    DETECTED_ALIAS=$(keytool -list -keystore android/app/upload-keystore.jks -storepass "$KEYSTORE_PASSWORD" 2>/dev/null | awk -F',' '/PrivateKeyEntry/ {print $1}' | head -n 1 | tr -d '\r\n ')
+                  fi
+                  
+                  if [ -n "$DETECTED_ALIAS" ]; then
+                    echo "Auto-detected key alias in keystore: $DETECTED_ALIAS (configured was: '$KEY_ALIAS')"
+                    TARGET_ALIAS="$DETECTED_ALIAS"
+                    SIGNING_CONFIGURED=true
+                  else
+                    echo "::warning::No PrivateKeyEntry found in provided release keystore."
+                  fi
+                fi
+              else
+                echo "::warning::Failed to verify provided release keystore with KEYSTORE_PASSWORD."
+              fi
+            else
+              echo "::warning::Decoded release keystore is empty or invalid base64."
+            fi
+            
+            if [ "$SIGNING_CONFIGURED" = "true" ]; then
+              printf "storePassword=%s\nkeyPassword=%s\nkeyAlias=%s\nstoreFile=upload-keystore.jks\n" "$KEYSTORE_PASSWORD" "$TARGET_KEY_PASS" "$TARGET_ALIAS" > android/key.properties
+              echo "Successfully configured release signing with alias: $TARGET_ALIAS"
+            fi
+          fi
+          
+          if [ "$SIGNING_CONFIGURED" != "true" ]; then
+            echo "Configuring CI fallback keystore..."
+            rm -f android/app/upload-keystore.jks
             keytool -genkey -v -keystore android/app/upload-keystore.jks -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
             printf "storePassword=android\nkeyPassword=android\nkeyAlias=androiddebugkey\nstoreFile=upload-keystore.jks\n" > android/key.properties
+            echo "CI fallback keystore configured successfully."
           fi
 
       - name: Code Generation (Build Runner)
