@@ -16,7 +16,7 @@ class SettingsPage extends ConsumerStatefulWidget {
 }
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
-  String _currentVersion = '3.1.0';
+  String _currentVersion = '4.0.5';
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 

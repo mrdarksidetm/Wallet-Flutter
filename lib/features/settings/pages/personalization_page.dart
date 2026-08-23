@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -5,6 +6,194 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/theme/personalization_provider.dart';
 import '../../../core/theme/theme_provider.dart';
 import '../../../core/widgets/app_back_button.dart';
+
+/// A custom painter that draws a circle split into three colored segments:
+/// A top half, a bottom-left quarter, and a bottom-right quarter.
+class _PalettePainter extends CustomPainter {
+  final Color topColor;
+  final Color bottomLeftColor;
+  final Color bottomRightColor;
+
+  _PalettePainter({
+    required this.topColor,
+    required this.bottomLeftColor,
+    required this.bottomRightColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // 1. Calculate the center point of our drawing area
+    final Offset center = Offset(size.width / 2, size.height / 2);
+
+    // 2. Determine the radius based on the smallest side to ensure it remains a perfect circle
+    final double radius = min(size.width / 2, size.height / 2);
+
+    // 3. Create a bounding rectangle where the circle will be drawn
+    final Rect rect = Rect.fromCircle(center: center, radius: radius);
+
+    // 4. Initialize the Paint object, which dictates how the shapes are filled
+    final Paint paint = Paint()..style = PaintingStyle.fill;
+
+    // --- DRAWING THE TOP HALF ---
+    // In Flutter, pi (180 degrees) is the 9 o'clock position (left side).
+    // A sweep angle of pi (180 degrees) drawn clockwise brings us to the 3 o'clock position (right side).
+    paint.color = topColor;
+    canvas.drawArc(
+      rect,
+      pi, // Start angle: Left side
+      pi, // Sweep angle: Half a circle
+      true, // useCenter: true means it draws a pie slice connected to the center
+      paint,
+    );
+
+    // --- DRAWING THE BOTTOM RIGHT QUARTER ---
+    // 0 is the 3 o'clock position (right side).
+    // A sweep angle of pi/2 (90 degrees) clockwise brings us to 6 o'clock (bottom center).
+    paint.color = bottomRightColor;
+    canvas.drawArc(
+      rect,
+      0, // Start angle: Right side
+      pi / 2, // Sweep angle: Quarter of a circle
+      true,
+      paint,
+    );
+
+    // --- DRAWING THE BOTTOM LEFT QUARTER ---
+    // pi/2 is the 6 o'clock position (bottom center).
+    // A sweep angle of pi/2 (90 degrees) clockwise brings us back to 9 o'clock (left side).
+    paint.color = bottomLeftColor;
+    canvas.drawArc(
+      rect,
+      pi / 2, // Start angle: Bottom center
+      pi / 2, // Sweep angle: Quarter of a circle
+      true,
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _PalettePainter oldDelegate) {
+    return oldDelegate.topColor != topColor ||
+        oldDelegate.bottomLeftColor != bottomLeftColor ||
+        oldDelegate.bottomRightColor != bottomRightColor;
+  }
+}
+
+/// A widget that displays a circular color palette and handles its selected state.
+class DynamicColorVariant extends StatelessWidget {
+  final String label;
+  final Color topColor;
+  final Color bottomLeftColor;
+  final Color bottomRightColor;
+  final bool isSelected;
+  final bool isEnabled;
+  final VoidCallback onTap;
+
+  const DynamicColorVariant({
+    super.key,
+    required this.label,
+    required this.topColor,
+    required this.bottomLeftColor,
+    required this.bottomRightColor,
+    required this.isSelected,
+    this.isEnabled = true,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Opacity(
+      opacity: isEnabled ? 1.0 : 0.45,
+      child: GestureDetector(
+        onTap: isEnabled ? onTap : null,
+        child: Container(
+          width: 84,
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+                : colorScheme.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isSelected
+                  ? colorScheme.primary
+                  : colorScheme.outlineVariant.withValues(alpha: 0.35),
+              width: isSelected ? 2.0 : 1.0,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: 48,
+                height: 48,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // 1. Draw the actual three-color pie chart
+                    Positioned.fill(
+                      child: CustomPaint(
+                        painter: _PalettePainter(
+                          topColor: topColor,
+                          bottomLeftColor: bottomLeftColor,
+                          bottomRightColor: bottomRightColor,
+                        ),
+                      ),
+                    ),
+
+                    // 2. If this item is selected, overlay the checkmark indicator
+                    if (isSelected)
+                      Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.25),
+                              blurRadius: 4,
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          Icons.check_rounded,
+                          color: colorScheme.onPrimary,
+                          size: 16,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                  color: isSelected ? colorScheme.primary : colorScheme.onSurface,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class PersonalizationPage extends ConsumerWidget {
   const PersonalizationPage({super.key});
@@ -290,6 +479,69 @@ class PersonalizationPage extends ConsumerWidget {
     );
   }
 
+  static Map<String, Color> _getVariantColors(
+    String variant,
+    bool isDark,
+  ) {
+    switch (variant) {
+      case 'tonalSpot':
+        return {
+          'top': isDark ? const Color(0xFF9BB1E8) : const Color(0xFFD3DFFF),
+          'bottomLeft': isDark ? const Color(0xFFCBBCD6) : const Color(0xFFE8D5EC),
+          'bottomRight': isDark ? const Color(0xFF42567D) : const Color(0xFF677799),
+        };
+      case 'vibrant':
+        return {
+          'top': isDark ? const Color(0xFFFFB0C8) : const Color(0xFFFFD8E4),
+          'bottomLeft': isDark ? const Color(0xFFFFB787) : const Color(0xFFFFDCC1),
+          'bottomRight': isDark ? const Color(0xFFB01D56) : const Color(0xFFE91E63),
+        };
+      case 'expressive':
+        return {
+          'top': isDark ? const Color(0xFFFFB596) : const Color(0xFFFFDBCA),
+          'bottomLeft': isDark ? const Color(0xFFC7BFFF) : const Color(0xFFE5DEFF),
+          'bottomRight': isDark ? const Color(0xFFB36700) : const Color(0xFFFF9800),
+        };
+      case 'rainbow':
+        return {
+          'top': isDark ? const Color(0xFFFFB0D0) : const Color(0xFFFFD8E6),
+          'bottomLeft': isDark ? const Color(0xFFA3DDB3) : const Color(0xFFC4EED0),
+          'bottomRight': isDark ? const Color(0xFF7B1FA2) : const Color(0xFF9C27B0),
+        };
+      case 'fruitSalad':
+        return {
+          'top': isDark ? const Color(0xFFA1DECA) : const Color(0xFFC3EEDD),
+          'bottomLeft': isDark ? const Color(0xFFFFB1C1) : const Color(0xFFFFD8DF),
+          'bottomRight': isDark ? const Color(0xFF007A50) : const Color(0xFF00B074),
+        };
+      case 'fidelity':
+        return {
+          'top': isDark ? const Color(0xFFB8C4F6) : const Color(0xFFDFE2F9),
+          'bottomLeft': isDark ? const Color(0xFFC4B2EE) : const Color(0xFFE1D3F8),
+          'bottomRight': isDark ? const Color(0xFF303F9F) : const Color(0xFF3F51B5),
+        };
+      case 'content':
+        return {
+          'top': isDark ? const Color(0xFFA8C8FF) : const Color(0xFFD7E2FF),
+          'bottomLeft': isDark ? const Color(0xFFB9C9DF) : const Color(0xFFD9E2F1),
+          'bottomRight': isDark ? const Color(0xFF1976D2) : const Color(0xFF2196F3),
+        };
+      case 'neutral':
+        return {
+          'top': isDark ? const Color(0xFFC7C6CA) : const Color(0xFFE3E2E6),
+          'bottomLeft': isDark ? const Color(0xFFC6C6CD) : const Color(0xFFE2E2E9),
+          'bottomRight': isDark ? const Color(0xFF5A5C63) : const Color(0xFF75787F),
+        };
+      case 'monochrome':
+      default:
+        return {
+          'top': isDark ? const Color(0xFFBDBDBD) : const Color(0xFFE0E0E0),
+          'bottomLeft': isDark ? const Color(0xFF757575) : const Color(0xFFBDBDBD),
+          'bottomRight': isDark ? const Color(0xFF212121) : const Color(0xFF424242),
+        };
+    }
+  }
+
   Widget _buildHorizontalVariantSelector(
     BuildContext context,
     PersonalizationState state,
@@ -297,114 +549,43 @@ class PersonalizationPage extends ConsumerWidget {
     ThemeState themeState,
   ) {
     final bool variantsEnabled = themeState.useMaterialYou;
-    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     final variants = [
-      {
-        'variant': 'tonalSpot',
-        'label': 'Tonal Spot',
-        'icon': Symbols.palette_rounded
-      },
-      {'variant': 'vibrant', 'label': 'Vibrant', 'icon': Symbols.flare_rounded},
-      {
-        'variant': 'expressive',
-        'label': 'Expressive',
-        'icon': Symbols.auto_awesome_rounded
-      },
-      {'variant': 'rainbow', 'label': 'Rainbow', 'icon': Symbols.looks_rounded},
-      {
-        'variant': 'fruitSalad',
-        'label': 'Fruit Salad',
-        'icon': Symbols.nutrition_rounded
-      },
-      {
-        'variant': 'fidelity',
-        'label': 'Fidelity',
-        'icon': Symbols.verified_rounded
-      },
-      {
-        'variant': 'content',
-        'label': 'Content',
-        'icon': Symbols.article_rounded
-      },
-      {
-        'variant': 'neutral',
-        'label': 'Neutral',
-        'icon': Symbols.contrast_rounded
-      },
-      {
-        'variant': 'monochrome',
-        'label': 'Monochrome',
-        'icon': Symbols.monochrome_photos_rounded
-      },
+      {'variant': 'tonalSpot', 'label': 'Tonal Spot'},
+      {'variant': 'vibrant', 'label': 'Vibrant'},
+      {'variant': 'expressive', 'label': 'Expressive'},
+      {'variant': 'rainbow', 'label': 'Rainbow'},
+      {'variant': 'fruitSalad', 'label': 'Fruit Salad'},
+      {'variant': 'fidelity', 'label': 'Fidelity'},
+      {'variant': 'content', 'label': 'Content'},
+      {'variant': 'neutral', 'label': 'Neutral'},
+      {'variant': 'monochrome', 'label': 'Monochrome'},
     ];
 
-    return Opacity(
-      opacity: variantsEnabled ? 1.0 : 0.45,
-      child: SizedBox(
-        height: 48,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          clipBehavior: Clip.none,
-          itemCount: variants.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 8),
-          itemBuilder: (context, index) {
-            final v = variants[index];
-            final variant = v['variant'] as String;
-            final isSelected = state.colorSchemeVariant == variant;
+    return SizedBox(
+      height: 104,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        clipBehavior: Clip.none,
+        itemCount: variants.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        itemBuilder: (context, index) {
+          final v = variants[index];
+          final variant = v['variant'] as String;
+          final isSelected = state.colorSchemeVariant == variant;
+          final colors = _getVariantColors(variant, isDark);
 
-            return Material(
-              color: isSelected
-                  ? colorScheme.primary
-                  : colorScheme.surfaceContainerLow,
-              borderRadius: BorderRadius.circular(100),
-              clipBehavior: Clip.antiAlias,
-              elevation: isSelected ? 1 : 0,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(100),
-                onTap: variantsEnabled
-                    ? () => notifier.updateColorSchemeVariant(variant)
-                    : null,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(100),
-                    border: Border.all(
-                      color: isSelected
-                          ? colorScheme.primary
-                          : colorScheme.outlineVariant
-                              .withValues(alpha: 0.4),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        v['icon'] as IconData,
-                        size: 16,
-                        color: isSelected
-                            ? colorScheme.onPrimary
-                            : colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        v['label'] as String,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight:
-                              isSelected ? FontWeight.w800 : FontWeight.w600,
-                          color: isSelected
-                              ? colorScheme.onPrimary
-                              : colorScheme.onSurface,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
+          return DynamicColorVariant(
+            label: v['label'] as String,
+            topColor: colors['top']!,
+            bottomLeftColor: colors['bottomLeft']!,
+            bottomRightColor: colors['bottomRight']!,
+            isSelected: isSelected,
+            isEnabled: variantsEnabled,
+            onTap: () => notifier.updateColorSchemeVariant(variant),
+          );
+        },
       ),
     );
   }
