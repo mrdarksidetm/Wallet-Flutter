@@ -4,117 +4,176 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ota_update/ota_update.dart';
 import '../../../core/services/update_service.dart';
+import '../widgets/settings_segmented_card.dart';
 
-class AboutPage extends ConsumerWidget {
+class AboutPage extends ConsumerStatefulWidget {
   const AboutPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AboutPage> createState() => _AboutPageState();
+}
+
+class _AboutPageState extends ConsumerState<AboutPage> {
+  String _currentVersion = '3.1.0';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVersion();
+  }
+
+  Future<void> _loadVersion() async {
+    final version = await ref.read(updateServiceProvider).getCurrentVersion();
+    if (mounted) {
+      setState(() {
+        _currentVersion = version;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('About'),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            const SizedBox(height: 40),
-            _buildAppIcon(colorScheme),
-            const SizedBox(height: 24),
-            Text(
-              'Wallet',
-              style: theme.textTheme.headlineLarge?.copyWith(
-                fontWeight: FontWeight.w900,
-                letterSpacing: -1,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Version 3.1.0',
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: colorScheme.primary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 32),
-            Text(
-              'Rebuild from ground up to support Android Community using modern Flutter Support',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: colorScheme.onSurface.withValues(alpha: 0.7),
-              ),
-            ),
-            const SizedBox(height: 48),
-            _AboutTile(
-              leading: Container(
-                clipBehavior: Clip.antiAlias,
-                decoration: const BoxDecoration(shape: BoxShape.circle),
-                child: Image.asset(
-                  'assets/images/developer.png',
-                  width: 40,
-                  height: 40,
-                  fit: BoxFit.cover,
+      backgroundColor: colorScheme.surface,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Top Bar: Back Button
+              Align(
+                alignment: Alignment.centerLeft,
+                child: IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Symbols.arrow_back_rounded),
+                  style: IconButton.styleFrom(
+                    backgroundColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
                 ),
               ),
-              title: 'Developer',
-              subtitle: 'Built with ❤️ by Abhijeet Yadav',
-              onTap: () => _launchUrl('https://github.com/mrdarksidetm'),
-            ),
-            const SizedBox(height: 16),
-            _AboutTile(
-              leading: Icon(Symbols.source_notes, color: colorScheme.primary),
-              title: 'Open Source',
-              subtitle: 'View source code on GitHub',
-              onTap: () =>
-                  _launchUrl('https://github.com/mrdarksidetm/wallet-flutter'),
-            ),
-            const SizedBox(height: 16),
-            _AboutTile(
-              leading: Icon(Symbols.policy, color: colorScheme.primary),
-              title: 'Privacy Policy',
-              subtitle: 'How we handle your data',
-              onTap: () async {
-                if (context.mounted) context.push('/privacy_policy');
-              },
-            ),
-            const SizedBox(height: 16),
-            _AboutTile(
-              leading: Icon(Symbols.gavel, color: colorScheme.primary),
-              title: 'Licenses',
-              subtitle: 'Third-party software libraries',
-              onTap: () => showLicensePage(
-                context: context,
-                applicationName: 'Wallet',
-                applicationVersion: '3.1.0',
+              const SizedBox(height: 24),
+
+              _buildAppIcon(colorScheme),
+              const SizedBox(height: 20),
+              Text(
+                'Wallet',
+                style: theme.textTheme.headlineLarge?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -1,
+                ),
               ),
-            ),
-            const SizedBox(height: 64),
-            FutureBuilder<String>(
-              future: ref.read(updateServiceProvider).getDeviceArchitecture(),
-              builder: (context, snapshot) {
-                return Opacity(
-                  opacity: 0.5,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Symbols.android, size: 14),
-                      Text(
-                        ' X ',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const FlutterLogo(size: 14),
-                    ],
+              const SizedBox(height: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: colorScheme.primaryContainer.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'Version $_currentVersion',
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.bold,
                   ),
-                );
-              },
-            ),
-          ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  'Rebuild from ground up to support Android Community using modern Flutter Support',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              // Segmented Group for About & Links
+              SettingsSegmentedGroup(
+                children: [
+                  SettingsActionTile(
+                    icon: Symbols.update_rounded,
+                    title: 'Check for Updates',
+                    subtitle: 'v$_currentVersion "The Variable Atelier"',
+                    showDivider: true,
+                    onTap: () => _checkForUpdates(context),
+                  ),
+                  SettingsActionTile(
+                    icon: Symbols.person_rounded,
+                    title: 'Developer',
+                    subtitle: 'Built with ❤️ by Abhijeet Yadav',
+                    showDivider: true,
+                    onTap: () => _launchUrl('https://github.com/mrdarksidetm'),
+                  ),
+                  SettingsActionTile(
+                    icon: Symbols.source_notes_rounded,
+                    title: 'Open Source',
+                    subtitle: 'View source code repository on GitHub',
+                    showDivider: true,
+                    onTap: () =>
+                        _launchUrl('https://github.com/mrdarksidetm/wallet-flutter'),
+                  ),
+                  SettingsActionTile(
+                    icon: Symbols.shield_lock_rounded,
+                    title: 'Privacy Policy',
+                    subtitle: 'How we handle your data offline',
+                    showDivider: true,
+                    onTap: () {
+                      context.push('/privacy_policy');
+                    },
+                  ),
+                  SettingsActionTile(
+                    icon: Symbols.gavel_rounded,
+                    title: 'Licenses',
+                    subtitle: 'Third-party open-source software libraries',
+                    showDivider: false,
+                    onTap: () => showLicensePage(
+                      context: context,
+                      applicationName: 'Wallet',
+                      applicationVersion: _currentVersion,
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 48),
+
+              FutureBuilder<String>(
+                future: ref.read(updateServiceProvider).getDeviceArchitecture(),
+                builder: (context, snapshot) {
+                  return Opacity(
+                    opacity: 0.5,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Symbols.android, size: 14),
+                        Text(
+                          ' X ',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const FlutterLogo(size: 14),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 32),
+            ],
+          ),
         ),
       ),
     );
@@ -129,8 +188,8 @@ class AboutPage extends ConsumerWidget {
       ),
       child: SvgPicture.asset(
         'assets/images/logo.svg',
-        height: 92,
-        width: 92,
+        height: 84,
+        width: 84,
       ),
     );
   }
@@ -141,30 +200,161 @@ class AboutPage extends ConsumerWidget {
       await launchUrl(uri);
     }
   }
-}
 
-class _AboutTile extends StatelessWidget {
-  final Widget leading;
-  final String title;
-  final String subtitle;
-  final VoidCallback? onTap;
+  Future<void> _checkForUpdates(BuildContext context) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        title: const Row(
+          children: [
+            Icon(Symbols.auto_awesome, color: Colors.teal),
+            SizedBox(width: 12),
+            Text('System Update'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Connecting to GitHub...',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            LinearProgressIndicator(
+              borderRadius: BorderRadius.circular(4),
+              backgroundColor:
+                  Theme.of(context).colorScheme.surfaceContainerHighest,
+            ),
+          ],
+        ),
+      ),
+    );
 
-  const _AboutTile({
-    required this.leading,
-    required this.title,
-    required this.subtitle,
-    this.onTap,
-  });
+    try {
+      final updateService = ref.read(updateServiceProvider);
+      final update = await updateService.checkForUpdates();
 
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      onTap: onTap,
-      leading: leading,
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: Text(subtitle),
-      trailing: onTap != null ? const Icon(Icons.chevron_right_rounded) : null,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      if (context.mounted) {
+        Navigator.pop(context);
+
+        if (update != null &&
+            updateService.isNewerVersion(_currentVersion, update.version)) {
+          showDialog(
+            context: context,
+            builder: (dialogCtx) => AlertDialog(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28)),
+              title: Text('New Version v${update.version}'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Changelog:',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    Text(update.changelog),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogCtx),
+                  child: const Text('Later'),
+                ),
+                FilledButton.icon(
+                  onPressed: () {
+                    Navigator.pop(dialogCtx);
+                    _startSelfUpdate(context, update.downloadUrl);
+                  },
+                  icon: const Icon(Symbols.download, size: 18),
+                  label: const Text('Update Now'),
+                ),
+              ],
+            ),
+          );
+        } else {
+          showDialog(
+            context: context,
+            builder: (dialogCtx) => AlertDialog(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28)),
+              title: const Text('Up to Date'),
+              content: const Text(
+                  'You are already using the most refined version of Wallet.'),
+              actions: [
+                FilledButton(
+                  onPressed: () => Navigator.pop(dialogCtx),
+                  child: const Text('Excellent'),
+                ),
+              ],
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Update check failed: $e')),
+        );
+      }
+    }
+  }
+
+  void _startSelfUpdate(BuildContext context, String url) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogCtx) {
+        return StreamBuilder(
+          stream: ref.read(updateServiceProvider).downloadAndInstall(url),
+          builder: (builderCtx, snapshot) {
+            double progress = 0;
+            String status = 'Initializing...';
+
+            if (snapshot.hasData) {
+              final event = snapshot.data as OtaEvent;
+              status = event.status.name.toUpperCase();
+              if (event.value != null) {
+                progress = double.tryParse(event.value!) ?? 0;
+              }
+            }
+
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28)),
+              title: const Text('Downloading Update'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(status),
+                  const SizedBox(height: 16),
+                  LinearProgressIndicator(
+                    value: progress / 100,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  const SizedBox(height: 8),
+                  Text('${progress.toInt()}%'),
+                ],
+              ),
+              actions: [
+                if (snapshot.hasError ||
+                    (snapshot.hasData &&
+                        (snapshot.data as OtaEvent).status ==
+                            OtaStatus.INTERNAL_ERROR))
+                  TextButton(
+                    onPressed: () => Navigator.pop(dialogCtx),
+                    child: const Text('Cancel'),
+                  ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }
