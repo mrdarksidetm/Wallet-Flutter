@@ -100,26 +100,44 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Scaffold(
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: const Text('Edit Profile'),
+        scrolledUnderElevation: 0,
+        backgroundColor: Colors.transparent,
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Symbols.arrow_back_rounded),
+        ),
+        title: Text(
+          'Edit Profile',
+          style: theme.textTheme.headlineMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.5,
+          ),
+        ),
       ),
       body: ListView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         children: [
           Center(
             child: Stack(
               children: [
                 CircleAvatar(
-                  radius: 60,
+                  radius: 64,
                   backgroundColor: colorScheme.surfaceContainerHighest,
-                  backgroundImage: _selectedImagePath != null 
-                      ? FileImage(File(_selectedImagePath!)) 
+                  backgroundImage: _selectedImagePath != null
+                      ? FileImage(File(_selectedImagePath!))
                       : null,
-                  child: _selectedImagePath == null 
-                      ? Icon(Symbols.person, size: 60, color: colorScheme.onSurfaceVariant) 
+                  child: _selectedImagePath == null
+                      ? Icon(
+                          Symbols.person_rounded,
+                          size: 64,
+                          color: colorScheme.onSurfaceVariant,
+                        )
                       : null,
                 ),
                 Positioned(
@@ -127,52 +145,66 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                   right: 0,
                   child: FloatingActionButton.small(
                     onPressed: _pickAndCropImage,
-                    // [ACTION]: Setting background color for the photo picker action.
-                    // [M3 UPDATE]: Using primaryContainer to provide a clear interactive signal.
                     backgroundColor: colorScheme.primaryContainer,
                     foregroundColor: colorScheme.onPrimaryContainer,
-                    elevation: 0,
-                    child: const Icon(Symbols.photo_camera),
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Icon(Symbols.photo_camera_rounded),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 48),
-          // [ACTION]: Using a container with surfaceContainerHighest for grouping.
-          // [M3 UPDATE]: Replacing hardcoded grey containers with M3 tone-based surface.
+          const SizedBox(height: 36),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest,
+              color: colorScheme.surfaceContainerLow,
               borderRadius: BorderRadius.circular(24),
             ),
-            child: TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Display Name',
-                prefixIcon: Icon(Symbols.person),
-                hintText: 'Enter your name',
-                filled: true,
-                fillColor: Colors.transparent, // Let container handle it
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
-              ),
-              textCapitalization: TextCapitalization.words,
-              style: TextStyle(color: colorScheme.onSurface),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'PERSONAL INFO',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    letterSpacing: 1.2,
+                    fontWeight: FontWeight.w900,
+                    color: colorScheme.onSurface.withValues(alpha: 0.5),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _nameController,
+                  decoration: InputDecoration(
+                    labelText: 'Display Name',
+                    hintText: 'Enter your name',
+                    prefixIcon: const Icon(Symbols.badge_rounded),
+                    filled: true,
+                    fillColor:
+                        colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  textCapitalization: TextCapitalization.words,
+                  style: TextStyle(color: colorScheme.onSurface),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 48),
+          const SizedBox(height: 40),
           PrimaryAtelierButton(
             onPressed: _save,
-            icon: Icon(Symbols.save, color: colorScheme.onPrimary),
-            label: Text(
+            icon: const Icon(Symbols.check_rounded, color: Colors.white),
+            label: const Text(
               'Save Changes',
               style: TextStyle(
-                fontSize: 16, 
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: colorScheme.onPrimary,
               ),
             ),
           ),

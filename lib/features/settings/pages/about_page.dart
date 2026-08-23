@@ -111,7 +111,18 @@ class _AboutPageState extends ConsumerState<AboutPage> {
                     onTap: () => _checkForUpdates(context),
                   ),
                   SettingsActionTile(
-                    icon: Symbols.person_rounded,
+                    customLeading: Container(
+                      width: 44,
+                      height: 44,
+                      clipBehavior: Clip.antiAlias,
+                      decoration: const BoxDecoration(shape: BoxShape.circle),
+                      child: Image.asset(
+                        'assets/images/developer.png',
+                        width: 44,
+                        height: 44,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
                     title: 'Developer',
                     subtitle: 'Built with ❤️ by Abhijeet Yadav',
                     showDivider: true,

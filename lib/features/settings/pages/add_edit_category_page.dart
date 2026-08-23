@@ -78,41 +78,55 @@ class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
     final Color currentColor = _selectedColor.parseHexColor();
 
     return Scaffold(
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: Text(widget.category == null ? 'Add Category' : 'Edit Category'),
+        scrolledUnderElevation: 0,
+        backgroundColor: Colors.transparent,
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Symbols.arrow_back_rounded),
+        ),
+        title: Text(
+          widget.category == null ? 'Add Category' : 'Edit Category',
+          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+        ),
         actions: [
           if (widget.category != null)
             IconButton(
               onPressed: _showDeleteDialog,
-              icon: const Icon(Icons.delete_outline_rounded, color: Colors.red),
+              icon: Icon(Symbols.delete_rounded, color: colorScheme.error),
             ),
         ],
       ),
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           children: [
+            // Category Icon and Color Selector
             Center(
               child: Stack(
                 children: [
                   InkWell(
                     onTap: _showIconPicker,
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(28),
                     child: Container(
-                      width: 100,
-                      height: 100,
+                      width: 104,
+                      height: 104,
                       decoration: BoxDecoration(
-                        color: currentColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(24),
+                        color: currentColor.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(28),
                         border: Border.all(
-                            color: currentColor.withValues(alpha: 0.2),
-                            width: 2),
+                          color: currentColor.withValues(alpha: 0.3),
+                          width: 2,
+                        ),
                       ),
-                      child: Icon(
-                        AppIcons.getIcon(_selectedIcon),
-                        size: 48,
-                        color: currentColor,
+                      child: Center(
+                        child: Icon(
+                          AppIcons.getIcon(_selectedIcon),
+                          size: 52,
+                          color: currentColor,
+                        ),
                       ),
                     ),
                   ),
@@ -121,85 +135,164 @@ class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
                     right: 0,
                     child: InkWell(
                       onTap: _showColorPicker,
+                      borderRadius: BorderRadius.circular(20),
                       child: Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: colorScheme.surface,
+                          color: colorScheme.surfaceContainerHighest,
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.1),
-                                blurRadius: 8),
+                              color: Colors.black.withValues(alpha: 0.15),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
                           ],
                         ),
-                        child: Icon(Icons.palette_rounded,
-                            size: 20, color: currentColor),
+                        child: Icon(
+                          Symbols.palette_rounded,
+                          size: 20,
+                          color: currentColor,
+                        ),
                       ),
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 28),
+
+            // Segmented Type Selector (Expense vs Income)
             Center(
               child: SegmentedButton<CategoryType>(
+                style: SegmentedButton.styleFrom(
+                  selectedBackgroundColor: colorScheme.primaryContainer,
+                  selectedForegroundColor: colorScheme.onPrimaryContainer,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
                 segments: const [
                   ButtonSegment(
-                      value: CategoryType.expense,
-                      label: Text('Expense'),
-                      icon: Icon(Icons.remove_rounded)),
+                    value: CategoryType.expense,
+                    label: Text('Expense', style: TextStyle(fontWeight: FontWeight.w600)),
+                    icon: Icon(Symbols.trending_down_rounded),
+                  ),
                   ButtonSegment(
-                      value: CategoryType.income,
-                      label: Text('Income'),
-                      icon: Icon(Icons.add_rounded)),
+                    value: CategoryType.income,
+                    label: Text('Income', style: TextStyle(fontWeight: FontWeight.w600)),
+                    icon: Icon(Symbols.trending_up_rounded),
+                  ),
                 ],
                 selected: {_type},
                 onSelectionChanged: (s) {
-                  
                   setState(() => _type = s.first);
                 },
               ),
             ),
-            const SizedBox(height: 32),
-            TextFormField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Category Name',
-                prefixIcon: Icon(Icons.label_rounded),
+            const SizedBox(height: 28),
+
+            // Category Details Segmented Card
+            Container(
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(24),
               ),
-              validator: (v) => v?.isEmpty ?? true ? 'Required' : null,
-            ),
-            const SizedBox(height: 24),
-            SwitchListTile(
-              title: const Text('Enable Budget'),
-              subtitle: const Text('Set a monthly spending limit'),
-              value: _isBudget,
-              onChanged: (v) {
-                
-                setState(() => _isBudget = v);
-              },
-            ),
-            if (_isBudget)
-              Padding(
-                padding: const EdgeInsets.only(top: 16),
-                child: TextFormField(
-                  controller: _budgetController,
-                  decoration: const InputDecoration(
-                    labelText: 'Monthly Limit',
-                    prefixIcon: Icon(Symbols.payments),
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      labelText: 'Category Name',
+                      hintText: 'e.g. Groceries, Salary, Coffee',
+                      prefixIcon: const Icon(Symbols.label_rounded),
+                      filled: true,
+                      fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                    validator: (v) => v?.trim().isEmpty ?? true ? 'Category name is required' : null,
                   ),
-                  keyboardType: TextInputType.number,
-                ),
+                  const SizedBox(height: 18),
+                  Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: colorScheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          Symbols.savings_rounded,
+                          size: 22,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Monthly Budget',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              'Set a spending limit for this category',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Switch(
+                        value: _isBudget,
+                        onChanged: (v) {
+                          setState(() => _isBudget = v);
+                        },
+                      ),
+                    ],
+                  ),
+                  if (_isBudget) ...[
+                    const SizedBox(height: 18),
+                    TextFormField(
+                      controller: _budgetController,
+                      decoration: InputDecoration(
+                        labelText: 'Budget Limit',
+                        hintText: '0.00',
+                        prefixIcon: const Icon(Symbols.payments_rounded),
+                        filled: true,
+                        fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    ),
+                  ],
+                ],
               ),
-            const SizedBox(height: 48),
+            ),
+            const SizedBox(height: 40),
+
             PrimaryAtelierButton(
               onPressed: _save,
-              icon: const Icon(Symbols.save, color: Colors.white),
+              icon: const Icon(Symbols.check_rounded, color: Colors.white),
               label: const Text(
                 'Save Category',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
+            const SizedBox(height: 24),
           ],
         ),
       ),

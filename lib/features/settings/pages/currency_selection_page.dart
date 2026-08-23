@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:restart_app/restart_app.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/theme/personalization_provider.dart';
+import '../widgets/settings_segmented_card.dart';
 
-class CurrencySelectionPage extends ConsumerWidget {
+class CurrencySelectionPage extends ConsumerStatefulWidget {
   const CurrencySelectionPage({super.key});
 
-  static List<Map<String, String>> currencies = [
+  static const List<Map<String, String>> currencies = [
     {'code': 'INR', 'name': 'Indian Rupee', 'symbol': '₹'},
     {'code': 'USD', 'name': 'United States Dollar', 'symbol': '\$'},
     {'code': 'EUR', 'name': 'Euro', 'symbol': '€'},
@@ -58,76 +60,208 @@ class CurrencySelectionPage extends ConsumerWidget {
   ];
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CurrencySelectionPage> createState() => _CurrencySelectionPageState();
+}
+
+class _CurrencySelectionPageState extends ConsumerState<CurrencySelectionPage> {
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text.trim().toLowerCase();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final selectedCurrency = ref.watch(currencyProvider);
     final personalization = ref.watch(personalizationProvider);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    final filteredCurrencies = CurrencySelectionPage.currencies.where((c) {
+      final name = c['name']!.toLowerCase();
+      final code = c['code']!.toLowerCase();
+      final symbol = c['symbol']!.toLowerCase();
+      return name.contains(_searchQuery) ||
+          code.contains(_searchQuery) ||
+          symbol.contains(_searchQuery);
+    }).toList();
 
     return Scaffold(
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: const Text('Select Currency'),
+        scrolledUnderElevation: 0,
+        backgroundColor: Colors.transparent,
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Symbols.arrow_back_rounded),
+        ),
+        title: Text(
+          'Select Currency',
+          style: theme.textTheme.headlineMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.5,
+          ),
+        ),
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        itemCount: currencies.length,
-        itemBuilder: (context, index) {
-          final currency = currencies[index];
-          final isSelected = selectedCurrency == currency['code'];
-
-          return ListTile(
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
-            leading: CircleAvatar(
-              backgroundColor: isSelected
-                  ? Theme.of(context).colorScheme.primaryContainer
-                  : Theme.of(context).colorScheme.surfaceContainerHighest,
-              child: Text(
-                currency['symbol']!,
-                style: TextStyle(
-                  color: isSelected
-                      ? Theme.of(context).colorScheme.onPrimaryContainer
-                      : Theme.of(context).colorScheme.onSurface,
-                  fontWeight: FontWeight.bold,
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+        children: [
+          // Search Bar
+          Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search by currency name or code...',
+                hintStyle: TextStyle(
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
+                  fontSize: 15,
                 ),
+                prefixIcon: Icon(
+                  Symbols.search_rounded,
+                  color: colorScheme.onSurfaceVariant,
+                  size: 22,
+                ),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Symbols.close_rounded, size: 20),
+                        onPressed: () {
+                          _searchController.clear();
+                        },
+                      )
+                    : null,
+                filled: true,
+                fillColor: Colors.transparent,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              ),
+              style: TextStyle(
+                color: colorScheme.onSurface,
+                fontSize: 15,
               ),
             ),
-            title: Text(
-              currency['name']!,
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-            subtitle: Text(currency['code']!),
-            trailing: isSelected
-                ? Icon(Icons.check_circle_rounded,
-                    color: Theme.of(context).colorScheme.primary)
-                : null,
-            onTap: () async {
-              ref
-                  .read(personalizationProvider.notifier)
-                  .updateCurrency(currency['code']!);
-              
-              if (personalization.shouldRestartOnCurrencyChange) {
-                if (context.mounted) {
-                  showDialog(
-                    context: context,
-                    barrierDismissible: false,
-                    builder: (context) => AlertDialog(
-                      title: const Text('Currency Changed'),
-                      content: const Text(
-                          'The app needs to restart to apply the new currency settings correctly.'),
-                      actions: [
-                        FilledButton(
-                          onPressed: () => Restart.restartApp(),
-                          child: const Text('Restart Now'),
-                        ),
-                      ],
+          ),
+          const SizedBox(height: 20),
+
+          if (filteredCurrencies.isEmpty)
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Column(
+                children: [
+                  Icon(
+                    Symbols.search_off_rounded,
+                    size: 48,
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'No currencies found',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
                     ),
-                  );
-                }
-              } else {
-                if (context.mounted) context.pop();
-              }
-            },
-          );
-        },
+                  ),
+                ],
+              ),
+            )
+          else
+            SettingsSegmentedGroup(
+              children: filteredCurrencies.asMap().entries.map((entry) {
+                final index = entry.key;
+                final currency = entry.value;
+                final isLast = index == filteredCurrencies.length - 1;
+                final isSelected = selectedCurrency == currency['code'];
+
+                return SettingsActionTile(
+                  customLeading: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? colorScheme.primaryContainer
+                          : colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Center(
+                      child: Text(
+                        currency['symbol']!,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: isSelected
+                              ? colorScheme.onPrimaryContainer
+                              : colorScheme.onSurface,
+                        ),
+                      ),
+                    ),
+                  ),
+                  title: currency['name']!,
+                  subtitle: currency['code']!,
+                  trailing: isSelected
+                      ? Icon(
+                          Symbols.check_circle_rounded,
+                          color: colorScheme.primary,
+                          size: 24,
+                        )
+                      : null,
+                  showDivider: !isLast,
+                  onTap: () async {
+                    ref
+                        .read(personalizationProvider.notifier)
+                        .updateCurrency(currency['code']!);
+
+                    if (personalization.shouldRestartOnCurrencyChange) {
+                      if (context.mounted) {
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) => AlertDialog(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            title: const Text('Currency Changed'),
+                            content: const Text(
+                              'The app needs to restart to apply the new currency settings correctly.',
+                            ),
+                            actions: [
+                              FilledButton(
+                                onPressed: () => Restart.restartApp(),
+                                child: const Text('Restart Now'),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                    } else {
+                      if (context.mounted) context.pop();
+                    }
+                  },
+                );
+              }).toList(),
+            ),
+        ],
       ),
     );
   }

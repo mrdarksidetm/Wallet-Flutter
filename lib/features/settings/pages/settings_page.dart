@@ -233,235 +233,224 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      body: CustomScrollView(
-        slivers: [
-          // 1. Medium Flexible Top App Bar with back navigation & enlarged title
-          SliverAppBar.medium(
-            leading: IconButton(
-              onPressed: () => Navigator.pop(context),
-              icon: const Icon(Symbols.arrow_back_rounded),
+      appBar: AppBar(
+        scrolledUnderElevation: 0,
+        backgroundColor: Colors.transparent,
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Symbols.arrow_back_rounded),
+        ),
+        title: Text(
+          'Settings',
+          style: theme.textTheme.headlineMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.5,
+          ),
+        ),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+        children: [
+          // 2. Search Bar
+          Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(24),
             ),
-            title: Text(
-              'Settings',
-              style: theme.textTheme.headlineLarge?.copyWith(
-                fontSize: (theme.textTheme.headlineLarge?.fontSize ?? 32) + 3,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.5,
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search settings...',
+                hintStyle: TextStyle(
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
+                  fontSize: 15,
+                ),
+                prefixIcon: Icon(
+                  Symbols.search_rounded,
+                  color: colorScheme.onSurfaceVariant,
+                  size: 22,
+                ),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Symbols.close_rounded, size: 20),
+                        onPressed: () {
+                          _searchController.clear();
+                        },
+                      )
+                    : null,
+                filled: true,
+                fillColor: Colors.transparent,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              ),
+              style: TextStyle(
+                color: colorScheme.onSurface,
+                fontSize: 15,
               ),
             ),
           ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-            sliver: SliverList.list(
-              children: [
-                // 2. Search Bar just below the title
-                Container(
-                  decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerLow,
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Search settings...',
-                      hintStyle: TextStyle(
-                        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
-                        fontSize: 15,
+          const SizedBox(height: 24),
+
+          // 4. Content Area: Search Results or Main Segmented Menus
+          if (_searchQuery.isNotEmpty) ...[
+            // Search Results View
+            Padding(
+              padding: const EdgeInsets.only(left: 4, bottom: 12),
+              child: Text(
+                'SEARCH RESULTS (${filteredSettings.length})',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  letterSpacing: 1.2,
+                  fontWeight: FontWeight.w900,
+                  color: colorScheme.onSurface.withValues(alpha: 0.5),
+                ),
+              ),
+            ),
+            if (filteredSettings.isEmpty)
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Column(
+                  children: [
+                    Icon(
+                      Symbols.search_off_rounded,
+                      size: 48,
+                      color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'No settings found',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
-                      prefixIcon: Icon(
-                        Symbols.search_rounded,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Try searching for "currency", "theme", "backup", or "profile"',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant,
-                        size: 22,
+                        fontSize: 13,
                       ),
-                      suffixIcon: _searchQuery.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Symbols.close_rounded, size: 20),
-                              onPressed: () {
-                                _searchController.clear();
-                              },
-                            )
-                          : null,
-                      filled: true,
-                      fillColor: Colors.transparent,
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                     ),
-                    style: TextStyle(
-                      color: colorScheme.onSurface,
-                      fontSize: 15,
-                    ),
-                  ),
+                  ],
                 ),
-                const SizedBox(height: 24),
+              )
+            else
+              SettingsSegmentedGroup(
+                children: filteredSettings.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final item = entry.value;
+                  final isLast = index == filteredSettings.length - 1;
 
-                // 4. Content Area: Search Results or Main Segmented Menus
-                if (_searchQuery.isNotEmpty) ...[
-              // Search Results View
-              Padding(
-                padding: const EdgeInsets.only(left: 4, bottom: 12),
-                child: Text(
-                  'SEARCH RESULTS (${filteredSettings.length})',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    letterSpacing: 1.2,
-                    fontWeight: FontWeight.w900,
-                    color: colorScheme.onSurface.withValues(alpha: 0.5),
-                  ),
-                ),
+                  return SettingsActionTile(
+                    icon: item.icon,
+                    title: item.title,
+                    subtitle: '${item.category} • ${item.subtitle}',
+                    isDestructive: item.isDestructive,
+                    showDivider: !isLast,
+                    onTap: () => item.onTap(context),
+                  );
+                }).toList(),
               ),
-              if (filteredSettings.isEmpty)
-                Container(
-                  padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerLow,
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  child: Column(
-                    children: [
-                      Icon(
-                        Symbols.search_off_rounded,
-                        size: 48,
-                        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'No settings found',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Try searching for "currency", "theme", "backup", or "profile"',
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              else
-                SettingsSegmentedGroup(
-                  children: filteredSettings.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final item = entry.value;
-                    final isLast = index == filteredSettings.length - 1;
-
-                    return SettingsActionTile(
-                      icon: item.icon,
-                      title: item.title,
-                      subtitle: '${item.category} • ${item.subtitle}',
-                      isDestructive: item.isDestructive,
-                      showDivider: !isLast,
-                      onTap: () => item.onTap(context),
-                    );
-                  }).toList(),
-                ),
-              const SizedBox(height: 32),
-            ] else ...[
-              // Main Menus View with M3 Expressive segmented list & gaps
-              Padding(
-                padding: const EdgeInsets.only(left: 4, bottom: 12),
-                child: Text(
-                  'PREFERENCES & CONTROLS',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    letterSpacing: 1.2,
-                    fontWeight: FontWeight.w900,
-                    color: colorScheme.onSurface.withValues(alpha: 0.5),
-                  ),
+            const SizedBox(height: 32),
+          ] else ...[
+            // Main Menus View with M3 Expressive ONE unified segmented group
+            Padding(
+              padding: const EdgeInsets.only(left: 4, bottom: 12),
+              child: Text(
+                'PREFERENCES & CONTROLS',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  letterSpacing: 1.2,
+                  fontWeight: FontWeight.w900,
+                  color: colorScheme.onSurface.withValues(alpha: 0.5),
                 ),
               ),
+            ),
 
-              // 1. General Menu
-              SettingsMenuCard(
-                icon: Symbols.tune_rounded,
-                title: 'General',
-                subtitle: 'Currency settings, user profile, and categories',
-                onTap: () {
-                  context.push('/settings/general');
-                },
-              ),
-              const SizedBox(height: 12),
+            // All settings in ONE group of list
+            SettingsSegmentedGroup(
+              children: [
+                SettingsActionTile(
+                  icon: Symbols.tune_rounded,
+                  title: 'General',
+                  subtitle: 'Currency settings, user profile, and categories',
+                  showDivider: true,
+                  onTap: () {
+                    context.push('/settings/general');
+                  },
+                ),
+                SettingsActionTile(
+                  icon: Symbols.palette_rounded,
+                  title: 'Appearance',
+                  subtitle: 'Theme, dynamic color, typography, and behavior',
+                  showDivider: true,
+                  onTap: () {
+                    context.push('/personalization');
+                  },
+                ),
+                SettingsActionTile(
+                  icon: Symbols.shield_lock_rounded,
+                  title: 'Privacy & Security',
+                  subtitle: 'Biometric lock, factory reset, and policy',
+                  showDivider: true,
+                  onTap: () {
+                    context.push('/settings/privacy_security');
+                  },
+                ),
+                SettingsActionTile(
+                  icon: Symbols.cloud_sync_rounded,
+                  title: 'Backup & Restore',
+                  subtitle: 'Export/import CSV, JSON, and database archive',
+                  showDivider: true,
+                  onTap: () {
+                    context.push('/settings/backup_restore');
+                  },
+                ),
+                SettingsActionTile(
+                  icon: Symbols.info_rounded,
+                  title: 'About',
+                  subtitle: 'v$_currentVersion · Developer, licenses, and system info',
+                  showDivider: true,
+                  onTap: () {
+                    context.push('/about');
+                  },
+                ),
+                SettingsActionTile(
+                  icon: Symbols.bug_report_rounded,
+                  title: 'Error Collector',
+                  subtitle: 'Runtime analysis, performance logs, and debug tools',
+                  showDivider: false,
+                  onTap: () {
+                    context.push('/logcat');
+                  },
+                ),
+              ],
+            ),
 
-              // 2. Appearance Menu (directly opens preferences page)
-              SettingsMenuCard(
-                icon: Symbols.palette_rounded,
-                title: 'Appearance',
-                subtitle: 'Theme, dynamic color, typography, and behavior',
-                onTap: () {
-                  context.push('/personalization');
-                },
-              ),
-              const SizedBox(height: 12),
+            const SizedBox(height: 48),
 
-              // 3. Privacy & Security Menu
-              SettingsMenuCard(
-                icon: Symbols.shield_lock_rounded,
-                title: 'Privacy & Security',
-                subtitle: 'Biometric lock, factory reset, and policy',
-                onTap: () {
-                  context.push('/settings/privacy_security');
-                },
-              ),
-              const SizedBox(height: 12),
-
-              // 4. Backup & Restore Menu
-              SettingsMenuCard(
-                icon: Symbols.cloud_sync_rounded,
-                title: 'Backup & Restore',
-                subtitle: 'Export/import CSV, JSON, and database archive',
-                onTap: () {
-                  context.push('/settings/backup_restore');
-                },
-              ),
-              const SizedBox(height: 12),
-
-              // 5. About Menu (directly opens about page)
-              SettingsMenuCard(
-                icon: Symbols.info_rounded,
-                title: 'About',
-                subtitle: 'v$_currentVersion · Developer, licenses, and system info',
-                onTap: () {
-                  context.push('/about');
-                },
-              ),
-              const SizedBox(height: 12),
-
-              // 6. Error Collector Menu (directly opens logcat page)
-              SettingsMenuCard(
-                icon: Symbols.bug_report_rounded,
-                title: 'Error Collector',
-                subtitle: 'Runtime analysis, performance logs, and debug tools',
-                onTap: () {
-                  context.push('/logcat');
-                },
-              ),
-
-              const SizedBox(height: 48),
-
-              // App Version Footer
-              Center(
-                child: Text(
-                  'Wallet v$_currentVersion (June 2026)',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
-                    fontWeight: FontWeight.w500,
-                  ),
+            // App Version Footer
+            Center(
+              child: Text(
+                'Wallet v$_currentVersion (June 2026)',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(height: 24),
-            ],
+            ),
+            const SizedBox(height: 24),
           ],
-        ),
+        ],
       ),
-    ],
-  ),
-);
-}
+    );
+  }
 
   Future<void> _checkForUpdates(BuildContext context) async {
     showDialog(

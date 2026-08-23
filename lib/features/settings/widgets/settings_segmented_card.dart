@@ -128,7 +128,8 @@ class SettingsSegmentedGroup extends StatelessWidget {
 
 /// An individual action tile inside a segmented group or standalone card.
 class SettingsActionTile extends ConsumerWidget {
-  final IconData icon;
+  final IconData? icon;
+  final Widget? customLeading;
   final String title;
   final String subtitle;
   final Widget? trailing;
@@ -140,7 +141,8 @@ class SettingsActionTile extends ConsumerWidget {
 
   const SettingsActionTile({
     super.key,
-    required this.icon,
+    this.icon,
+    this.customLeading,
     required this.title,
     required this.subtitle,
     this.trailing,
@@ -180,22 +182,25 @@ class SettingsActionTile extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
               child: Row(
                 children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: effectiveIconBg,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Center(
-                      child: Icon(
-                        icon,
-                        size: 24,
-                        color: effectiveIconColor,
-                        fill: fillIcons ? 1.0 : 0.0,
+                  if (customLeading != null)
+                    customLeading!
+                  else if (icon != null)
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: effectiveIconBg,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Center(
+                        child: Icon(
+                          icon,
+                          size: 24,
+                          color: effectiveIconColor,
+                          fill: fillIcons ? 1.0 : 0.0,
+                        ),
                       ),
                     ),
-                  ),
                   const SizedBox(width: 14),
                   Expanded(
                     child: Column(

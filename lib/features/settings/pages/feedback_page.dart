@@ -30,59 +30,103 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: const Text('Feedback'),
+        scrolledUnderElevation: 0,
+        backgroundColor: Colors.transparent,
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Symbols.arrow_back_rounded),
+        ),
+        title: Text(
+          'Feedback',
+          style: theme.textTheme.headlineMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.5,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Help us refine the experience.',
-              style: theme.textTheme.displaySmall?.copyWith(
+              style: theme.textTheme.headlineSmall?.copyWith(
                 color: colorScheme.primary,
                 fontWeight: FontWeight.w900,
+                letterSpacing: -0.5,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Text(
-              'Your thoughts on "The Variable Atelier" help us push the boundaries of financial UI.',
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: colorScheme.onSurface.withValues(alpha: 0.7),
+              'Your thoughts help us continuously push the boundaries of offline personal finance UI.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: 48),
-            TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Name',
-                prefixIcon: Icon(Symbols.person),
+            const SizedBox(height: 28),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Column(
+                children: [
+                  TextField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      labelText: 'Your Name (Optional)',
+                      prefixIcon: const Icon(Symbols.person_rounded),
+                      filled: true,
+                      fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: InputDecoration(
+                      labelText: 'Email (Optional)',
+                      prefixIcon: const Icon(Symbols.alternate_email_rounded),
+                      filled: true,
+                      fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _messageController,
+                    maxLines: 5,
+                    decoration: InputDecoration(
+                      labelText: 'Message',
+                      hintText: 'Share your feedback, bug report, or feature idea...',
+                      alignLabelWithHint: true,
+                      prefixIcon: const Padding(
+                        padding: EdgeInsets.only(bottom: 76),
+                        child: Icon(Symbols.rate_review_rounded),
+                      ),
+                      filled: true,
+                      fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                prefixIcon: Icon(Symbols.alternate_email),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _messageController,
-              maxLines: 5,
-              decoration: const InputDecoration(
-                labelText: 'Message',
-                alignLabelWithHint: true,
-                prefixIcon: Padding(
-                  padding: EdgeInsets.only(bottom: 80),
-                  child: Icon(Symbols.rate_review),
-                ),
-              ),
-            ),
-            const SizedBox(height: 48),
+            const SizedBox(height: 36),
             PrimaryAtelierButton(
               onPressed: () async {
                 final email = _emailController.text;
