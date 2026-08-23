@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:ota_update/ota_update.dart';
 import '../../../core/services/update_service.dart';
-import '../../../core/theme/personalization_provider.dart';
 import '../widgets/settings_segmented_card.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
@@ -253,8 +252,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           ),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
+            sliver: SliverList.list(
+              children: [
                 // 2. Search Bar just below the title
                 Container(
                   decoration: BoxDecoration(
@@ -296,10 +295,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     ),
                   ),
                 ),
-            const SizedBox(height: 24),
+                const SizedBox(height: 24),
 
-            // 4. Content Area: Search Results or Main Segmented Menus
-            if (_searchQuery.isNotEmpty) ...[
+                // 4. Content Area: Search Results or Main Segmented Menus
+                if (_searchQuery.isNotEmpty) ...[
               // Search Results View
               Padding(
                 padding: const EdgeInsets.only(left: 4, bottom: 12),
@@ -455,12 +454,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 ),
               ),
               const SizedBox(height: 24),
-            ]),
-          ),
+            ],
+          ],
         ),
-      ],
-    ),
-  );
+      ),
+    ],
+  ),
+);
 }
 
   Future<void> _checkForUpdates(BuildContext context) async {

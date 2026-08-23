@@ -34,8 +34,8 @@ class BackupRestoreSettingsPage extends ConsumerWidget {
           ),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
+            sliver: SliverList.list(
+              children: [
                 // Full Backup / Database Archive Section Header
                 _buildSectionHeader(context, 'DATABASE ARCHIVES'),
                 const SizedBox(height: 8),
@@ -111,7 +111,7 @@ class BackupRestoreSettingsPage extends ConsumerWidget {
                 ),
 
                 const SizedBox(height: 32),
-              ]),
+              ],
             ),
           ),
         ],

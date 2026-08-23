@@ -42,8 +42,8 @@ class GeneralSettingsPage extends ConsumerWidget {
           ),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
+            sliver: SliverList.list(
+              children: [
                 // Profile Overview / Edit Profile Segmented Card
                 Material(
                   color: colorScheme.surfaceContainerLow,
@@ -77,9 +77,10 @@ class GeneralSettingsPage extends ConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  personalization.userName.isEmpty
+                                  (personalization.userName == null ||
+                                          personalization.userName!.isEmpty)
                                       ? 'Your Profile'
-                                      : personalization.userName,
+                                      : personalization.userName!,
                                   style: theme.textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -148,7 +149,7 @@ class GeneralSettingsPage extends ConsumerWidget {
                 ),
 
                 const SizedBox(height: 32),
-              ]),
+              ],
             ),
           ),
         ],

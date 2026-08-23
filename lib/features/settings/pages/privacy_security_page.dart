@@ -38,8 +38,8 @@ class PrivacySecuritySettingsPage extends ConsumerWidget {
           ),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
+            sliver: SliverList.list(
+              children: [
                 // Security Controls Group
                 SettingsSegmentedGroup(
                   children: [
@@ -103,7 +103,7 @@ class PrivacySecuritySettingsPage extends ConsumerWidget {
                 ),
 
                 const SizedBox(height: 32),
-              ]),
+              ],
             ),
           ),
         ],
