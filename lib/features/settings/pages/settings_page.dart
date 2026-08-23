@@ -211,14 +211,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         icon: Symbols.update_rounded,
         onTap: (ctx) => _checkForUpdates(ctx),
       ),
-      _SearchableSetting(
-        title: 'Error Collector (Logcat)',
-        subtitle: 'Runtime logs, diagnostics, and performance monitor',
-        keywords: ['error collector', 'logcat', 'logs', 'dev', 'developer', 'debug', 'diagnostics', 'runtime', 'errors', 'performance'],
-        category: 'Error Collector',
-        icon: Symbols.bug_report_rounded,
-        onTap: (ctx) => ctx.push('/logcat'),
-      ),
+      if (personalization.isErrorCollectorEnabled)
+        _SearchableSetting(
+          title: 'Error Collector (Logcat)',
+          subtitle: 'Runtime logs, diagnostics, and performance monitor',
+          keywords: ['error collector', 'logcat', 'logs', 'dev', 'developer', 'debug', 'diagnostics', 'runtime', 'errors', 'performance'],
+          category: 'Error Collector',
+          icon: Symbols.bug_report_rounded,
+          onTap: (ctx) => ctx.push('/logcat'),
+        ),
     ];
 
     final filteredSettings = _searchQuery.isEmpty
@@ -416,20 +417,21 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   icon: Symbols.info_rounded,
                   title: 'About',
                   subtitle: 'v$_currentVersion · Developer, licenses, and system info',
-                  showDivider: true,
+                  showDivider: personalization.isErrorCollectorEnabled,
                   onTap: () {
                     context.push('/about');
                   },
                 ),
-                SettingsActionTile(
-                  icon: Symbols.bug_report_rounded,
-                  title: 'Error Collector',
-                  subtitle: 'Runtime analysis, performance logs, and debug tools',
-                  showDivider: false,
-                  onTap: () {
-                    context.push('/logcat');
-                  },
-                ),
+                if (personalization.isErrorCollectorEnabled)
+                  SettingsActionTile(
+                    icon: Symbols.bug_report_rounded,
+                    title: 'Error Collector',
+                    subtitle: 'Runtime analysis, performance logs, and debug tools',
+                    showDivider: false,
+                    onTap: () {
+                      context.push('/logcat');
+                    },
+                  ),
               ],
             ),
 

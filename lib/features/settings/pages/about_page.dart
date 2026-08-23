@@ -18,6 +18,9 @@ class AboutPage extends ConsumerStatefulWidget {
 class _AboutPageState extends ConsumerState<AboutPage> {
   String _currentVersion = '3.1.0';
 
+  int _versionTapCount = 0;
+  DateTime? _lastTapTime;
+
   @override
   void initState() {
     super.initState();
@@ -30,6 +33,80 @@ class _AboutPageState extends ConsumerState<AboutPage> {
       setState(() {
         _currentVersion = version;
       });
+    }
+  }
+
+  void _onVersionTap() {
+    final now = DateTime.now();
+    if (_lastTapTime == null ||
+        now.difference(_lastTapTime!) > const Duration(seconds: 3)) {
+      _versionTapCount = 0;
+    }
+    _lastTapTime = now;
+    _versionTapCount++;
+
+    final isAlreadyEnabled =
+        ref.read(personalizationProvider).isErrorCollectorEnabled;
+    if (isAlreadyEnabled) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(Symbols.bug_report_rounded, color: Colors.white),
+              SizedBox(width: 12),
+              Text(
+                'Error Collector (LogCat) is already active',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          backgroundColor: Theme.of(context).colorScheme.secondary,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    if (_versionTapCount >= 7) {
+      _versionTapCount = 0;
+      ref.read(personalizationProvider.notifier).enableErrorCollector();
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(Symbols.bug_report_rounded, color: Colors.white),
+              SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Error Collector (LogCat) Activated',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } else if (_versionTapCount >= 3) {
+      final remaining = 7 - _versionTapCount;
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'You are $remaining step${remaining > 1 ? "s" : ""} away from activating Error Collector',
+          ),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          duration: const Duration(milliseconds: 1200),
+        ),
+      );
     }
   }
 
@@ -72,17 +149,21 @@ class _AboutPageState extends ConsumerState<AboutPage> {
                 ),
               ),
               const SizedBox(height: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(
-                  color: colorScheme.primaryContainer.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  'Version $_currentVersion',
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: colorScheme.primary,
-                    fontWeight: FontWeight.bold,
+              InkWell(
+                onTap: _onVersionTap,
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primaryContainer.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    'Version $_currentVersion',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
