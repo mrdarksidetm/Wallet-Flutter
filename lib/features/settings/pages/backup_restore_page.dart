@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:restart_app/restart_app.dart';
 import '../../../core/database/providers.dart';
+import '../../../core/widgets/app_back_button.dart';
 import '../widgets/settings_segmented_card.dart';
 
 class BackupRestoreSettingsPage extends ConsumerWidget {
@@ -19,10 +20,7 @@ class BackupRestoreSettingsPage extends ConsumerWidget {
         slivers: [
           // Medium Flexible Top App Bar with back navigation & enlarged title
           SliverAppBar.medium(
-            leading: IconButton(
-              onPressed: () => Navigator.pop(context),
-              icon: const Icon(Symbols.arrow_back_rounded),
-            ),
+            leading: const AppBackButton(),
             title: Text(
               'Backup & Restore',
               style: theme.textTheme.headlineLarge?.copyWith(

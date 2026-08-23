@@ -207,15 +207,21 @@ class AppShell extends ConsumerWidget {
     final authState = ref.watch(authProvider);
     if (authState.isLocked) return const UnlockPage();
 
-    final location = GoRouterState
-        .of(context)
-        .uri
-        .path;
+    final location = GoRouterState.of(context).uri.path;
 
-    return Scaffold(
-      body: child,
-      bottomNavigationBar: _BottomNavBar(location: location),
-      floatingActionButton: _FAB(location: location),
+    return PopScope(
+      canPop: location == '/',
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (location != '/') {
+          context.go('/');
+        }
+      },
+      child: Scaffold(
+        body: child,
+        bottomNavigationBar: _BottomNavBar(location: location),
+        floatingActionButton: _FAB(location: location),
+      ),
     );
   }
 }

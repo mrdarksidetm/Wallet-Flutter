@@ -14,6 +14,7 @@ import '../../../core/theme/color_extension.dart';
 import '../../../core/widgets/icon_picker.dart';
 import '../../../core/widgets/expressive_bottom_sheet.dart';
 import '../../../core/services/file_service.dart';
+import '../../../core/widgets/app_back_button.dart';
 import '../widgets/person_avatar.dart';
 
 class PersonDetailsPage extends ConsumerStatefulWidget {
@@ -221,8 +222,16 @@ class _PersonDetailsPageState extends ConsumerState<PersonDetailsPage> {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          SliverAppBar.large(
-            title: Text(_person.name),
+          SliverAppBar.medium(
+            leading: const AppBackButton(),
+            title: Text(
+              _person.name,
+              style: theme.textTheme.headlineLarge?.copyWith(
+                fontSize: (theme.textTheme.headlineLarge?.fontSize ?? 32) + 3,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
+              ),
+            ),
             actions: [
               IconButton(
                 icon: const Icon(Symbols.edit),

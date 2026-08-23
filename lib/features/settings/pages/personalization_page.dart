@@ -5,32 +5,32 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/theme/personalization_provider.dart';
 import '../../../core/theme/theme_provider.dart';
 import '../../../core/theme/colors.dart';
+import '../../../core/widgets/app_back_button.dart';
 
 class PersonalizationPage extends ConsumerWidget {
   const PersonalizationPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
     final state = ref.watch(personalizationProvider);
     final notifier = ref.read(personalizationProvider.notifier);
     final themeState = ref.watch(themeControllerProvider);
     final themeNotifier = ref.read(themeControllerProvider.notifier);
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: theme.colorScheme.surface,
       body: CustomScrollView(
         slivers: [
-          SliverAppBar(
-            floating: true,
-            leading: IconButton(
-              onPressed: () => Navigator.pop(context),
-              icon: const Icon(Symbols.arrow_back_rounded),
-            ),
+          SliverAppBar.medium(
+            leading: const AppBackButton(),
             title: Text(
               'Preferences',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: theme.textTheme.headlineLarge?.copyWith(
+                fontSize: (theme.textTheme.headlineLarge?.fontSize ?? 32) + 3,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
+              ),
             ),
           ),
           SliverToBoxAdapter(

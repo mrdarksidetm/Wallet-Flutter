@@ -8,6 +8,7 @@ import '../../../core/database/providers.dart';
 import '../../../core/widgets/icon_picker.dart';
 import '../../../core/widgets/primary_atelier_button.dart';
 import '../../../core/theme/color_extension.dart';
+import '../../../core/widgets/app_back_button.dart';
 
 class AddEditAccountPage extends ConsumerStatefulWidget {
   final Account? account;
@@ -103,6 +104,7 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: const AppBackButton(),
         title: Text(widget.account == null ? 'New Account' : 'Edit Account'),
         actions: [
           if (widget.account != null)

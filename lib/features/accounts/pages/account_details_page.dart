@@ -8,6 +8,7 @@ import '../../../core/widgets/icon_picker.dart';
 import '../../../core/widgets/transaction_list_tile.dart';
 import '../../../core/theme/color_extension.dart';
 import '../../../core/services/currency_engine.dart';
+import '../../../core/widgets/app_back_button.dart';
 
 class AccountDetailsPage extends ConsumerWidget {
   final Account account;
@@ -16,6 +17,7 @@ class AccountDetailsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final accountsAsync = ref.watch(accountsStreamProvider);
     final currentAccount = accountsAsync.value?.where((a) => a.id == account.id).firstOrNull ?? account;
     final color = currentAccount.color.parseHexColor();
@@ -27,18 +29,27 @@ class AccountDetailsPage extends ConsumerWidget {
         ref.watch(accountTransactionsProvider(account.id));
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(currentAccount.name),
-        actions: [
-          IconButton(
-            onPressed: () => context.push('/add_account', extra: currentAccount),
-            icon: const Icon(Symbols.edit),
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
+      backgroundColor: colorScheme.surface,
       body: CustomScrollView(
         slivers: [
+          SliverAppBar.medium(
+            leading: const AppBackButton(),
+            title: Text(
+              currentAccount.name,
+              style: theme.textTheme.headlineLarge?.copyWith(
+                fontSize: (theme.textTheme.headlineLarge?.fontSize ?? 32) + 3,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
+              ),
+            ),
+            actions: [
+              IconButton(
+                onPressed: () => context.push('/add_account', extra: currentAccount),
+                icon: const Icon(Symbols.edit),
+              ),
+              const SizedBox(width: 8),
+            ],
+          ),
           SliverToBoxAdapter(
             child: Container(
               margin: const EdgeInsets.all(16),

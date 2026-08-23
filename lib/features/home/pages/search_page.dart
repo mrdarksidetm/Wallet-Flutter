@@ -7,6 +7,7 @@ import '../../../core/database/providers.dart';
 import '../../../core/database/models/transaction_model.dart';
 import '../../../core/database/models/auxiliary_models.dart';
 import '../../../core/database/models/account.dart';
+import '../../../core/widgets/app_back_button.dart';
 class SearchPage extends ConsumerStatefulWidget {
   const SearchPage({super.key});
 
@@ -30,6 +31,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: const AppBackButton(),
         title: TextField(
           controller: _searchController,
           autofocus: true,
@@ -83,7 +85,7 @@ class _SearchResults extends ConsumerWidget {
             title: a.name,
             subtitle: 'Account',
             icon: Symbols.account_balance,
-            onTap: () => context.go('/accounts'),
+            onTap: () => context.push('/account_details', extra: a),
           ),
         ),
         _SearchSection<Person>(

@@ -5,6 +5,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:ota_update/ota_update.dart';
 import '../../../core/services/update_service.dart';
 import '../../../core/theme/personalization_provider.dart';
+import '../../../core/widgets/app_back_button.dart';
 import '../widgets/settings_segmented_card.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
@@ -236,24 +237,23 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        scrolledUnderElevation: 0,
-        backgroundColor: Colors.transparent,
-        leading: IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(Symbols.arrow_back_rounded),
-        ),
-        title: Text(
-          'Settings',
-          style: theme.textTheme.headlineMedium?.copyWith(
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.5,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar.medium(
+            leading: const AppBackButton(),
+            title: Text(
+              'Settings',
+              style: theme.textTheme.headlineLarge?.copyWith(
+                fontSize: (theme.textTheme.headlineLarge?.fontSize ?? 32) + 3,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
+              ),
+            ),
           ),
-        ),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
-        children: [
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+            sliver: SliverList.list(
+              children: [
           // 2. Search Bar
           Container(
             decoration: BoxDecoration(
@@ -451,6 +451,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             ),
             const SizedBox(height: 24),
           ],
+        ],
+            ),
+          ),
         ],
       ),
     );

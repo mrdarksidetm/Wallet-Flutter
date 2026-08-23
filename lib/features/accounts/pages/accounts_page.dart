@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../../../core/theme/color_extension.dart';
 import '../../../core/services/currency_engine.dart';
+import '../../../core/widgets/app_back_button.dart';
 
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/account.dart';
@@ -34,29 +35,35 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final accountsAsync = ref.watch(accountsStreamProvider);
     final currency = ref.watch(currencyProvider);
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        title: const Text('Accounts & Wallets', style: TextStyle(fontWeight: FontWeight.bold)),
-        actions: [
-          IconButton(
-            icon: const Icon(Symbols.reorder),
-            onPressed: () {
-              final accounts = accountsAsync.value?.toList() ?? <Account>[];
-              _showReorderBottomSheet(context, accounts);
-            },
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
       body: accountsAsync.when(
         data: (accounts) {
           if (accounts.isEmpty) {
-            return const Center(child: Text('No accounts found'));
+            return CustomScrollView(
+              slivers: [
+                SliverAppBar.medium(
+                  leading: const AppBackButton(),
+                  title: Text(
+                    'Accounts & Wallets',
+                    style: theme.textTheme.headlineLarge?.copyWith(
+                      fontSize: (theme.textTheme.headlineLarge?.fontSize ?? 32) + 3,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                ),
+                const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(child: Text('No accounts found')),
+                ),
+              ],
+            );
           }
 
           final pageIndex = _currentPage.clamp(0, accounts.length - 1);
@@ -65,6 +72,27 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
           return CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
+              SliverAppBar.medium(
+                leading: const AppBackButton(),
+                title: Text(
+                  'Accounts & Wallets',
+                  style: theme.textTheme.headlineLarge?.copyWith(
+                    fontSize: (theme.textTheme.headlineLarge?.fontSize ?? 32) + 3,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                actions: [
+                  IconButton(
+                    icon: const Icon(Symbols.reorder),
+                    onPressed: () {
+                      final accs = accountsAsync.value?.toList() ?? <Account>[];
+                      _showReorderBottomSheet(context, accs);
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                ],
+              ),
               // 1. Top Section: Swipeable Cards
               SliverToBoxAdapter(
                 child: Column(

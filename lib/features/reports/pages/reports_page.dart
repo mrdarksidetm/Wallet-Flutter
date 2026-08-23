@@ -74,13 +74,19 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: const Text('Reports', style: TextStyle(fontWeight: FontWeight.bold)),
-        centerTitle: false,
-      ),
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
+          SliverAppBar.medium(
+            title: Text(
+              'Reports',
+              style: theme.textTheme.headlineLarge?.copyWith(
+                fontSize: (theme.textTheme.headlineLarge?.fontSize ?? 32) + 3,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
+              ),
+            ),
+          ),
           // 1. Month Selection Row (Horizontal Pills)
           SliverToBoxAdapter(child: _MonthSelector(
             selectedRange: _selectedRange,

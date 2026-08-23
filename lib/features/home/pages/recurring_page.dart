@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/widgets/icon_picker.dart';
+import '../../../core/widgets/app_back_button.dart';
 import '../../../core/theme/color_extension.dart';
 
 class RecurringPage extends ConsumerWidget {
@@ -12,31 +13,46 @@ class RecurringPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final recurringAsync = ref.watch(recurringsStreamProvider);
     final selectedCurrency = ref.watch(currencyProvider);
     final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Recurring & Subscriptions'),
-      ),
-      body: recurringAsync.when(
-        data: (items) {
-          if (items.isEmpty) {
-            return const Center(child: Text('No recurring transactions found'));
-          }
-          return ListView.builder(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.all(16),
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              final item = items[index];
-              final categoryColor = item.category.value?.color != null
-                  ? item.category.value!.color.parseHexColor()
-                  : Theme.of(context).colorScheme.primary;
-              final isActive = item.isActive;
-              final colorScheme = Theme.of(context).colorScheme;
-              final isDark = Theme.of(context).brightness == Brightness.dark;
+      backgroundColor: colorScheme.surface,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar.medium(
+            leading: const AppBackButton(),
+            title: Text(
+              'Recurring',
+              style: theme.textTheme.headlineLarge?.copyWith(
+                fontSize: (theme.textTheme.headlineLarge?.fontSize ?? 32) + 3,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
+              ),
+            ),
+          ),
+          recurringAsync.when(
+            data: (items) {
+              if (items.isEmpty) {
+                return const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(child: Text('No recurring transactions found')),
+                );
+              }
+              return SliverPadding(
+                padding: const EdgeInsets.all(16),
+                sliver: SliverList.builder(
+                  itemCount: items.length,
+                  itemBuilder: (context, index) {
+                    final item = items[index];
+                    final categoryColor = item.category.value?.color != null
+                        ? item.category.value!.color.parseHexColor()
+                        : theme.colorScheme.primary;
+                    final isActive = item.isActive;
+                    final isDark = theme.brightness == Brightness.dark;
 
               return Dismissible(
                 key: ValueKey(item.id),
@@ -166,10 +182,19 @@ class RecurringPage extends ConsumerWidget {
                 ),
               );
             },
+            ),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('Error: $err')),
+            loading: () => const SliverFillRemaining(
+              hasScrollBody: false,
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            error: (err, stack) => SliverFillRemaining(
+              hasScrollBody: false,
+              child: Center(child: Text('Error: $err')),
+            ),
+          ),
+        ],
       ),
     );
   }

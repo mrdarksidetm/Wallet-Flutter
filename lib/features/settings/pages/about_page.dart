@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:ota_update/ota_update.dart';
 import '../../../core/services/update_service.dart';
 import '../../../core/theme/personalization_provider.dart';
+import '../../../core/widgets/app_back_button.dart';
 import '../widgets/settings_segmented_card.dart';
 
 class AboutPage extends ConsumerStatefulWidget {
@@ -126,18 +127,9 @@ class _AboutPageState extends ConsumerState<AboutPage> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // Top Bar: Back Button
-              Align(
+              const Align(
                 alignment: Alignment.centerLeft,
-                child: IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Symbols.arrow_back_rounded),
-                  style: IconButton.styleFrom(
-                    backgroundColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                ),
+                child: AppBackButton(),
               ),
               const SizedBox(height: 24),
 

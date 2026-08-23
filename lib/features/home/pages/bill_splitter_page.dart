@@ -8,6 +8,7 @@ import '../../../core/widgets/expressive_bottom_sheet.dart';
 import '../../../core/theme/color_extension.dart';
 import '../../../core/theme/personalization_provider.dart';
 import '../../../core/services/haptic_service.dart';
+import '../../../core/widgets/app_back_button.dart';
 import '../../people/widgets/person_avatar.dart';
 
 class BillSplitterPage extends ConsumerStatefulWidget {
@@ -62,21 +63,38 @@ class _BillSplitterPageState extends ConsumerState<BillSplitterPage> {
     final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Bill Splitter')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildResultCard(theme, colorScheme, currencyFormat),
-            const SizedBox(height: 32),
-            _buildInputSection(selectedCurrency),
-            const SizedBox(height: 32),
-            _buildPeopleHeader(theme),
-            const SizedBox(height: 12),
-            _buildPeopleList(colorScheme, currencyFormat),
-          ],
-        ),
+      backgroundColor: colorScheme.surface,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar.medium(
+            leading: const AppBackButton(),
+            title: Text(
+              'Bill Splitter',
+              style: theme.textTheme.headlineLarge?.copyWith(
+                fontSize: (theme.textTheme.headlineLarge?.fontSize ?? 32) + 3,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildResultCard(theme, colorScheme, currencyFormat),
+                  const SizedBox(height: 32),
+                  _buildInputSection(selectedCurrency),
+                  const SizedBox(height: 32),
+                  _buildPeopleHeader(theme),
+                  const SizedBox(height: 12),
+                  _buildPeopleList(colorScheme, currencyFormat),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

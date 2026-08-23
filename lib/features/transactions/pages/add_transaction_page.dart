@@ -17,6 +17,7 @@ import '../../../core/theme/color_extension.dart';
 import '../../../core/database/models/auxiliary_models.dart';
 import '../../../core/widgets/expressive_bottom_sheet.dart';
 import '../../../core/services/currency_engine.dart';
+import '../../../core/widgets/app_back_button.dart';
 import '../../people/widgets/person_avatar.dart';
 
 class AddTransactionPage extends ConsumerStatefulWidget {
@@ -174,9 +175,9 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
   PreferredSizeWidget _buildAppBar(ColorScheme colorScheme) {
     return AppBar(
       title: Text(widget.transaction == null ? 'Add Transaction' : 'Edit Transaction'),
-      leading: IconButton(
+      leading: AppBackButton(
+        icon: Symbols.close_rounded,
         onPressed: () => context.pop(),
-        icon: const Icon(Icons.close_rounded),
       ),
       actions: [
         if (widget.transaction != null)

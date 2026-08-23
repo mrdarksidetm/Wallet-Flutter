@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/auxiliary_models.dart';
+import '../../../core/widgets/app_back_button.dart';
 import '../../people/widgets/person_avatar.dart';
 
 class LoansPage extends ConsumerStatefulWidget {
@@ -20,28 +21,44 @@ class _LoansPageState extends ConsumerState<LoansPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final selectedCurrency = ref.watch(currencyProvider);
     final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
     final loansAsync = ref.watch(loansStreamProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Loans & Debts'),
-      ),
-      body: loansAsync.when(
-        data: (loans) {
-          final borrowed =
-              loans.where((l) => l.type == LoanType.borrowed).toList();
-          final lent = loans.where((l) => l.type == LoanType.lent).toList();
+      backgroundColor: colorScheme.surface,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar.medium(
+            leading: const AppBackButton(),
+            title: Text(
+              'Loans & Debts',
+              style: theme.textTheme.headlineLarge?.copyWith(
+                fontSize: (theme.textTheme.headlineLarge?.fontSize ?? 32) + 3,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
+              ),
+            ),
+          ),
+          loansAsync.when(
+            data: (loans) {
+              final borrowed =
+                  loans.where((l) => l.type == LoanType.borrowed).toList();
+              final lent = loans.where((l) => l.type == LoanType.lent).toList();
 
-          if (loans.isEmpty) {
-            return const Center(child: Text('No loans found'));
-          }
+              if (loans.isEmpty) {
+                return const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(child: Text('No loans found')),
+                );
+              }
 
-          return ListView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.all(16),
-            children: [
+              return SliverPadding(
+                padding: const EdgeInsets.all(16),
+                sliver: SliverList.list(
+                  children: [
               if (borrowed.isNotEmpty)
                 _buildLoanSection(
                   context,
@@ -69,13 +86,22 @@ class _LoansPageState extends ConsumerState<LoansPage> {
                   () => setState(() => _isLentExpanded = !_isLentExpanded),
                 ),
             ],
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('Error: $err')),
-      ),
-    );
-  }
+          ),
+        );
+      },
+              loading: () => const SliverFillRemaining(
+                hasScrollBody: false,
+                child: Center(child: CircularProgressIndicator()),
+              ),
+              error: (err, stack) => SliverFillRemaining(
+                hasScrollBody: false,
+                child: Center(child: Text('Error: $err')),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
   Widget _buildLoanSection(
     BuildContext context,

@@ -9,6 +9,7 @@ import '../../../core/database/models/transaction_model.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/widgets/icon_picker.dart';
 import '../../../core/services/currency_engine.dart';
+import '../../../core/widgets/app_back_button.dart';
 
 class AddEditRecurringPage extends ConsumerStatefulWidget {
   final Recurring? recurring;
@@ -91,6 +92,7 @@ class _AddEditRecurringPageState extends ConsumerState<AddEditRecurringPage> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: const AppBackButton(),
         title:
             Text(widget.recurring == null ? 'Add Recurring' : 'Edit Recurring'),
       ),

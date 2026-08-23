@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
-import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/category.dart';
 import '../../../core/widgets/icon_picker.dart';
+import '../../../core/widgets/app_back_button.dart';
 import 'package:wallet/core/theme/color_extension.dart';
 import '../../settings/widgets/settings_segmented_card.dart';
 
@@ -26,46 +26,44 @@ class CategoryDetailsPage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        scrolledUnderElevation: 0,
-        backgroundColor: Colors.transparent,
-        leading: IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(Symbols.arrow_back_rounded),
-        ),
-        title: Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: categoryColor.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Center(
-                child: Icon(
-                  AppIcons.getIcon(category.icon),
-                  color: categoryColor,
-                  size: 20,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                category.name,
-                style: theme.textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.5,
-                  fontSize: 22,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
       body: CustomScrollView(
         slivers: [
+          SliverAppBar.medium(
+            leading: const AppBackButton(),
+            title: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: categoryColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Center(
+                    child: Icon(
+                      AppIcons.getIcon(category.icon),
+                      color: categoryColor,
+                      size: 20,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Flexible(
+                  child: Text(
+                    category.name,
+                    style: theme.textTheme.headlineLarge?.copyWith(
+                      fontSize:
+                          (theme.textTheme.headlineLarge?.fontSize ?? 32) + 3,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.5,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
@@ -126,11 +124,13 @@ class CategoryDetailsPage extends ConsumerWidget {
                                         return const SizedBox.shrink();
                                       }
                                       return Padding(
-                                        padding: const EdgeInsets.only(top: 8.0),
+                                        padding:
+                                            const EdgeInsets.only(top: 8.0),
                                         child: Text(
                                           DateFormat('MMM')
                                               .format(stats[index].key),
-                                          style: theme.textTheme.bodySmall?.copyWith(
+                                          style: theme.textTheme.bodySmall
+                                              ?.copyWith(
                                             color: colorScheme.onSurfaceVariant,
                                           ),
                                         ),

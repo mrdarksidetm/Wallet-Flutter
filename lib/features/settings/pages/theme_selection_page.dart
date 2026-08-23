@@ -3,22 +3,36 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/theme/theme_provider.dart';
 import '../../../core/theme/personalization_provider.dart';
+import '../../../core/widgets/app_back_button.dart';
 
 class ThemeSelectionPage extends ConsumerWidget {
   const ThemeSelectionPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
     final themeState = ref.watch(themeControllerProvider);
     final themeNotifier = ref.read(themeControllerProvider.notifier);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Theme & Style'),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        children: [
+      backgroundColor: theme.colorScheme.surface,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar.medium(
+            leading: const AppBackButton(),
+            title: Text(
+              'Theme & Style',
+              style: theme.textTheme.headlineLarge?.copyWith(
+                fontSize: (theme.textTheme.headlineLarge?.fontSize ?? 32) + 3,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            sliver: SliverList.list(
+              children: [
           _buildSectionHeader(context, 'Theme Mode'),
           _buildThemeTile(
             context,
@@ -68,6 +82,9 @@ class ThemeSelectionPage extends ConsumerWidget {
               enabled: themeState.useMaterialYou),
           _buildVariantTile(context, ref, 'Fruit Salad', 'fruitSalad',
               enabled: themeState.useMaterialYou),
+        ],
+            ),
+          ),
         ],
       ),
     );

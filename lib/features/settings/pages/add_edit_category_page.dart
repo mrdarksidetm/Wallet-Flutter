@@ -8,6 +8,7 @@ import '../../../core/database/providers.dart';
 import '../../../core/theme/color_extension.dart';
 import '../../../core/widgets/icon_picker.dart';
 import '../../../core/widgets/primary_atelier_button.dart';
+import '../../../core/widgets/app_back_button.dart';
 
 class AddEditCategoryPage extends ConsumerStatefulWidget {
   final Category? category;
@@ -82,10 +83,7 @@ class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
       appBar: AppBar(
         scrolledUnderElevation: 0,
         backgroundColor: Colors.transparent,
-        leading: IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(Symbols.arrow_back_rounded),
-        ),
+        leading: const AppBackButton(),
         title: Text(
           widget.category == null ? 'Add Category' : 'Edit Category',
           style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
