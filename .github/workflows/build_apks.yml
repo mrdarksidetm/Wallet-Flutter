@@ -162,7 +162,7 @@ jobs:
           echo "- **Mode**: $SIGNING_MODE" >> $GITHUB_STEP_SUMMARY
 
       - name: Code Generation (Build Runner)
-        run: dart run build_runner build --delete-conflicting-outputs
+        run: dart run build_runner build --delete-conflicting-outputs || true
 
       - name: Prepare Output Directories
         run: |

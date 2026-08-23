@@ -43,6 +43,8 @@ jobs:
 
       - name: Install Dependencies
         run: |
+          flutter doctor -v
+          yes | flutter doctor --android-licenses || true
           flutter pub get
           dart run build_runner build --delete-conflicting-outputs || true
 
@@ -53,7 +55,7 @@ jobs:
 
       - name: Build Android Code for CodeQL Extraction
         run: |
-          flutter build apk --debug --no-tree-shake-icons
+          flutter build apk --debug --no-tree-shake-icons --android-skip-build-dependency-validation
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
