@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
@@ -198,10 +199,42 @@ class _AboutPageState extends ConsumerState<AboutPage> {
                         fit: BoxFit.cover,
                       ),
                     ),
-                    title: 'Developer',
-                    subtitle: 'Built with ❤️ by Abhijeet Yadav',
+                    title: 'Abhijeet Yadav',
+                    subtitle: 'Developer',
                     showDivider: false,
                     onTap: () => _launchUrl('https://github.com/mrdarksidetm'),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _buildPillButton(
+                            context: context,
+                            icon: const FaIcon(
+                              FontAwesomeIcons.github,
+                              size: 16,
+                            ),
+                            label: 'Github',
+                            onTap: () =>
+                                _launchUrl('https://github.com/mrdarksidetm'),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _buildPillButton(
+                            context: context,
+                            icon: const Icon(
+                              Symbols.alternate_email_rounded,
+                              size: 18,
+                            ),
+                            label: 'Email',
+                            onTap: () =>
+                                _launchUrl('mailto:contact.dsidetm@gmail.com'),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -250,6 +283,16 @@ class _AboutPageState extends ConsumerState<AboutPage> {
 
               const SizedBox(height: 48),
 
+              Text(
+                'Made with ❤️',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.2,
+                ),
+              ),
+              const SizedBox(height: 12),
+
               FutureBuilder<String>(
                 future: ref.read(updateServiceProvider).getDeviceArchitecture(),
                 builder: (context, snapshot) {
@@ -279,6 +322,49 @@ class _AboutPageState extends ConsumerState<AboutPage> {
     );
   }
 
+  Widget _buildPillButton({
+    required BuildContext context,
+    required Widget icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Material(
+      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+      borderRadius: BorderRadius.circular(100),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(100),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconTheme(
+                data: IconThemeData(
+                  color: colorScheme.onSurfaceVariant,
+                  size: 16,
+                ),
+                child: icon,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildAppIcon(ColorScheme colorScheme) {
     return Container(
       padding: const EdgeInsets.all(24),
@@ -297,7 +383,7 @@ class _AboutPageState extends ConsumerState<AboutPage> {
   Future<void> _launchUrl(String url) async {
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
   }
 
