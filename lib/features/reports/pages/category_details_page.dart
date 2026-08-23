@@ -4,10 +4,11 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/category.dart';
+import 'package:go_router/go_router.dart';
+import '../../../core/widgets/transaction_segmented_group.dart';
 import '../../../core/widgets/icon_picker.dart';
 import '../../../core/widgets/app_back_button.dart';
 import 'package:wallet/core/theme/color_extension.dart';
-import '../../settings/widgets/settings_segmented_card.dart';
 
 class CategoryDetailsPage extends ConsumerWidget {
   final Category category;
@@ -17,8 +18,6 @@ class CategoryDetailsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final selectedCurrency = ref.watch(currencyProvider);
-    final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
     final categoryColor = category.color.parseHexColor();
 
     final statsAsync = ref.watch(categoryMonthlyStatsProvider(category.id));
@@ -208,45 +207,10 @@ class CategoryDetailsPage extends ConsumerWidget {
               }
 
               return SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 48),
-                sliver: SliverToBoxAdapter(
-                  child: SettingsSegmentedGroup(
-                    children: categoryTxs.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final tx = entry.value;
-                      final isLast = index == categoryTxs.length - 1;
-
-                      return SettingsActionTile(
-                        customLeading: Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: categoryColor.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: Center(
-                            child: Icon(
-                              AppIcons.getIcon(tx.icon ?? category.icon),
-                              color: categoryColor,
-                              size: 22,
-                            ),
-                          ),
-                        ),
-                        title: tx.note?.isNotEmpty == true
-                            ? tx.note!
-                            : category.name,
-                        subtitle: DateFormat('MMM d, yyyy').format(tx.date),
-                        trailing: Text(
-                          currencyFormat.format(tx.amount),
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.onSurface,
-                          ),
-                        ),
-                        showDivider: !isLast,
-                      );
-                    }).toList(),
-                  ),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 48),
+                sliver: SliverTransactionGroupedList(
+                  transactions: categoryTxs,
+                  onTap: (tx) => context.push('/add_transaction', extra: tx),
                 ),
               );
             },

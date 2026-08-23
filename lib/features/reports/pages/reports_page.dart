@@ -10,7 +10,7 @@ import '../../../core/database/providers.dart';
 import '../../../core/services/currency_engine.dart';
 import '../../../core/theme/color_extension.dart';
 import '../../../core/widgets/icon_picker.dart';
-import '../../../core/widgets/transaction_list_tile.dart';
+import '../../../core/widgets/transaction_segmented_group.dart';
 import '../../../core/providers/fab_action_provider.dart';
 
 import '../../../core/widgets/paisa_charts.dart';
@@ -478,13 +478,12 @@ void _showCategoryDetails(BuildContext context, WidgetRef ref, Category category
                         return const Center(child: Text('No transactions for this category'));
                       }
 
-                      return ListView.builder(
+                      return SingleChildScrollView(
                         controller: scrollController,
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        itemCount: filtered.length,
-                        itemBuilder: (context, index) => Padding(
-                          padding: const EdgeInsets.only(bottom: 8.0),
-                          child: TransactionListTile(tx: filtered[index]),
+                        child: TransactionGroupedList(
+                          transactions: filtered,
+                          onTap: (tx) => context.push('/add_transaction', extra: tx),
                         ),
                       );
                     },

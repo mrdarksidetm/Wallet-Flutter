@@ -13,7 +13,7 @@ import '../../../core/database/models/transaction_model.dart';
 import '../../../core/database/models/category.dart';
 import '../widgets/account_card.dart';
 import '../widgets/category_segmented_bar.dart';
-import '../../../core/widgets/transaction_list_tile.dart';
+import '../../../core/widgets/transaction_segmented_group.dart';
 import '../../../core/widgets/icon_picker.dart';
 
 class AccountsPage extends ConsumerStatefulWidget {
@@ -165,10 +165,11 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
                           child: Center(child: Text('No activity for this account')),
                         );
                       }
-                      return SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) => _buildTransactionItem(context, txs[index]),
-                          childCount: txs.length,
+                      return SliverPadding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        sliver: SliverTransactionGroupedList(
+                          transactions: txs,
+                          onTap: (tx) => context.push('/add_transaction', extra: tx),
                         ),
                       );
                     },
@@ -286,15 +287,6 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
     );
   }
 
-  Widget _buildTransactionItem(BuildContext context, TransactionModel tx) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: TransactionListTile(
-        tx: tx,
-        onTap: () => context.push('/add_transaction', extra: tx),
-      ),
-    );
-  }
 
   void _showReorderBottomSheet(BuildContext context, List<Account> accounts) {
     showModalBottomSheet(

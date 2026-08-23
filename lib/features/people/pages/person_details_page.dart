@@ -6,10 +6,11 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/auxiliary_models.dart';
 import '../../../core/database/models/transaction_model.dart';
-import '../../../core/widgets/transaction_list_tile.dart';
+import '../../../core/widgets/transaction_segmented_group.dart';
 import '../../../core/theme/color_extension.dart';
 import '../../../core/widgets/icon_picker.dart';
 import '../../../core/widgets/expressive_bottom_sheet.dart';
@@ -305,20 +306,60 @@ class _PersonDetailsPageState extends ConsumerState<PersonDetailsPage> {
 
               return SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      if (index < allLoans.length) {
-                        final loan = allLoans[index];
-                        return _buildLoanTile(context, loan, format);
-                      }
-                      final tx = txs[index - allLoans.length];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: TransactionListTile(tx: tx),
-                      );
-                    },
-                    childCount: txs.length + allLoans.length,
+                sliver: SliverToBoxAdapter(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (allLoans.isNotEmpty) ...[
+                        const Text(
+                          'LOANS & DEBTS',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.2,
+                            color: Colors.grey,
+                            fontSize: 11,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 20),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? Theme.of(context).colorScheme.surfaceContainer
+                                : Theme.of(context).colorScheme.surfaceContainerLow,
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(
+                              color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3),
+                              width: 0.5,
+                            ),
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: Column(
+                            children: List.generate(allLoans.length, (index) {
+                              final loan = allLoans[index];
+                              final isLast = index == allLoans.length - 1;
+                              return _buildLoanTile(context, loan, format, showDivider: !isLast);
+                            }),
+                          ),
+                        ),
+                      ],
+                      if (txs.isNotEmpty) ...[
+                        const Text(
+                          'TRANSACTIONS',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.2,
+                            color: Colors.grey,
+                            fontSize: 11,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        TransactionGroupedList(
+                          transactions: txs,
+                          onTap: (tx) => context.push('/add_transaction', extra: tx),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
               );
@@ -333,49 +374,59 @@ class _PersonDetailsPageState extends ConsumerState<PersonDetailsPage> {
     );
   }
 
-  Widget _buildLoanTile(BuildContext context, Loan loan, NumberFormat format) {
+  Widget _buildLoanTile(BuildContext context, Loan loan, NumberFormat format, {bool showDivider = false}) {
     final color = loan.type == LoanType.lent ? Colors.green : Colors.red;
     final isPaid = loan.isPaid;
+    final colorScheme = Theme.of(context).colorScheme;
 
-    return Opacity(
-      opacity: isPaid ? 0.6 : 1.0,
-      child: Card(
-        margin: const EdgeInsets.only(bottom: 12),
-        elevation: isPaid ? 0 : 1,
-        child: ListTile(
-          leading: CircleAvatar(
-            backgroundColor: color.withValues(alpha: 0.1),
-            child: Icon(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Opacity(
+          opacity: isPaid ? 0.6 : 1.0,
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            leading: CircleAvatar(
+              backgroundColor: color.withValues(alpha: 0.1),
+              child: Icon(
+                isPaid 
+                  ? Symbols.check_circle 
+                  : (loan.type == LoanType.lent ? Symbols.arrow_upward : Symbols.arrow_downward), 
+                color: color
+              ),
+            ),
+            title: Text(
               isPaid 
-                ? Symbols.check_circle 
-                : (loan.type == LoanType.lent ? Symbols.arrow_upward : Symbols.arrow_downward), 
-              color: color
+                ? 'Settled Loan' 
+                : (loan.type == LoanType.lent ? 'You lent money' : 'You borrowed money'), 
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                decoration: isPaid ? TextDecoration.lineThrough : null,
+              )
+            ),
+            subtitle: Text(
+              isPaid 
+                ? 'Paid on ${DateFormat('MMM d').format(loan.updatedAt)}'
+                : (loan.dueDate != null ? 'Due ${DateFormat('MMM d').format(loan.dueDate!)}' : 'No due date')
+            ),
+            trailing: Text(
+              format.format(loan.amount), 
+              style: TextStyle(
+                fontWeight: FontWeight.w900, 
+                color: color.withValues(alpha: isPaid ? 0.5 : 1.0), 
+                fontSize: 16
+              )
             ),
           ),
-          title: Text(
-            isPaid 
-              ? 'Settled Loan' 
-              : (loan.type == LoanType.lent ? 'You lent money' : 'You borrowed money'), 
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              decoration: isPaid ? TextDecoration.lineThrough : null,
-            )
-          ),
-          subtitle: Text(
-            isPaid 
-              ? 'Paid on ${DateFormat('MMM d').format(loan.updatedAt)}'
-              : (loan.dueDate != null ? 'Due ${DateFormat('MMM d').format(loan.dueDate!)}' : 'No due date')
-          ),
-          trailing: Text(
-            format.format(loan.amount), 
-            style: TextStyle(
-              fontWeight: FontWeight.w900, 
-              color: color.withValues(alpha: isPaid ? 0.5 : 1.0), 
-              fontSize: 16
-            )
-          ),
         ),
-      ),
+        if (showDivider)
+          Divider(
+            height: 1,
+            indent: 72,
+            endIndent: 16,
+            color: colorScheme.outlineVariant.withValues(alpha: 0.25),
+          ),
+      ],
     );
   }
 

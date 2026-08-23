@@ -8,7 +8,7 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../widgets/activity_insights_section.dart';
 import '../../../core/database/providers.dart';
-import '../../../core/widgets/transaction_list_tile.dart';
+import '../../../core/widgets/transaction_segmented_group.dart';
 import '../../../core/services/currency_engine.dart';
 import '../../../core/theme/personalization_provider.dart';
 import '../widgets/animated_balance_hero.dart';
@@ -405,30 +405,9 @@ class _HomeRecentTransactions extends ConsumerWidget {
         final recentTxs = sortedTxs.take(10).toList();
         return SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          sliver: SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) => AnimationConfiguration.staggeredList(
-                position: index,
-                duration: const Duration(milliseconds: 375),
-                child: SlideAnimation(
-                  verticalOffset: 50.0,
-                  child: FadeInAnimation(
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: TransactionListTile(
-                        tx: recentTxs[index],
-                        onTap: () {
-                          
-                          context.push('/add_transaction',
-                              extra: recentTxs[index]);
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              childCount: recentTxs.length,
-            ),
+          sliver: SliverTransactionGroupedList(
+            transactions: recentTxs,
+            onTap: (tx) => context.push('/add_transaction', extra: tx),
           ),
         );
       },

@@ -4,7 +4,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/transaction_model.dart';
-import '../../../core/widgets/transaction_list_tile.dart';
+import '../../../core/widgets/transaction_segmented_group.dart';
 import '../../../core/widgets/app_back_button.dart';
 
 class AllTransactionsPage extends ConsumerStatefulWidget {
@@ -132,37 +132,14 @@ class _AllTransactionsPageState extends ConsumerState<AllTransactionsPage> {
 
               return SliverPadding(
                 padding: const EdgeInsets.all(16),
-                sliver: SliverList.builder(
-                  itemCount: sortedTxs.length,
-                  itemBuilder: (context, index) {
-                    final tx = sortedTxs[index];
-
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Dismissible(
-                        key: ValueKey('tx-${tx.id}-${tx.updatedAt.millisecondsSinceEpoch}'),
-                        secondaryBackground: _buildArchiveBackground(context),
-                        background: _buildDeleteBackground(context),
-                        confirmDismiss: (direction) async {
-                          if (direction == DismissDirection.startToEnd) {
-                            return await _confirmDelete(context, tx);
-                          } else {
-                            await _handleArchive(tx);
-                            return false;
-                          }
-                        },
-                        onDismissed: (direction) {
-                          if (direction == DismissDirection.startToEnd) {
-                            _handleDelete(tx);
-                          }
-                        },
-                        child: TransactionListTile(
-                          tx: tx,
-                          onTap: () => context.push('/add_transaction', extra: tx),
-                        ),
-                      ),
-                    );
-                  },
+                sliver: SliverTransactionGroupedList(
+                  transactions: sortedTxs,
+                  enableDismiss: true,
+                  isArchivedView: _showArchived,
+                  onTap: (tx) => context.push('/add_transaction', extra: tx),
+                  onConfirmDelete: (tx) => _confirmDelete(context, tx),
+                  onDelete: (tx) => _handleDelete(tx),
+                  onArchive: (tx) => _handleArchive(tx),
                 ),
               );
             },
@@ -180,47 +157,8 @@ class _AllTransactionsPageState extends ConsumerState<AllTransactionsPage> {
     );
   }
 
-  Widget _buildDeleteBackground(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      alignment: Alignment.centerLeft,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      decoration: BoxDecoration(
-        color: colorScheme.errorContainer,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        children: [
-          Icon(Symbols.delete_forever, color: colorScheme.onErrorContainer),
-          const SizedBox(width: 8),
-          Text('Delete', style: TextStyle(color: colorScheme.onErrorContainer, fontWeight: FontWeight.bold)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildArchiveBackground(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      alignment: Alignment.centerRight,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      decoration: BoxDecoration(
-        color: colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          Text(_showArchived ? 'Unarchive' : 'Archive', 
-              style: TextStyle(color: colorScheme.onPrimaryContainer, fontWeight: FontWeight.bold)),
-          const SizedBox(width: 8),
-          Icon(_showArchived ? Symbols.unarchive : Symbols.archive, color: colorScheme.onPrimaryContainer),
-        ],
-      ),
-    );
-  }
-
   Future<bool> _confirmDelete(BuildContext context, TransactionModel tx) async {
+    final colorScheme = Theme.of(context).colorScheme;
     return await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -230,7 +168,7 @@ class _AllTransactionsPageState extends ConsumerState<AllTransactionsPage> {
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: colorScheme.error),
             child: const Text('Delete'),
           ),
         ],

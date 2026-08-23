@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/account.dart';
 import '../../../core/widgets/icon_picker.dart';
-import '../../../core/widgets/transaction_list_tile.dart';
+import '../../../core/widgets/transaction_segmented_group.dart';
 import '../../../core/theme/color_extension.dart';
 import '../../../core/services/currency_engine.dart';
 import '../../../core/widgets/app_back_button.dart';
@@ -130,20 +130,9 @@ class AccountDetailsPage extends ConsumerWidget {
 
               return SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final tx = transactions[index];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
-                        child: TransactionListTile(
-                          tx: tx,
-                          onTap: () => context.push('/add_transaction', extra: tx),
-                        ),
-                      );
-                    },
-                    childCount: transactions.length,
-                  ),
+                sliver: SliverTransactionGroupedList(
+                  transactions: transactions,
+                  onTap: (tx) => context.push('/add_transaction', extra: tx),
                 ),
               );
             },
