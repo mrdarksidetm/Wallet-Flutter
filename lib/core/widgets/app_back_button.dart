@@ -16,22 +16,35 @@ class AppBackButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return IconButton(
-      onPressed: onPressed ??
-          () {
-            if (Navigator.of(context).canPop()) {
-              Navigator.of(context).pop();
-            } else if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go('/');
-            }
-          },
-      icon: Icon(icon),
-      style: IconButton.styleFrom(
-        backgroundColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        shape: RoundedRectangleBorder(
+
+    return Center(
+      child: Material(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(16),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
           borderRadius: BorderRadius.circular(16),
+          onTap: onPressed ??
+              () {
+                if (Navigator.of(context).canPop()) {
+                  Navigator.of(context).pop();
+                } else if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/');
+                }
+              },
+          child: SizedBox(
+            width: 40,
+            height: 40,
+            child: Center(
+              child: Icon(
+                icon,
+                size: 22,
+                color: colorScheme.onSurface,
+              ),
+            ),
+          ),
         ),
       ),
     );
