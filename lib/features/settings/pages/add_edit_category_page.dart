@@ -81,8 +81,6 @@ class _AddEditCategoryPageState extends ConsumerState<AddEditCategoryPage> {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        scrolledUnderElevation: 0,
-        backgroundColor: Colors.transparent,
         leading: const AppBackButton(),
         title: Text(
           widget.category == null ? 'Add Category' : 'Edit Category',
