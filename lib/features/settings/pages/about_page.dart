@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ota_update/ota_update.dart';
 import '../../../core/services/update_service.dart';
+import '../../../core/theme/personalization_provider.dart';
 import '../widgets/settings_segmented_card.dart';
 
 class AboutPage extends ConsumerStatefulWidget {
@@ -181,16 +182,9 @@ class _AboutPageState extends ConsumerState<AboutPage> {
               ),
               const SizedBox(height: 32),
 
-              // Segmented Group for About & Links
+              // Developer Segmented Card Group
               SettingsSegmentedGroup(
                 children: [
-                  SettingsActionTile(
-                    icon: Symbols.update_rounded,
-                    title: 'Check for Updates',
-                    subtitle: 'v$_currentVersion "The Variable Atelier"',
-                    showDivider: true,
-                    onTap: () => _checkForUpdates(context),
-                  ),
                   SettingsActionTile(
                     customLeading: Container(
                       width: 44,
@@ -206,8 +200,22 @@ class _AboutPageState extends ConsumerState<AboutPage> {
                     ),
                     title: 'Developer',
                     subtitle: 'Built with ❤️ by Abhijeet Yadav',
-                    showDivider: true,
+                    showDivider: false,
                     onTap: () => _launchUrl('https://github.com/mrdarksidetm'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // Segmented Group for About & Links
+              SettingsSegmentedGroup(
+                children: [
+                  SettingsActionTile(
+                    icon: Symbols.update_rounded,
+                    title: 'Check for Updates',
+                    subtitle: 'v$_currentVersion "The Variable Atelier"',
+                    showDivider: true,
+                    onTap: () => _checkForUpdates(context),
                   ),
                   SettingsActionTile(
                     icon: Symbols.source_notes_rounded,

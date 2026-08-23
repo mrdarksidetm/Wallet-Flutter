@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:ota_update/ota_update.dart';
 import '../../../core/services/update_service.dart';
+import '../../../core/theme/personalization_provider.dart';
 import '../widgets/settings_segmented_card.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
@@ -48,6 +49,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final personalization = ref.watch(personalizationProvider);
 
     final List<_SearchableSetting> allSettings = [
       _SearchableSetting(
