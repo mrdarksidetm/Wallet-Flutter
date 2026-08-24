@@ -264,3 +264,18 @@ ont_awesome_flutter\ v11 APIs.
   - **Icons:** Expanded icon categories and unified app colors across all features.
   - **Architecture:** Cleaned up redundant onboarding logic and synchronized state providers.
 - **Status:** 100% (Changes verified and ready for production release).
+
+## [2026-08-24 10:15] - The Expressive Architecture Update (v4.0.5)
+- **Action:** Upgraded project to version 4.0.5 with full Material 3 Expressive redesign, settings revamp, and toolchain stabilization.
+- **Changes:**
+  - **Version Upgrade:** Bumped project version to `4.0.5+1` across `pubspec.yaml`, `about_page.dart`, and UI components.
+  - **Connected Layouts:** Implemented `TransactionSegmentedGroup` with adaptive squircle geometry (28dp outer, 4dp inner dividers) across Home, Transactions, Accounts, and People.
+  - **Heatmap Calendar:** Refined `ActivityHeatmapPage` with contrast-aware white text for dates with transaction records across all dynamic theme palettes.
+  - **Standardized Navigation:** Created universal `AppBackButton` (40x40 squircle badge) and medium flexible AppBars with `scrolledUnderElevation: 3.0` enforcing hierarchical return to Home.
+  - **Settings & Personalization:** Modularized Settings into sub-pages (General, Personalization, Backup & Restore, Privacy & Security, About) with live search and connected cards. Added dynamic 3-segment color preview painter (`_PalettePainter`), compact S-size sliders with value bubbles, and font selector with `Google Sans Flex` preview.
+  - **Developer Profile & Easter Egg:** Separated developer profile into dedicated card with GitHub/Email pill buttons and added 7-tap version badge gesture to unlock LogCat Error Collector.
+  - **Loans & People:** Added collapsible section toggles in Loans, pill-shaped swipe backgrounds, and instant person contact creation.
+  - **Persistence & Safety:** Stabilized Isar stream link hydration, UUID preservation, and lifecycle memory safety.
+  - **Toolchain & CI/CD:** Stabilized AGP 8.11.1 / 8.13.0 and Gradle 8.11.1 / 8.14.5 targeting SDK 35/36 with fallback keystore generation, CodeQL workflow, and multi-ABI APK verification.
+- **Status:** 100% (All features verified, release notes generated, ready for merge).
+
