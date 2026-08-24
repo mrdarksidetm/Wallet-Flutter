@@ -50,10 +50,10 @@ class _AnimatedBalanceHeroState extends ConsumerState<AnimatedBalanceHero>
     final isVisible = ref.watch(personalizationProvider.select((p) => p.isBalanceVisible));
     final currency = ref.watch(currencyProvider);
 
-    // Using colors from current theme to maintain consistency while achieving the 'vibrant' look
-    final blob1Color = isDark ? colorScheme.primary.withValues(alpha: 0.4) : const Color(0xFFD4BFE8);
-    final blob2Color = isDark ? colorScheme.secondary.withValues(alpha: 0.4) : const Color(0xFFE5CCF4);
-    final baseColor = isDark ? colorScheme.surfaceContainer : const Color(0xFFF3EDF7);
+    // Using dynamic theme seed colors to maintain full harmony in expressive mode
+    final blob1Color = colorScheme.primary.withValues(alpha: isDark ? 0.35 : 0.22);
+    final blob2Color = colorScheme.tertiary.withValues(alpha: isDark ? 0.30 : 0.18);
+    final baseColor = isDark ? colorScheme.surfaceContainer : colorScheme.surfaceContainerHigh;
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(32),
@@ -229,10 +229,12 @@ class _AnimatedBalanceHeroState extends ConsumerState<AnimatedBalanceHero>
                         child: _buildMiniStat(
                           'Income', 
                           widget.monthlyIncome, 
-                          Colors.green, 
+                          const Color(0xFF10B981), 
                           isVisible, 
                           currency,
                           Symbols.trending_up,
+                          colorScheme,
+                          isDark,
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -240,10 +242,12 @@ class _AnimatedBalanceHeroState extends ConsumerState<AnimatedBalanceHero>
                         child: _buildMiniStat(
                           'Expense', 
                           widget.monthlyExpense, 
-                          Colors.red, 
+                          const Color(0xFFEF4444), 
                           isVisible, 
                           currency,
                           Symbols.trending_down,
+                          colorScheme,
+                          isDark,
                         ),
                       ),
                     ],
@@ -257,7 +261,7 @@ class _AnimatedBalanceHeroState extends ConsumerState<AnimatedBalanceHero>
                         backgroundColor: colorScheme.onSurface.withValues(alpha: 0.05),
                         valueColor: AlwaysStoppedAnimation<Color>(
                           (widget.monthlyExpense / widget.monthlyIncome) > 0.9 
-                              ? Colors.red 
+                              ? const Color(0xFFEF4444) 
                               : colorScheme.primary,
                         ),
                         minHeight: 6,
@@ -280,19 +284,25 @@ class _AnimatedBalanceHeroState extends ConsumerState<AnimatedBalanceHero>
     bool isVisible, 
     String currency,
     IconData icon,
+    ColorScheme colorScheme,
+    bool isDark,
   ) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.05),
+        color: isDark ? colorScheme.surface.withValues(alpha: 0.5) : Colors.white.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: color.withValues(alpha: 0.18),
+          width: 1,
+        ),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
+              color: color.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color, size: 14),
@@ -305,7 +315,7 @@ class _AnimatedBalanceHeroState extends ConsumerState<AnimatedBalanceHero>
                 Text(
                   label,
                   style: TextStyle(
-                    color: Colors.grey.shade600, 
+                    color: colorScheme.onSurfaceVariant, 
                     fontSize: 10, 
                     fontWeight: FontWeight.bold,
                     letterSpacing: 0.5,
@@ -318,7 +328,7 @@ class _AnimatedBalanceHeroState extends ConsumerState<AnimatedBalanceHero>
                     isVisible ? CurrencyEngine.formatCurrency(amount, currency) : '•••',
                     style: TextStyle(
                       fontWeight: FontWeight.w900,
-                      color: color.withValues(alpha: 0.8),
+                      color: color.withValues(alpha: 0.9),
                       fontSize: 14,
                     ),
                   ),

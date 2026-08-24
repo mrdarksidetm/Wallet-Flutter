@@ -6,20 +6,24 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../database/providers.dart';
 import '../database/models/transaction_model.dart';
 import '../theme/color_extension.dart';
+import '../theme/colors.dart';
 import '../services/currency_engine.dart';
 import 'icon_picker.dart';
 import 'expressive_bottom_sheet.dart';
 import '../../features/people/widgets/person_avatar.dart';
 
 class TransactionListTile extends ConsumerWidget {
-
   final TransactionModel tx;
   final VoidCallback? onTap;
+  final bool isGrouped;
+  final bool showDivider;
 
   const TransactionListTile({
     super.key,
     required this.tx,
     this.onTap,
+    this.isGrouped = false,
+    this.showDivider = false,
   });
 
   void _showContextMenu(BuildContext context, WidgetRef ref) {
@@ -29,7 +33,7 @@ class TransactionListTile extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (context) => ExpressiveBottomSheet(
+      builder: (sheetContext) => ExpressiveBottomSheet(
         title: 'Transaction Options',
         child: Column(
           children: [
@@ -37,15 +41,17 @@ class TransactionListTile extends ConsumerWidget {
               leading: const Icon(Symbols.edit),
               title: const Text('Edit'),
               onTap: () {
-                Navigator.pop(context);
-                context.push('/add_transaction', extra: tx);
+                Navigator.pop(sheetContext);
+                if (context.mounted) {
+                  context.push('/add_transaction', extra: tx);
+                }
               },
             ),
             ListTile(
               leading: Icon(tx.isArchived ? Symbols.unarchive : Symbols.archive),
               title: Text(tx.isArchived ? 'Unarchive' : 'Archive'),
               onTap: () async {
-                Navigator.pop(context);
+                Navigator.pop(sheetContext);
                 if (tx.isArchived) {
                   await ref.read(transactionRepositoryProvider).unarchive(tx.id);
                 } else {
@@ -57,17 +63,22 @@ class TransactionListTile extends ConsumerWidget {
               leading: Icon(Symbols.delete, color: colorScheme.error),
               title: Text('Delete', style: TextStyle(color: colorScheme.error)),
               onTap: () async {
-                Navigator.pop(context);
+                Navigator.pop(sheetContext);
+                if (!context.mounted) return;
                 final confirmed = await showDialog<bool>(
                   context: context,
-                  builder: (context) => AlertDialog(
+                  builder: (dialogContext) => AlertDialog(
                     title: const Text('Delete Transaction?'),
-                    content: const Text('This will permanently delete this transaction and update your balance.'),
+                    content: const Text(
+                        'This will permanently delete this transaction and update your balance.'),
                     actions: [
-                      TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
                       TextButton(
-                        onPressed: () => Navigator.pop(context, true),
-                        style: TextButton.styleFrom(foregroundColor: colorScheme.error),
+                          onPressed: () => Navigator.pop(dialogContext, false),
+                          child: const Text('Cancel')),
+                      TextButton(
+                        onPressed: () => Navigator.pop(dialogContext, true),
+                        style: TextButton.styleFrom(
+                            foregroundColor: colorScheme.error),
                         child: const Text('Delete'),
                       ),
                     ],
@@ -89,90 +100,118 @@ class TransactionListTile extends ConsumerWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-    
+
     final selectedCurrency = ref.watch(currencyProvider);
     final isIncome = tx.type == TransactionType.income;
 
-    // [ACTION]: Determining the primary visual identity of the transaction.
-    // [M3 UPDATE]: Using the explicitly saved tx.icon and tx.color with category fallback.
-    // [WHY]: This ensures that even if links are not eagerly loaded, the transaction 
-    // tile displays the correct icon and brand color inherited from its category.
     final category = tx.category.value;
     final icon = AppIcons.getIcon(tx.icon ?? category?.icon ?? 'category');
-    final categoryColor = (tx.color ?? category?.color ?? '0xFF9E9E9E').parseHexColor();
+    final categoryColor =
+        (tx.color ?? category?.color ?? '0xFF9E9E9E').parseHexColor();
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        // [ACTION]: Applying a subtle background hue for grouping.
-        // [M3 UPDATE]: Using surfaceContainerHighest to provide a dynamic hue separation.
-        color: isDark ? colorScheme.surfaceContainer : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.3),
-          width: 0.5,
+    final tileContent = ListTile(
+      onTap: onTap,
+      onLongPress: () => _showContextMenu(context, ref),
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(isGrouped ? 0 : 20),
+      ),
+      leading: Hero(
+        tag: 'tx_icon_${tx.id}',
+        child: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: categoryColor.withValues(alpha: isDark ? 0.2 : 0.12),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Icon(
+            icon,
+            color: categoryColor,
+            size: 22,
+          ),
         ),
       ),
-      child: ListTile(
-        onTap: onTap,
-        onLongPress: () => _showContextMenu(context, ref),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        leading: Hero(
-          tag: 'tx_icon_${tx.id}',
-          child: Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: categoryColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(
-              icon,
-              color: categoryColor,
-              size: 24,
+      title: Text(
+        tx.note?.isNotEmpty == true
+            ? tx.note!
+            : (category?.name ?? 'Transaction'),
+        style: theme.textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.3,
+          fontSize: 15,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 2),
+          Text(
+            DateFormat('h:mm a · MMM d').format(tx.date),
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: colorScheme.onSurface.withValues(alpha: 0.5),
+              fontWeight: FontWeight.w600,
             ),
           ),
-        ),
-        title: Text(
-          tx.note?.isNotEmpty == true ? tx.note! : (category?.name ?? 'Transaction'),
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w900,
-            letterSpacing: -0.5,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              DateFormat.yMMMMd().format(tx.date),
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: colorScheme.onSurface.withValues(alpha: 0.5),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+          if (tx.accountId != 0 || tx.personId != 0) ...[
             const SizedBox(height: 4),
             Wrap(
-              spacing: 8,
+              spacing: 6,
               runSpacing: 4,
               children: [
-                _AccountPill(accountId: tx.accountId),
+                if (tx.accountId != 0) _AccountPill(accountId: tx.accountId),
                 if (tx.personId != 0) _PersonPill(personId: tx.personId),
               ],
             ),
           ],
-        ),
-        trailing: Text(
-          '${isIncome ? '+' : '-'}${CurrencyEngine.formatCurrency(tx.amount, selectedCurrency)}',
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w900,
-            color: isIncome ? Colors.green : Colors.red,
-            letterSpacing: -0.5,
-          ),
+        ],
+      ),
+      trailing: Text(
+        '${isIncome ? '+' : '-'}${CurrencyEngine.formatCurrency(tx.amount, selectedCurrency)}',
+        style: theme.textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w900,
+          color: isIncome ? AppColors.income : AppColors.expense,
+          letterSpacing: -0.3,
+          fontSize: 15,
         ),
       ),
+    );
+
+    if (isGrouped) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          tileContent,
+          if (showDivider)
+            Divider(
+              height: 1,
+              indent: 72,
+              endIndent: 16,
+              color: colorScheme.outlineVariant.withValues(
+                alpha: isDark ? 0.15 : 0.25,
+              ),
+            ),
+        ],
+      );
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: isDark
+            ? colorScheme.surfaceContainer
+            : colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color:
+              colorScheme.outlineVariant.withValues(alpha: isDark ? 0.3 : 0.4),
+          width: 0.5,
+        ),
+      ),
+      child: tileContent,
     );
   }
 }

@@ -20,6 +20,9 @@ import '../features/accounts/pages/add_edit_account_page.dart';
 import '../features/home/pages/recurring_page.dart';
 import '../features/home/pages/add_edit_recurring_page.dart';
 import '../features/settings/pages/categories_page.dart';
+import '../features/settings/pages/general_settings_page.dart';
+import '../features/settings/pages/privacy_security_page.dart';
+import '../features/settings/pages/backup_restore_page.dart';
 import '../features/settings/pages/add_edit_category_page.dart';
 import '../features/people/pages/people_page.dart';
 import '../features/people/pages/person_details_page.dart';
@@ -110,6 +113,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         ],
       ),
       _rootRoute('/settings', (_) => const SettingsPage()),
+      _rootRoute('/settings/general', (_) => const GeneralSettingsPage()),
+      _rootRoute('/settings/privacy_security', (_) => const PrivacySecuritySettingsPage()),
+      _rootRoute('/settings/backup_restore', (_) => const BackupRestoreSettingsPage()),
       _rootRoute('/theme_selection', (_) => const PersonalizationPage()),
       _rootRoute('/personalization', (_) => const PersonalizationPage()),
       _rootRoute('/categories', (_) => const CategoriesPage()),
@@ -201,15 +207,21 @@ class AppShell extends ConsumerWidget {
     final authState = ref.watch(authProvider);
     if (authState.isLocked) return const UnlockPage();
 
-    final location = GoRouterState
-        .of(context)
-        .uri
-        .path;
+    final location = GoRouterState.of(context).uri.path;
 
-    return Scaffold(
-      body: child,
-      bottomNavigationBar: _BottomNavBar(location: location),
-      floatingActionButton: _FAB(location: location),
+    return PopScope(
+      canPop: location == '/',
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (location != '/') {
+          context.go('/');
+        }
+      },
+      child: Scaffold(
+        body: child,
+        bottomNavigationBar: _BottomNavBar(location: location),
+        floatingActionButton: _FAB(location: location),
+      ),
     );
   }
 }

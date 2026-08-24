@@ -7,6 +7,7 @@ import '../../../core/database/providers.dart';
 import '../../../core/database/models/transaction_model.dart';
 import '../../../core/database/models/auxiliary_models.dart';
 import '../../../core/database/models/account.dart';
+import '../../../core/widgets/app_back_button.dart';
 class SearchPage extends ConsumerStatefulWidget {
   const SearchPage({super.key});
 
@@ -19,11 +20,18 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   String _query = '';
 
   @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
+        leading: const AppBackButton(),
         title: TextField(
           controller: _searchController,
           autofocus: true,
@@ -77,7 +85,7 @@ class _SearchResults extends ConsumerWidget {
             title: a.name,
             subtitle: 'Account',
             icon: Symbols.account_balance,
-            onTap: () => context.go('/accounts'),
+            onTap: () => context.push('/account_details', extra: a),
           ),
         ),
         _SearchSection<Person>(
@@ -124,7 +132,7 @@ class _SearchResults extends ConsumerWidget {
             subtitle:
                 '${DateFormat.yMMMd().format(t.date)} • ${currencyFormat.format(t.amount)}',
             icon: Symbols.receipt_long,
-            onTap: () {},
+            onTap: () => context.push('/add_transaction', extra: t),
           ),
         ),
       ],

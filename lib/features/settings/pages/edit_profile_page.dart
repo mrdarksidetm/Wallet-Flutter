@@ -8,6 +8,7 @@ import 'package:image_cropper/image_cropper.dart';
 import '../../../core/theme/personalization_provider.dart';
 import '../../../core/widgets/primary_atelier_button.dart';
 import '../../../core/services/file_service.dart';
+import '../../../core/widgets/app_back_button.dart';
 
 class EditProfilePage extends ConsumerStatefulWidget {
   const EditProfilePage({super.key});
@@ -23,9 +24,10 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   @override
   void initState() {
     super.initState();
-    final state = ref.read(personalizationProvider);
-    _nameController = TextEditingController(text: state.userName);
-    _selectedImagePath = state.userPhoto;
+    final currentName = ref.read(personalizationProvider).userName;
+    final currentPhoto = ref.read(personalizationProvider).userPhoto;
+    _nameController = TextEditingController(text: currentName);
+    _selectedImagePath = currentPhoto;
   }
 
   @override
@@ -34,146 +36,217 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     super.dispose();
   }
 
-  Future<void> _pickAndCropImage() async {
+  Future<void> _pickImage(ImageSource source) async {
     final picker = ImagePicker();
     final colorScheme = Theme.of(context).colorScheme;
+    final picked = await picker.pickImage(source: source, imageQuality: 85);
+    if (picked != null) {
+      final cropped = await ImageCropper().cropImage(
+        sourcePath: picked.path,
+        aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Crop Avatar',
+            toolbarColor: colorScheme.surfaceContainerHighest,
+            toolbarWidgetColor: colorScheme.onSurfaceVariant,
+            initAspectRatio: CropAspectRatioPreset.square,
+            lockAspectRatio: true,
+          ),
+          IOSUiSettings(
+            title: 'Crop Avatar',
+            aspectRatioLockEnabled: true,
+            resetAspectRatioEnabled: false,
+          ),
+        ],
+      );
 
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    if (image == null) return;
-
-    final croppedFile = await ImageCropper().cropImage(
-      sourcePath: image.path,
-      aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
-      uiSettings: [
-        AndroidUiSettings(
-          toolbarTitle: 'Crop Profile Photo',
-          // [ACTION]: Setting the toolbar color for the cropper.
-          // [M3 UPDATE]: Using surfaceContainerHighest instead of deprecated surfaceVariant.
-          toolbarColor: colorScheme.surfaceContainerHighest,
-          // [ACTION]: Setting the widget/text color for the cropper toolbar.
-          // [M3 UPDATE]: Using onSurfaceVariant for correct contrast and accessibility.
-          toolbarWidgetColor: colorScheme.onSurfaceVariant,
-          initAspectRatio: CropAspectRatioPreset.square,
-          lockAspectRatio: true,
-        ),
-        IOSUiSettings(
-          title: 'Crop Profile Photo',
-        ),
-      ],
-    );
-
-    if (croppedFile != null) {
-      setState(() {
-        _selectedImagePath = croppedFile.path;
-      });
+      if (cropped != null) {
+        final savedPath = await FileService.saveImagePermanently(cropped.path);
+        setState(() {
+          _selectedImagePath = savedPath;
+        });
+      }
     }
   }
 
+  void _showImageSourcePicker() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Symbols.photo_camera_rounded),
+                title: const Text('Take a Photo'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Symbols.photo_library_rounded),
+                title: const Text('Choose from Gallery'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+              if (_selectedImagePath != null)
+                ListTile(
+                  leading: Icon(Symbols.delete_rounded,
+                      color: Theme.of(context).colorScheme.error),
+                  title: Text('Remove Photo',
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.error)),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    setState(() {
+                      _selectedImagePath = null;
+                    });
+                  },
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _save() async {
-    if (_nameController.text.isEmpty) {
+    final newName = _nameController.text.trim();
+    if (newName.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter a name')),
       );
       return;
     }
 
-    String? finalPhotoPath = _selectedImagePath;
-    final currentState = ref.read(personalizationProvider);
-    
-    // [ACTION]: Only persist the image if it's a new selection (different from current).
-    if (_selectedImagePath != null && _selectedImagePath != currentState.userPhoto) {
-      finalPhotoPath = await FileService.saveImagePermanently(_selectedImagePath!);
-    }
-    
     ref.read(personalizationProvider.notifier).updateProfile(
-      name: _nameController.text,
-      photo: finalPhotoPath,
-    );
-    
+          name: newName,
+          photo: _selectedImagePath,
+        );
+
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated successfully')),
-      );
       context.pop();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Edit Profile'),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(24),
-        children: [
-          Center(
-            child: Stack(
+      backgroundColor: colorScheme.surface,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar.medium(
+            leading: const AppBackButton(),
+            title: Text(
+              'Edit Profile',
+              style: theme.textTheme.headlineLarge?.copyWith(
+                fontSize: (theme.textTheme.headlineLarge?.fontSize ?? 32) + 3,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            sliver: SliverList.list(
               children: [
-                CircleAvatar(
-                  radius: 60,
-                  backgroundColor: colorScheme.surfaceContainerHighest,
-                  backgroundImage: _selectedImagePath != null 
-                      ? FileImage(File(_selectedImagePath!)) 
-                      : null,
-                  child: _selectedImagePath == null 
-                      ? Icon(Symbols.person, size: 60, color: colorScheme.onSurfaceVariant) 
-                      : null,
+                Center(
+                  child: Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 64,
+                        backgroundColor: colorScheme.surfaceContainerHighest,
+                        backgroundImage: _selectedImagePath != null
+                            ? FileImage(File(_selectedImagePath!))
+                            : null,
+                        child: _selectedImagePath == null
+                            ? Icon(
+                                Symbols.person_rounded,
+                                size: 64,
+                                color: colorScheme.onSurfaceVariant,
+                              )
+                            : null,
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: FloatingActionButton.small(
+                          onPressed: _showImageSourcePicker,
+                          backgroundColor: colorScheme.primaryContainer,
+                          foregroundColor: colorScheme.onPrimaryContainer,
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Icon(Symbols.photo_camera_rounded),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: FloatingActionButton.small(
-                    onPressed: _pickAndCropImage,
-                    // [ACTION]: Setting background color for the photo picker action.
-                    // [M3 UPDATE]: Using primaryContainer to provide a clear interactive signal.
-                    backgroundColor: colorScheme.primaryContainer,
-                    foregroundColor: colorScheme.onPrimaryContainer,
-                    elevation: 0,
-                    child: const Icon(Symbols.photo_camera),
+                const SizedBox(height: 36),
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'PERSONAL INFO',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          letterSpacing: 1.2,
+                          fontWeight: FontWeight.w900,
+                          color: colorScheme.onSurface.withValues(alpha: 0.5),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _nameController,
+                        decoration: InputDecoration(
+                          labelText: 'Display Name',
+                          hintText: 'Enter your name',
+                          prefixIcon: const Icon(Symbols.badge_rounded),
+                          filled: true,
+                          fillColor: colorScheme.surfaceContainerHighest
+                              .withValues(alpha: 0.5),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                        textCapitalization: TextCapitalization.words,
+                        style: TextStyle(color: colorScheme.onSurface),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 40),
+                PrimaryAtelierButton(
+                  onPressed: _save,
+                  icon: const Icon(Symbols.check_rounded, color: Colors.white),
+                  label: const Text(
+                    'Save Changes',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
-            ),
-          ),
-          const SizedBox(height: 48),
-          // [ACTION]: Using a container with surfaceContainerHighest for grouping.
-          // [M3 UPDATE]: Replacing hardcoded grey containers with M3 tone-based surface.
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(24),
-            ),
-            child: TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Display Name',
-                prefixIcon: Icon(Symbols.person),
-                hintText: 'Enter your name',
-                filled: true,
-                fillColor: Colors.transparent, // Let container handle it
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
-              ),
-              textCapitalization: TextCapitalization.words,
-              style: TextStyle(color: colorScheme.onSurface),
-            ),
-          ),
-          const SizedBox(height: 48),
-          PrimaryAtelierButton(
-            onPressed: _save,
-            icon: Icon(Symbols.save, color: colorScheme.onPrimary),
-            label: Text(
-              'Save Changes',
-              style: TextStyle(
-                fontSize: 16, 
-                fontWeight: FontWeight.bold,
-                color: colorScheme.onPrimary,
-              ),
             ),
           ),
         ],

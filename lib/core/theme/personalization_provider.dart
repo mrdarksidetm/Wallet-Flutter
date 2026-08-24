@@ -24,6 +24,7 @@ class PersonalizationState {
   final String iconStyle; // 'Outlined', 'Rounded', 'Sharp'
 
   final bool useDynamicColor;
+  final bool isErrorCollectorEnabled;
 
   PersonalizationState({
     this.grade = 50,
@@ -38,6 +39,7 @@ class PersonalizationState {
     this.colorSchemeVariant = 'vibrant',
     this.isOnboardingComplete = false,
     this.useDynamicColor = true,
+    this.isErrorCollectorEnabled = false,
     this.userName,
     this.userPhoto,
     this.defaultCurrency,
@@ -60,6 +62,7 @@ class PersonalizationState {
     String? colorSchemeVariant,
     bool? isOnboardingComplete,
     bool? useDynamicColor,
+    bool? isErrorCollectorEnabled,
     String? userName,
     String? userPhoto,
     String? defaultCurrency,
@@ -81,6 +84,7 @@ class PersonalizationState {
       colorSchemeVariant: colorSchemeVariant ?? this.colorSchemeVariant,
       isOnboardingComplete: isOnboardingComplete ?? this.isOnboardingComplete,
       useDynamicColor: useDynamicColor ?? this.useDynamicColor,
+      isErrorCollectorEnabled: isErrorCollectorEnabled ?? this.isErrorCollectorEnabled,
       userName: userName ?? this.userName,
       userPhoto: userPhoto ?? this.userPhoto,
       defaultCurrency: defaultCurrency ?? this.defaultCurrency,
@@ -105,6 +109,7 @@ class PersonalizationState {
       'colorSchemeVariant': colorSchemeVariant,
       'isOnboardingComplete': isOnboardingComplete,
       'useDynamicColor': useDynamicColor,
+      'isErrorCollectorEnabled': isErrorCollectorEnabled,
       'userName': userName,
       'userPhoto': userPhoto,
       'defaultCurrency': defaultCurrency,
@@ -129,6 +134,7 @@ class PersonalizationState {
       colorSchemeVariant: map['colorSchemeVariant'] as String? ?? 'vibrant',
       isOnboardingComplete: map['isOnboardingComplete'] as bool? ?? false,
       useDynamicColor: map['useDynamicColor'] as bool? ?? true,
+      isErrorCollectorEnabled: map['isErrorCollectorEnabled'] as bool? ?? false,
       userName: map['userName'] as String?,
       userPhoto: map['userPhoto'] as String?,
       defaultCurrency: map['defaultCurrency'] as String?,
@@ -235,6 +241,16 @@ class PersonalizationNotifier extends Notifier<PersonalizationState> {
       opticalSize: 12,
       colorSchemeVariant: 'vibrant',
     );
+    _save();
+  }
+
+  void enableErrorCollector() {
+    state = state.copyWith(isErrorCollectorEnabled: true);
+    _save();
+  }
+
+  void toggleErrorCollector() {
+    state = state.copyWith(isErrorCollectorEnabled: !state.isErrorCollectorEnabled);
     _save();
   }
 

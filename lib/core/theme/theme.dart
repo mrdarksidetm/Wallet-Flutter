@@ -121,8 +121,11 @@ class AppTheme {
         ),
       ),
       appBarTheme: AppBarTheme(
-        backgroundColor: Colors.transparent,
+        backgroundColor: colorScheme.surface,
         elevation: 0,
+        scrolledUnderElevation: 3.0,
+        shadowColor: colorScheme.shadow.withValues(alpha: 0.25),
+        surfaceTintColor: colorScheme.surfaceTint,
         centerTitle: false,
         iconTheme: IconThemeData(
           color: colorScheme.onSurface,

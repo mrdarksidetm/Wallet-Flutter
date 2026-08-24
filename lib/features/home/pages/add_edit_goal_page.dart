@@ -10,6 +10,7 @@ import '../../../core/database/providers.dart';
 import '../../../core/widgets/icon_picker.dart';
 import '../../../core/widgets/primary_atelier_button.dart';
 import '../../../core/theme/color_extension.dart';
+import '../../../core/widgets/app_back_button.dart';
 
 class AddEditGoalPage extends ConsumerStatefulWidget {
   final Goal? goal;
@@ -98,6 +99,7 @@ class _AddEditGoalPageState extends ConsumerState<AddEditGoalPage> {
 
     if (widget.goal != null) {
       goal.id = widget.goal!.id;
+      goal.uuid = widget.goal!.uuid;
     }
 
     await ref.read(goalServiceProvider).saveGoal(goal);
@@ -114,6 +116,7 @@ class _AddEditGoalPageState extends ConsumerState<AddEditGoalPage> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: const AppBackButton(),
         title: Text(widget.goal == null ? 'Add Goal' : 'Edit Goal'),
         actions: [
           if (widget.goal != null)

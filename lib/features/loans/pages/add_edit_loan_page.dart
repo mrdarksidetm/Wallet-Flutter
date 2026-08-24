@@ -7,6 +7,7 @@ import '../../../core/database/providers.dart';
 import '../../../core/theme/personalization_provider.dart';
 import '../../../core/services/haptic_service.dart';
 import '../../../core/services/currency_engine.dart';
+import '../../../core/widgets/app_back_button.dart';
 
 class AddEditLoanPage extends ConsumerStatefulWidget {
   final Loan? loan;
@@ -92,6 +93,7 @@ class _AddEditLoanPageState extends ConsumerState<AddEditLoanPage> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: const AppBackButton(),
         title: Text(widget.loan == null ? 'Add Loan' : 'Edit Loan'),
       ),
       body: Form(

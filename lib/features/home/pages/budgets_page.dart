@@ -5,6 +5,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/category.dart';
 import '../../../core/widgets/icon_picker.dart';
+import '../../../core/widgets/app_back_button.dart';
 import '../../../core/theme/color_extension.dart';
 
 class BudgetsPage extends ConsumerWidget {
@@ -12,62 +13,76 @@ class BudgetsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final budgetsAsync = ref.watch(budgetStatsProvider);
     final allCategoriesAsync = ref.watch(categoriesStreamProvider);
     final selectedCurrency = ref.watch(currencyProvider);
     final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Budgets'),
+      backgroundColor: colorScheme.surface,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar.medium(
+            leading: const AppBackButton(),
+            title: Text(
+              'Budgets',
+              style: theme.textTheme.headlineLarge?.copyWith(
+                fontSize: (theme.textTheme.headlineLarge?.fontSize ?? 32) + 3,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
+              ),
+            ),
+          ),
+          allCategoriesAsync.when(
+            data: (categories) {
+              if (categories.isEmpty) {
+                return const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(
+                    child: Text('No categories found. Create one to set a budget.'),
+                  ),
+                );
+              }
+
+              return budgetsAsync.when(
+                data: (budgets) => SliverPadding(
+                  padding: const EdgeInsets.all(16),
+                  sliver: SliverList.builder(
+                    itemCount: categories.length,
+                    itemBuilder: (context, index) {
+                      final category = categories[index];
+                      final budgetData = _getBudgetData(category, budgets);
+                      return _BudgetCard(
+                        category: category,
+                        budgetData: budgetData,
+                        currencyFormat: currencyFormat,
+                      );
+                    },
+                  ),
+                ),
+                loading: () => const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+                error: (err, _) => SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(child: Text('Error: $err')),
+                ),
+              );
+            },
+            loading: () => const SliverFillRemaining(
+              hasScrollBody: false,
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            error: (err, _) => SliverFillRemaining(
+              hasScrollBody: false,
+              child: Center(child: Text('Error: $err')),
+            ),
+          ),
+        ],
       ),
-      body: allCategoriesAsync.when(
-        data: (categories) => _BudgetList(
-          categories: categories,
-          budgetsAsync: budgetsAsync,
-          currencyFormat: currencyFormat,
-        ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, _) => Center(child: Text('Error: $err')),
-      ),
-    );
-  }
-}
-
-class _BudgetList extends ConsumerWidget {
-  final List<Category> categories;
-  final AsyncValue<List<Map<String, dynamic>>> budgetsAsync;
-  final NumberFormat currencyFormat;
-
-  const _BudgetList({
-    required this.categories,
-    required this.budgetsAsync,
-    required this.currencyFormat,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    if (categories.isEmpty) {
-      return const Center(
-          child: Text('No categories found. Create one to set a budget.'));
-    }
-
-    return budgetsAsync.when(
-      data: (budgets) => ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: categories.length,
-        itemBuilder: (context, index) {
-          final category = categories[index];
-          final budgetData = _getBudgetData(category, budgets);
-          return _BudgetCard(
-            category: category,
-            budgetData: budgetData,
-            currencyFormat: currencyFormat,
-          );
-        },
-      ),
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, _) => Center(child: Text('Error: $err')),
     );
   }
 
@@ -103,9 +118,20 @@ class _BudgetCard extends ConsumerWidget {
     final double percent = budgetData['percent'] as double;
     final bool hasBudget = limit > 0;
     final color = category.color.parseHexColor();
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: isDark ? colorScheme.surfaceContainer : colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.3 : 0.4),
+          width: 1,
+        ),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -113,9 +139,14 @@ class _BudgetCard extends ConsumerWidget {
           children: [
             Row(
               children: [
-                CircleAvatar(
-                  backgroundColor: color.withValues(alpha: 0.1),
-                  child: Icon(AppIcons.getIcon(category.icon), color: color),
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: isDark ? 0.2 : 0.12),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(AppIcons.getIcon(category.icon), color: color, size: 22),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -127,7 +158,7 @@ class _BudgetCard extends ConsumerWidget {
                         currencyFormat: currencyFormat)),
                 IconButton(
                   icon: Icon(hasBudget ? Symbols.edit : Symbols.add_circle,
-                      color: Theme.of(context).colorScheme.primary),
+                      color: colorScheme.primary),
                   onPressed: () => _showSetBudgetDialog(
                       context, ref, category, limit, currencyFormat),
                 ),
@@ -146,7 +177,7 @@ class _BudgetCard extends ConsumerWidget {
         text: currentLimit > 0 ? currentLimit.toString() : '');
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text('Set Budget for ${category.name}'),
         content: TextField(
           controller: controller,
@@ -159,7 +190,7 @@ class _BudgetCard extends ConsumerWidget {
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(dialogContext),
               child: const Text('Cancel')),
           if (currentLimit > 0)
             TextButton(
@@ -167,8 +198,7 @@ class _BudgetCard extends ConsumerWidget {
                 await ref
                     .read(categoryServiceProvider)
                     .setBudget(category.id, 0);
-                
-                if (context.mounted) Navigator.pop(context);
+                if (dialogContext.mounted) Navigator.pop(dialogContext);
               },
               child: const Text('Remove', style: TextStyle(color: Colors.red)),
             ),
@@ -178,14 +208,13 @@ class _BudgetCard extends ConsumerWidget {
               await ref
                   .read(categoryServiceProvider)
                   .setBudget(category.id, limitValue);
-              
-              if (context.mounted) Navigator.pop(context);
+              if (dialogContext.mounted) Navigator.pop(dialogContext);
             },
             child: const Text('Save'),
           ),
         ],
       ),
-    );
+    ).then((_) => controller.dispose());
   }
 }
 

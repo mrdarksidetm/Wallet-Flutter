@@ -6,6 +6,18 @@ import 'base_repository.dart';
 class TransactionRepository extends BaseRepository<TransactionModel> {
   TransactionRepository(super.isar);
 
+  Future<List<TransactionModel>> _loadLinks(List<TransactionModel> txs) async {
+    for (final t in txs) {
+      await Future.wait([
+        t.account.load(),
+        t.category.load(),
+        t.transferAccount.load(),
+        t.person.load(),
+      ]);
+    }
+    return txs;
+  }
+
   Stream<List<TransactionModel>> watchLatest({int limit = 50}) {
     return isar.transactionModels
         .filter()
@@ -13,7 +25,8 @@ class TransactionRepository extends BaseRepository<TransactionModel> {
         .isArchivedEqualTo(false)
         .sortByDateDesc()
         .limit(limit)
-        .watch(fireImmediately: true);
+        .watch(fireImmediately: true)
+        .asyncMap(_loadLinks);
   }
 
   Stream<List<TransactionModel>> watchAll() {
@@ -22,7 +35,8 @@ class TransactionRepository extends BaseRepository<TransactionModel> {
         .isDeletedEqualTo(false)
         .isArchivedEqualTo(false)
         .sortByDateDesc()
-        .watch(fireImmediately: true);
+        .watch(fireImmediately: true)
+        .asyncMap(_loadLinks);
   }
 
   Stream<List<TransactionModel>> watchByAccount(Id accountId) {
@@ -32,7 +46,8 @@ class TransactionRepository extends BaseRepository<TransactionModel> {
         .isDeletedEqualTo(false)
         .isArchivedEqualTo(false)
         .sortByDateDesc()
-        .watch(fireImmediately: true);
+        .watch(fireImmediately: true)
+        .asyncMap(_loadLinks);
   }
 
   Stream<List<TransactionModel>> watchByPerson(Id personId) {
@@ -42,7 +57,8 @@ class TransactionRepository extends BaseRepository<TransactionModel> {
         .isDeletedEqualTo(false)
         .isArchivedEqualTo(false)
         .sortByDateDesc()
-        .watch(fireImmediately: true);
+        .watch(fireImmediately: true)
+        .asyncMap(_loadLinks);
   }
 
   Stream<List<TransactionModel>> watchArchived() {
@@ -51,7 +67,8 @@ class TransactionRepository extends BaseRepository<TransactionModel> {
         .isDeletedEqualTo(false)
         .isArchivedEqualTo(true)
         .sortByDateDesc()
-        .watch(fireImmediately: true);
+        .watch(fireImmediately: true)
+        .asyncMap(_loadLinks);
   }
 
   Future<void> archive(Id id) async {
@@ -171,16 +188,17 @@ class TransactionRepository extends BaseRepository<TransactionModel> {
 
     if (accountIds != null && accountIds.isNotEmpty) {
       results = results
-          .where((t) => accountIds.contains(t.account.value?.id))
+          .where((t) => accountIds.contains(t.accountId))
           .toList();
     }
 
     if (categoryIds != null && categoryIds.isNotEmpty) {
       results = results
-          .where((t) => categoryIds.contains(t.category.value?.id))
+          .where((t) => categoryIds.contains(t.categoryId))
           .toList();
     }
 
+    await _loadLinks(results);
     return results;
   }
 
@@ -193,6 +211,7 @@ class TransactionRepository extends BaseRepository<TransactionModel> {
         .sortByDateDesc()
         .findAll();
 
+    await _loadLinks(byNote);
     return byNote;
   }
 }

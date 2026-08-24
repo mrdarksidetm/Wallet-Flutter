@@ -17,16 +17,16 @@ if (keystorePropertiesFile.exists()) {
 android {
     namespace = "com.mrdarksidetm.wallet"
     compileSdk = 36
-    ndkVersion = "27.0.12077973"
+    ndkVersion = flutter.ndkVersion
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
         isCoreLibraryDesugaringEnabled = true
     }
 
-    kotlin {
-        jvmToolchain(21)
+    kotlinOptions {
+        jvmTarget = "17"
     }
 
     defaultConfig {
@@ -41,26 +41,60 @@ android {
     packaging {
         jniLibs {
             useLegacyPackaging = true
+            pickFirsts += listOf(
+                "**/libisar.so",
+                "**/libc++_shared.so",
+                "lib/**/libisar.so"
+            )
+        }
+        resources {
+            pickFirsts += listOf(
+                "META-INF/**"
+            )
         }
     }
 
     signingConfigs {
         create("release") {
-            if (keystoreProperties.containsKey("storeFile")) {
-                storeFile = file(keystoreProperties["storeFile"] as String)
-                storePassword = keystoreProperties["storePassword"] as String?
-                keyAlias = keystoreProperties["keyAlias"] as String?
-                keyPassword = keystoreProperties["keyPassword"] as String?
+            val storeFileProp = keystoreProperties["storeFile"] as String?
+            val storePassProp = keystoreProperties["storePassword"] as String?
+            val keyAliasProp = keystoreProperties["keyAlias"] as String?
+            val keyPassProp = (keystoreProperties["keyPassword"] as String?) ?: storePassProp
+
+            if (!storeFileProp.isNullOrBlank() && !storePassProp.isNullOrBlank() && !keyAliasProp.isNullOrBlank()) {
+                val propFile = if (file(storeFileProp).exists()) {
+                    file(storeFileProp)
+                } else if (rootProject.file(storeFileProp).exists()) {
+                    rootProject.file(storeFileProp)
+                } else {
+                    file(storeFileProp)
+                }
+
+                if (propFile.exists()) {
+                    storeFile = propFile
+                    storePassword = storePassProp
+                    keyAlias = keyAliasProp
+                    keyPassword = keyPassProp
+                }
             }
         }
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            val releaseSigning = signingConfigs.getByName("release")
+            signingConfig = if (releaseSigning.storeFile != null &&
+                releaseSigning.storeFile!!.exists() &&
+                !releaseSigning.keyAlias.isNullOrBlank() &&
+                !releaseSigning.storePassword.isNullOrBlank()
+            ) {
+                releaseSigning
+            } else {
+                signingConfigs.getByName("debug")
+            }
             
-            isMinifyEnabled = true
-            isShrinkResources = true
+            isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

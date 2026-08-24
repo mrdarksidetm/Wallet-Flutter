@@ -10,7 +10,7 @@ import '../../../core/database/providers.dart';
 import '../../../core/services/currency_engine.dart';
 import '../../../core/theme/color_extension.dart';
 import '../../../core/widgets/icon_picker.dart';
-import '../../../core/widgets/transaction_list_tile.dart';
+import '../../../core/widgets/transaction_segmented_group.dart';
 import '../../../core/providers/fab_action_provider.dart';
 
 import '../../../core/widgets/paisa_charts.dart';
@@ -74,13 +74,19 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: const Text('Reports', style: TextStyle(fontWeight: FontWeight.bold)),
-        centerTitle: false,
-      ),
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
+          SliverAppBar.medium(
+            title: Text(
+              'Reports',
+              style: theme.textTheme.headlineLarge?.copyWith(
+                fontSize: (theme.textTheme.headlineLarge?.fontSize ?? 32) + 3,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
+              ),
+            ),
+          ),
           // 1. Month Selection Row (Horizontal Pills)
           SliverToBoxAdapter(child: _MonthSelector(
             selectedRange: _selectedRange,
@@ -211,7 +217,7 @@ class _BalanceSection extends StatelessWidget {
               Expanded(child: _TrendCard(
                 title: 'Income',
                 amount: totalIncome,
-                color: Colors.green,
+                color: const Color(0xFF10B981),
                 currency: currency,
                 icon: Symbols.trending_up,
               )),
@@ -219,7 +225,7 @@ class _BalanceSection extends StatelessWidget {
               Expanded(child: _TrendCard(
                 title: 'Expense',
                 amount: totalExpense,
-                color: Colors.red,
+                color: const Color(0xFFEF4444),
                 currency: currency,
                 icon: Symbols.trending_down,
               )),
@@ -472,13 +478,12 @@ void _showCategoryDetails(BuildContext context, WidgetRef ref, Category category
                         return const Center(child: Text('No transactions for this category'));
                       }
 
-                      return ListView.builder(
+                      return SingleChildScrollView(
                         controller: scrollController,
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        itemCount: filtered.length,
-                        itemBuilder: (context, index) => Padding(
-                          padding: const EdgeInsets.only(bottom: 8.0),
-                          child: TransactionListTile(tx: filtered[index]),
+                        child: TransactionGroupedList(
+                          transactions: filtered,
+                          onTap: (tx) => context.push('/add_transaction', extra: tx),
                         ),
                       );
                     },

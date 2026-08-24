@@ -17,26 +17,30 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
 
   Future<void> init() async {
-    tz.initializeTimeZones();
+    try {
+      tz.initializeTimeZones();
 
-    const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+      const AndroidInitializationSettings initializationSettingsAndroid =
+          AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    const DarwinInitializationSettings initializationSettingsDarwin =
-        DarwinInitializationSettings();
+      const DarwinInitializationSettings initializationSettingsDarwin =
+          DarwinInitializationSettings();
 
-    const InitializationSettings initializationSettings =
-        InitializationSettings(
-      android: initializationSettingsAndroid,
-      iOS: initializationSettingsDarwin,
-    );
+      const InitializationSettings initializationSettings =
+          InitializationSettings(
+        android: initializationSettingsAndroid,
+        iOS: initializationSettingsDarwin,
+      );
 
-    await _notificationsPlugin.initialize(
-      settings: initializationSettings,
-      onDidReceiveNotificationResponse: (details) {
-        // Handle notification tap
-      },
-    );
+      await _notificationsPlugin.initialize(
+        settings: initializationSettings,
+        onDidReceiveNotificationResponse: (details) {
+          // Handle notification tap
+        },
+      );
+    } catch (_) {
+      // Gracefully handle environments without native notifications (e.g., desktop/test)
+    }
   }
 
   Future<void> showInstantNotification(String title, String body) async {

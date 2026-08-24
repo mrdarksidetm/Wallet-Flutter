@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/services/log_service.dart';
+import '../../../core/widgets/app_back_button.dart';
 
 class LogcatPage extends ConsumerStatefulWidget {
   const LogcatPage({super.key});
@@ -24,46 +26,64 @@ class _LogcatPageState extends ConsumerState<LogcatPage> {
         : allLogs.where((l) => l.level == _filterLevel).toList();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Logcat (Runtime Analysis)'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.delete_sweep_rounded),
-            onPressed: () {
-              ref.read(logServiceProvider.notifier).clear();
-            },
-            tooltip: 'Clear Logs',
+      backgroundColor: colorScheme.surface,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar.medium(
+            leading: const AppBackButton(),
+            title: Text(
+              'Error Collector',
+              style: theme.textTheme.headlineLarge?.copyWith(
+                fontSize: (theme.textTheme.headlineLarge?.fontSize ?? 32) + 3,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
+              ),
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Symbols.delete_sweep_rounded),
+                onPressed: () {
+                  ref.read(logServiceProvider.notifier).clear();
+                },
+                tooltip: 'Clear Logs',
+              ),
+              IconButton(
+                icon: const Icon(Symbols.content_copy_rounded),
+                onPressed: () {
+                  final text = logs.map((l) => '[${l.formattedTime}] [${l.level.name.toUpperCase()}] ${l.message}\n${l.stackTrace ?? ""}').join('\n');
+                  Clipboard.setData(ClipboardData(text: text));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Logs copied to clipboard')),
+                  );
+                },
+                tooltip: 'Copy All Logs',
+              ),
+              const SizedBox(width: 8),
+            ],
           ),
-          IconButton(
-            icon: const Icon(Icons.copy_rounded),
-            onPressed: () {
-              final text = logs.map((l) => '[${l.formattedTime}] [${l.level.name.toUpperCase()}] ${l.message}\n${l.stackTrace ?? ""}').join('\n');
-              Clipboard.setData(ClipboardData(text: text));
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Logs copied to clipboard')),
-              );
-            },
-            tooltip: 'Copy All Logs',
+          SliverToBoxAdapter(
+            child: _buildFilters(colorScheme),
           ),
-        ],
-      ),
-      body: Column(
-        children: [
-          _buildFilters(colorScheme),
-          const Divider(height: 1),
-          Expanded(
-            child: logs.isEmpty
-                ? const Center(child: Text('No logs collected yet.'))
-                : ListView.separated(
-                    padding: const EdgeInsets.all(8),
-                    itemCount: logs.length,
-                    separatorBuilder: (context, index) => const Divider(height: 1),
-                    itemBuilder: (context, index) {
-                      final log = logs.reversed.toList()[index];
-                      return _buildLogItem(log, theme, colorScheme);
-                    },
-                  ),
+          const SliverToBoxAdapter(
+            child: Divider(height: 1),
           ),
+          if (logs.isEmpty)
+            const SliverFillRemaining(
+              hasScrollBody: false,
+              child: Center(child: Text('No logs collected yet.')),
+            )
+          else
+            SliverPadding(
+              padding: const EdgeInsets.all(12),
+              sliver: SliverList.separated(
+                itemCount: logs.length,
+                separatorBuilder: (context, index) => const Divider(height: 1),
+                itemBuilder: (context, index) {
+                  final log = logs.reversed.toList()[index];
+                  return _buildLogItem(log, theme, colorScheme);
+                },
+              ),
+            ),
         ],
       ),
     );

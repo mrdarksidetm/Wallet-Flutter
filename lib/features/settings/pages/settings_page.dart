@@ -3,11 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:ota_update/ota_update.dart';
-import 'package:restart_app/restart_app.dart';
 import '../../../core/services/update_service.dart';
-import '../../../core/database/providers.dart';
 import '../../../core/theme/personalization_provider.dart';
-import '../../auth/providers/auth_provider.dart';
+import '../../../core/widgets/app_back_button.dart';
+import '../widgets/settings_segmented_card.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -17,12 +16,25 @@ class SettingsPage extends ConsumerStatefulWidget {
 }
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
-  String _currentVersion = '3.1.0';
+  String _currentVersion = '4.0.5';
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
     _loadVersion();
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text.trim().toLowerCase();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadVersion() async {
@@ -38,275 +50,410 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final authState = ref.watch(authProvider);
+    final personalization = ref.watch(personalizationProvider);
+
+    final List<_SearchableSetting> allSettings = [
+      _SearchableSetting(
+        title: 'Edit Profile',
+        subtitle: 'Name, profile photo and avatar customization',
+        keywords: ['profile', 'user', 'name', 'photo', 'avatar', 'edit', 'account'],
+        category: 'General',
+        icon: Symbols.account_circle_rounded,
+        onTap: (ctx) => ctx.push('/edit_profile'),
+      ),
+      _SearchableSetting(
+        title: 'Currency Settings',
+        subtitle: 'Default currency symbol, code and display formatting',
+        keywords: ['currency', 'money', 'dollar', 'rupee', 'euro', 'symbol', 'usd', 'inr', 'rate', 'format'],
+        category: 'General',
+        icon: Symbols.currency_exchange_rounded,
+        onTap: (ctx) => ctx.push('/currency_selection'),
+      ),
+      _SearchableSetting(
+        title: 'Categories',
+        subtitle: 'Manage income and expense tags, colors and symbols',
+        keywords: ['category', 'categories', 'tags', 'labels', 'organize', 'spending'],
+        category: 'General',
+        icon: Symbols.category_rounded,
+        onTap: (ctx) => ctx.push('/categories'),
+      ),
+      _SearchableSetting(
+        title: 'Send Feedback',
+        subtitle: 'Tell us your thoughts, ideas or report an issue',
+        keywords: ['feedback', 'support', 'contact', 'developer', 'email', 'review'],
+        category: 'General',
+        icon: Symbols.rate_review_rounded,
+        onTap: (ctx) => ctx.push('/feedback'),
+      ),
+      _SearchableSetting(
+        title: 'Appearance & Preferences',
+        subtitle: 'Theme modes, dynamic color, typography and app craft',
+        keywords: ['theme', 'dark', 'light', 'dynamic', 'color', 'monochrome', 'appearance', 'preferences', 'google sans flex', 'typography', 'font', 'sliders'],
+        category: 'Appearance',
+        icon: Symbols.palette_rounded,
+        onTap: (ctx) => ctx.push('/personalization'),
+      ),
+      _SearchableSetting(
+        title: 'Dynamic Color & Variants',
+        subtitle: 'Material You wallpaper-based palettes and scheme variants',
+        keywords: ['dynamic', 'material you', 'color', 'wallpaper', 'monochrome', 'vibrant', 'expressive', 'palette'],
+        category: 'Appearance',
+        icon: Symbols.draw_rounded,
+        onTap: (ctx) => ctx.push('/personalization'),
+      ),
+      _SearchableSetting(
+        title: 'Typography & Sliders',
+        subtitle: 'Variable font weight, width, grade and optical size',
+        keywords: ['font', 'typography', 'google sans', 'weight', 'width', 'grade', 'optical size', 'text', 'size'],
+        category: 'Appearance',
+        icon: Symbols.font_download_rounded,
+        onTap: (ctx) => ctx.push('/personalization'),
+      ),
+      _SearchableSetting(
+        title: 'Vibrate on Transaction',
+        subtitle: 'Haptic feedback on transaction creation',
+        keywords: ['vibrate', 'haptic', 'feedback', 'transaction vibration', 'tactile'],
+        category: 'Appearance',
+        icon: Symbols.vibration_rounded,
+        onTap: (ctx) => ctx.push('/personalization'),
+      ),
+      _SearchableSetting(
+        title: 'Biometric Lock',
+        subtitle: 'Protect your financial data with fingerprint or face authentication',
+        keywords: ['biometric', 'fingerprint', 'face', 'lock', 'security', 'protect', 'auth', 'passcode'],
+        category: 'Privacy & Security',
+        icon: Symbols.fingerprint_rounded,
+        onTap: (ctx) => ctx.push('/settings/privacy_security'),
+      ),
+      _SearchableSetting(
+        title: 'Factory Reset',
+        subtitle: 'Permanently wipe all database records and reset app',
+        keywords: ['factory reset', 'reset', 'wipe', 'delete', 'clear all', 'erase', 'data shredder'],
+        category: 'Privacy & Security',
+        icon: Symbols.delete_forever_rounded,
+        isDestructive: true,
+        onTap: (ctx) => ctx.push('/settings/privacy_security'),
+      ),
+      _SearchableSetting(
+        title: 'Privacy Policy',
+        subtitle: 'Offline-first data philosophy and storage principles',
+        keywords: ['privacy', 'policy', 'terms', 'offline', 'security', 'data'],
+        category: 'Privacy & Security',
+        icon: Symbols.shield_lock_rounded,
+        onTap: (ctx) => ctx.push('/privacy_policy'),
+      ),
+      _SearchableSetting(
+        title: 'Terms of Use',
+        subtitle: 'Open-source licensing terms and usage guidelines',
+        keywords: ['terms', 'license', 'conditions', 'legal', 'open source'],
+        category: 'Privacy & Security',
+        icon: Symbols.policy_rounded,
+        onTap: (ctx) => ctx.push('/terms_of_use'),
+      ),
+      _SearchableSetting(
+        title: 'Export to CSV',
+        subtitle: 'Export transactions to a CSV spreadsheet',
+        keywords: ['export', 'csv', 'spreadsheet', 'excel', 'backup', 'transactions'],
+        category: 'Backup & Restore',
+        icon: Symbols.upload_file_rounded,
+        onTap: (ctx) => ctx.push('/settings/backup_restore'),
+      ),
+      _SearchableSetting(
+        title: 'Import from CSV',
+        subtitle: 'Import transactions from an existing CSV file',
+        keywords: ['import', 'csv', 'restore', 'transactions', 'spreadsheet'],
+        category: 'Backup & Restore',
+        icon: Symbols.download_for_offline_rounded,
+        onTap: (ctx) => ctx.push('/settings/backup_restore'),
+      ),
+      _SearchableSetting(
+        title: 'Export to JSON',
+        subtitle: 'Backup transactions in portable JSON format',
+        keywords: ['export', 'json', 'data', 'backup', 'export json'],
+        category: 'Backup & Restore',
+        icon: Symbols.database_rounded,
+        onTap: (ctx) => ctx.push('/settings/backup_restore'),
+      ),
+      _SearchableSetting(
+        title: 'Import from JSON',
+        subtitle: 'Restore transactions from a JSON data file',
+        keywords: ['import', 'json', 'data', 'restore', 'import json'],
+        category: 'Backup & Restore',
+        icon: Symbols.file_open_rounded,
+        onTap: (ctx) => ctx.push('/settings/backup_restore'),
+      ),
+      _SearchableSetting(
+        title: 'Backup Database',
+        subtitle: 'Complete archive of data, settings & attachments (.zip)',
+        keywords: ['backup', 'database', 'zip', 'archive', 'full backup', 'export db'],
+        category: 'Backup & Restore',
+        icon: Symbols.backup_rounded,
+        onTap: (ctx) => ctx.push('/settings/backup_restore'),
+      ),
+      _SearchableSetting(
+        title: 'Restore Backup',
+        subtitle: 'Restore all data from a .zip backup archive',
+        keywords: ['restore', 'database', 'zip', 'archive', 'import db', 'recover'],
+        category: 'Backup & Restore',
+        icon: Symbols.restore_rounded,
+        onTap: (ctx) => ctx.push('/settings/backup_restore'),
+      ),
+      _SearchableSetting(
+        title: 'About Wallet',
+        subtitle: 'Version info, developer details and open-source licenses',
+        keywords: ['about', 'version', 'developer', 'abhijeet yadav', 'licenses', 'github', 'open source'],
+        category: 'About',
+        icon: Symbols.info_rounded,
+        onTap: (ctx) => ctx.push('/about'),
+      ),
+      _SearchableSetting(
+        title: 'Check for Updates',
+        subtitle: 'v$_currentVersion "The Variable Atelier"',
+        keywords: ['update', 'check updates', 'ota', 'version', 'new release', 'upgrade'],
+        category: 'About',
+        icon: Symbols.update_rounded,
+        onTap: (ctx) => _checkForUpdates(ctx),
+      ),
+      if (personalization.isErrorCollectorEnabled)
+        _SearchableSetting(
+          title: 'Error Collector (Logcat)',
+          subtitle: 'Runtime logs, diagnostics, and performance monitor',
+          keywords: ['error collector', 'logcat', 'logs', 'dev', 'developer', 'debug', 'diagnostics', 'runtime', 'errors', 'performance'],
+          category: 'Error Collector',
+          icon: Symbols.bug_report_rounded,
+          onTap: (ctx) => ctx.push('/logcat'),
+        ),
+    ];
+
+    final filteredSettings = _searchQuery.isEmpty
+        ? <_SearchableSetting>[]
+        : allSettings.where((setting) {
+            final titleMatch = setting.title.toLowerCase().contains(_searchQuery);
+            final subtitleMatch = setting.subtitle.toLowerCase().contains(_searchQuery);
+            final categoryMatch = setting.category.toLowerCase().contains(_searchQuery);
+            final keywordMatch = setting.keywords.any((k) => k.toLowerCase().contains(_searchQuery));
+            return titleMatch || subtitleMatch || categoryMatch || keywordMatch;
+          }).toList();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        children: [
-          _buildSectionHeader(context, 'General'),
-          _buildSettingsTile(
-            context,
-            icon: Symbols.settings_suggest_rounded,
-            title: 'Preferences',
-            subtitle: 'Theme, dynamic color, typography, and behavior',
-            onTap: () {
-              context.push('/personalization');
-            },
-          ),
-          _buildSettingsTile(
-            context,
-            icon: Symbols.currency_exchange,
-            title: 'Currency',
-            subtitle: ref.watch(currencyProvider),
-            onTap: () {
-              context.push('/currency_selection');
-            },
-          ),
-          const Divider(indent: 24, endIndent: 24, height: 32),
-          _buildSectionHeader(context, 'Security'),
-          _buildSettingsTile(
-            context,
-            icon:
-                authState.isBiometricEnabled ? Symbols.lock_open : Symbols.lock,
-            title: 'Biometric Lock',
-            subtitle: authState.canCheckBiometrics
-                ? 'Protect your data'
-                : 'Not supported on device',
-            trailing: Switch(
-              value: authState.isBiometricEnabled,
-              onChanged: authState.canCheckBiometrics
-                  ? (val) async {
-                      await ref
-                          .read(authProvider.notifier)
-                          .toggleBiometric(val);
-                    }
-                  : null,
-            ),
-          ),
-          const Divider(indent: 24, endIndent: 24, height: 32),
-          _buildSectionHeader(context, 'Data Management'),
-          _buildSettingsTile(
-            context,
-            icon: Symbols.upload_file,
-            title: 'Export to CSV',
-            subtitle: 'Export transactions to a CSV file',
-            onTap: () async {
-              try {
-                await ref.read(csvServiceProvider).exportTransactions();
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Exported successfully!')),
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Export failed: $e')),
-                  );
-                }
-              }
-            },
-          ),
-          _buildSettingsTile(
-            context,
-            icon: Symbols.download_for_offline,
-            title: 'Import from CSV',
-            subtitle: 'Import transactions from a CSV file',
-            onTap: () async {
-              try {
-                await ref.read(csvServiceProvider).importTransactions();
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Imported successfully!')),
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Import failed: $e')),
-                  );
-                }
-              }
-            },
-          ),
-          _buildSettingsTile(
-            context,
-            icon: Symbols.database,
-            title: 'Export to JSON',
-            subtitle: 'Backup your data in JSON format',
-            onTap: () async {
-              try {
-                await ref.read(jsonServiceProvider).exportTransactions();
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Exported successfully!')),
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Export failed: $e')),
-                  );
-                }
-              }
-            },
-          ),
-          _buildSettingsTile(
-            context,
-            icon: Symbols.upload_file,
-            title: 'Import from JSON',
-            subtitle: 'Restore your data from a JSON file',
-            onTap: () async {
-              try {
-                await ref.read(jsonServiceProvider).importTransactions();
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Imported successfully!')),
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Import failed: $e')),
-                  );
-                }
-              }
-            },
-          ),
-          _buildSettingsTile(
-            context,
-            icon: Symbols.backup,
-            title: 'Backup Database',
-            subtitle: 'Complete backup of data, settings & photos (.zip)',
-            onTap: () async {
-              try {
-                final path =
-                    await ref.read(backupServiceProvider).createBackup();
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Backup created at: $path')),
-                  );
-                }
-              } catch (e) {
-                if (e.toString().contains('cancelled')) return;
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Backup failed: $e')),
-                  );
-                }
-              }
-            },
-          ),
-          _buildSettingsTile(
-            context,
-            icon: Symbols.restore,
-            title: 'Restore Backup',
-            subtitle: 'Restore from a .zip backup file',
-            onTap: () async {
-              try {
-                final success =
-                    await ref.read(backupServiceProvider).restoreBackup();
-                if (success && context.mounted) {
-                  showDialog(
-                    context: context,
-                    barrierDismissible: false,
-                    builder: (context) => AlertDialog(
-                      title: const Text('Restore Successful'),
-                      content: const Text(
-                          'Data has been restored. The app will now restart to apply changes.'),
-                      actions: [
-                        FilledButton(
-                          onPressed: () => Restart.restartApp(),
-                          child: const Text('Restart App'),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-              } catch (e) {
-                if (e.toString().contains('cancelled')) return;
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Restore failed: $e')),
-                  );
-                }
-              }
-            },
-          ),
-          const Divider(indent: 24, endIndent: 24, height: 32),
-          _buildSectionHeader(context, 'Privacy & Policy'),
-          _buildSettingsTile(
-            context,
-            icon: Symbols.shield_lock,
-            title: 'Privacy Policy',
-            subtitle: 'Offline-first data philosophy',
-            onTap: () {
-              context.push('/privacy_policy');
-            },
-          ),
-          _buildSettingsTile(
-            context,
-            icon: Symbols.policy,
-            title: 'Terms of Use',
-            subtitle: 'Open source usage terms',
-            onTap: () {
-              context.push('/terms_of_use');
-            },
-          ),
-          const Divider(indent: 24, endIndent: 24, height: 32),
-          _buildSectionHeader(context, 'Feedback'),
-          _buildSettingsTile(
-            context,
-            icon: Symbols.rate_review,
-            title: 'Send Feedback',
-            subtitle: 'Tell us what you think',
-            onTap: () {
-              context.push('/feedback');
-            },
-          ),
-          _buildSettingsTile(
-            context,
-            icon: Symbols.bug_report,
-            title: 'Logcat (Dev)',
-            subtitle: 'View runtime logs and performance',
-            onTap: () {
-              context.push('/logcat');
-            },
-          ),
-          const Divider(indent: 24, endIndent: 24, height: 32),
-          _buildSectionHeader(context, 'Update & Contact'),
-          _buildSettingsTile(
-            context,
-            icon: Symbols.info,
-            title: 'About',
-            subtitle: 'Version and developer info',
-            onTap: () {
-              context.push('/about');
-            },
-          ),
-          _buildSettingsTile(
-            context,
-            icon: Symbols.update,
-            title: 'Check for Updates',
-            subtitle: 'v$_currentVersion "The Variable Atelier"',
-            onTap: () {
-              _checkForUpdates(context);
-            },
-          ),
-          const SizedBox(height: 48),
-          Center(
-            child: Text(
-              'Wallet v$_currentVersion (June 2026)',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+      backgroundColor: colorScheme.surface,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar.medium(
+            leading: const AppBackButton(),
+            title: Text(
+              'Settings',
+              style: theme.textTheme.headlineLarge?.copyWith(
+                fontSize: (theme.textTheme.headlineLarge?.fontSize ?? 32) + 3,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
               ),
             ),
           ),
-          const SizedBox(height: 32),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+            sliver: SliverList.list(
+              children: [
+          // 2. Search Bar
+          Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search settings...',
+                hintStyle: TextStyle(
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
+                  fontSize: 15,
+                ),
+                prefixIcon: Icon(
+                  Symbols.search_rounded,
+                  color: colorScheme.onSurfaceVariant,
+                  size: 22,
+                ),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Symbols.close_rounded, size: 20),
+                        onPressed: () {
+                          _searchController.clear();
+                        },
+                      )
+                    : null,
+                filled: true,
+                fillColor: Colors.transparent,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              ),
+              style: TextStyle(
+                color: colorScheme.onSurface,
+                fontSize: 15,
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // 4. Content Area: Search Results or Main Segmented Menus
+          if (_searchQuery.isNotEmpty) ...[
+            // Search Results View
+            Padding(
+              padding: const EdgeInsets.only(left: 4, bottom: 12),
+              child: Text(
+                'SEARCH RESULTS (${filteredSettings.length})',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  letterSpacing: 1.2,
+                  fontWeight: FontWeight.w900,
+                  color: colorScheme.onSurface.withValues(alpha: 0.5),
+                ),
+              ),
+            ),
+            if (filteredSettings.isEmpty)
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Column(
+                  children: [
+                    Icon(
+                      Symbols.search_off_rounded,
+                      size: 48,
+                      color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'No settings found',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Try searching for "currency", "theme", "backup", or "profile"',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              SettingsSegmentedGroup(
+                children: filteredSettings.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final item = entry.value;
+                  final isLast = index == filteredSettings.length - 1;
+
+                  return SettingsActionTile(
+                    icon: item.icon,
+                    title: item.title,
+                    subtitle: '${item.category} • ${item.subtitle}',
+                    isDestructive: item.isDestructive,
+                    showDivider: !isLast,
+                    onTap: () => item.onTap(context),
+                  );
+                }).toList(),
+              ),
+            const SizedBox(height: 32),
+          ] else ...[
+            // Main Menus View with M3 Expressive ONE unified segmented group
+            Padding(
+              padding: const EdgeInsets.only(left: 4, bottom: 12),
+              child: Text(
+                'PREFERENCES & CONTROLS',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  letterSpacing: 1.2,
+                  fontWeight: FontWeight.w900,
+                  color: colorScheme.onSurface.withValues(alpha: 0.5),
+                ),
+              ),
+            ),
+
+            // All settings in ONE group of list
+            SettingsSegmentedGroup(
+              children: [
+                SettingsActionTile(
+                  icon: Symbols.tune_rounded,
+                  title: 'General',
+                  subtitle: 'Currency settings, user profile, and categories',
+                  showDivider: true,
+                  onTap: () {
+                    context.push('/settings/general');
+                  },
+                ),
+                SettingsActionTile(
+                  icon: Symbols.palette_rounded,
+                  title: 'Appearance',
+                  subtitle: 'Theme, dynamic color, typography, and behavior',
+                  showDivider: true,
+                  onTap: () {
+                    context.push('/personalization');
+                  },
+                ),
+                SettingsActionTile(
+                  icon: Symbols.shield_lock_rounded,
+                  title: 'Privacy & Security',
+                  subtitle: 'Biometric lock, factory reset, and policy',
+                  showDivider: true,
+                  onTap: () {
+                    context.push('/settings/privacy_security');
+                  },
+                ),
+                SettingsActionTile(
+                  icon: Symbols.cloud_sync_rounded,
+                  title: 'Backup & Restore',
+                  subtitle: 'Export/import CSV, JSON, and database archive',
+                  showDivider: true,
+                  onTap: () {
+                    context.push('/settings/backup_restore');
+                  },
+                ),
+                SettingsActionTile(
+                  icon: Symbols.info_rounded,
+                  title: 'About',
+                  subtitle: 'v$_currentVersion · Developer, licenses, and system info',
+                  showDivider: personalization.isErrorCollectorEnabled,
+                  onTap: () {
+                    context.push('/about');
+                  },
+                ),
+                if (personalization.isErrorCollectorEnabled)
+                  SettingsActionTile(
+                    icon: Symbols.bug_report_rounded,
+                    title: 'Error Collector',
+                    subtitle: 'Runtime analysis, performance logs, and debug tools',
+                    showDivider: false,
+                    onTap: () {
+                      context.push('/logcat');
+                    },
+                  ),
+              ],
+            ),
+
+            const SizedBox(height: 48),
+
+            // App Version Footer
+            Center(
+              child: Text(
+                'Wallet v$_currentVersion (June 2026)',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+        ],
+            ),
+          ),
         ],
       ),
     );
@@ -316,7 +463,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
+      builder: (dialogCtx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         title: const Row(
           children: [
@@ -329,8 +476,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Connecting to GitHub...',
-                style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text(
+              'Connecting to GitHub...',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 16),
             LinearProgressIndicator(
               borderRadius: BorderRadius.circular(4),
@@ -353,7 +502,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             updateService.isNewerVersion(_currentVersion, update.version)) {
           showDialog(
             context: context,
-            builder: (context) => AlertDialog(
+            builder: (dialogCtx) => AlertDialog(
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(28)),
               title: Text('New Version v${update.version}'),
@@ -371,12 +520,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => Navigator.pop(dialogCtx),
                   child: const Text('Later'),
                 ),
                 FilledButton.icon(
                   onPressed: () {
-                    Navigator.pop(context);
+                    Navigator.pop(dialogCtx);
                     _startSelfUpdate(context, update.downloadUrl);
                   },
                   icon: const Icon(Symbols.download, size: 18),
@@ -388,7 +537,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         } else {
           showDialog(
             context: context,
-            builder: (context) => AlertDialog(
+            builder: (dialogCtx) => AlertDialog(
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(28)),
               title: const Text('Up to Date'),
@@ -396,7 +545,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   'You are already using the most refined version of Wallet.'),
               actions: [
                 FilledButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => Navigator.pop(dialogCtx),
                   child: const Text('Excellent'),
                 ),
               ],
@@ -418,10 +567,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) {
+      builder: (dialogCtx) {
         return StreamBuilder(
           stream: ref.read(updateServiceProvider).downloadAndInstall(url),
-          builder: (context, snapshot) {
+          builder: (builderCtx, snapshot) {
             double progress = 0;
             String status = 'Initializing...';
 
@@ -456,7 +605,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         (snapshot.data as OtaEvent).status ==
                             OtaStatus.INTERNAL_ERROR))
                   TextButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () => Navigator.pop(dialogCtx),
                     child: const Text('Cancel'),
                   ),
               ],
@@ -466,47 +615,24 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       },
     );
   }
+}
 
-  Widget _buildSectionHeader(BuildContext context, String title) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.bold,
-            ),
-      ),
-    );
-  }
+class _SearchableSetting {
+  final String title;
+  final String subtitle;
+  final List<String> keywords;
+  final String category;
+  final IconData icon;
+  final bool isDestructive;
+  final void Function(BuildContext context) onTap;
 
-  Widget _buildSettingsTile(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    Widget? trailing,
-    VoidCallback? onTap,
-  }) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
-      leading: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: Theme.of(context)
-              .colorScheme
-              .surfaceContainerHighest
-              .withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Icon(icon,
-            size: 28,
-            fill: ref.watch(personalizationProvider).fillIcons ? 1.0 : 0.0),
-      ),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-      subtitle: Text(subtitle),
-      trailing: trailing ?? const Icon(Icons.chevron_right_rounded),
-      onTap: onTap,
-    );
-  }
+  _SearchableSetting({
+    required this.title,
+    required this.subtitle,
+    required this.keywords,
+    required this.category,
+    required this.icon,
+    this.isDestructive = false,
+    required this.onTap,
+  });
 }

@@ -8,7 +8,7 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../widgets/activity_insights_section.dart';
 import '../../../core/database/providers.dart';
-import '../../../core/widgets/transaction_list_tile.dart';
+import '../../../core/widgets/transaction_segmented_group.dart';
 import '../../../core/services/currency_engine.dart';
 import '../../../core/theme/personalization_provider.dart';
 import '../widgets/animated_balance_hero.dart';
@@ -282,6 +282,8 @@ class _HomeFinanceGrid extends ConsumerWidget {
     ref.watch(accountsStreamProvider);
     final selectedCurrency = ref.watch(currencyProvider);
 
+    final colorScheme = Theme.of(context).colorScheme;
+
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       sliver: SliverGrid(
@@ -295,6 +297,7 @@ class _HomeFinanceGrid extends ConsumerWidget {
           OverviewCard(
             icon: Symbols.account_balance,
             title: 'Accounts',
+            accentColor: colorScheme.primary,
             subtitle: totalAssetBalanceAsync.when(
               data: (v) => '${CurrencyEngine.formatCurrency(v, selectedCurrency)} total',
               loading: () => '...',
@@ -305,42 +308,49 @@ class _HomeFinanceGrid extends ConsumerWidget {
           OverviewCard(
             icon: Symbols.pie_chart,
             title: 'Budgets',
+            accentColor: colorScheme.secondary,
             subtitle: 'Track spending',
             onTap: () => context.push('/budgets'),
           ),
           OverviewCard(
             icon: Symbols.flag,
             title: 'Goals',
+            accentColor: colorScheme.tertiary,
             subtitle: 'Savings targets',
             onTap: () => context.push('/goals'),
           ),
           OverviewCard(
             icon: Symbols.front_loader,
             title: 'Loans',
+            accentColor: const Color(0xFFF59E0B),
             subtitle: 'Debts & lending',
             onTap: () => context.push('/loans'),
           ),
           OverviewCard(
             icon: Symbols.event_repeat,
             title: 'Recurring',
+            accentColor: const Color(0xFF8B5CF6),
             subtitle: 'Subscription & bills',
             onTap: () => context.push('/recurring'),
           ),
           OverviewCard(
             icon: Symbols.category,
             title: 'Categories',
+            accentColor: const Color(0xFFEC4899),
             subtitle: 'Manage groups',
             onTap: () => context.push('/categories'),
           ),
           OverviewCard(
             icon: Symbols.call_split,
             title: 'Bill Splitter',
+            accentColor: const Color(0xFF06B6D4),
             subtitle: 'Shared expenses',
             onTap: () => context.push('/bill_splitter'),
           ),
           OverviewCard(
             icon: Symbols.group,
             title: 'People',
+            accentColor: const Color(0xFF10B981),
             subtitle: 'Friends & contacts',
             onTap: () => context.push('/people'),
           ),
@@ -395,30 +405,9 @@ class _HomeRecentTransactions extends ConsumerWidget {
         final recentTxs = sortedTxs.take(10).toList();
         return SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          sliver: SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) => AnimationConfiguration.staggeredList(
-                position: index,
-                duration: const Duration(milliseconds: 375),
-                child: SlideAnimation(
-                  verticalOffset: 50.0,
-                  child: FadeInAnimation(
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: TransactionListTile(
-                        tx: recentTxs[index],
-                        onTap: () {
-                          
-                          context.push('/add_transaction',
-                              extra: recentTxs[index]);
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              childCount: recentTxs.length,
-            ),
+          sliver: SliverTransactionGroupedList(
+            transactions: recentTxs,
+            onTap: (tx) => context.push('/add_transaction', extra: tx),
           ),
         );
       },

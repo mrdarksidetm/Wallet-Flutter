@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../../../core/theme/color_extension.dart';
 import '../../../core/services/currency_engine.dart';
+import '../../../core/widgets/app_back_button.dart';
 
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/account.dart';
@@ -12,7 +13,7 @@ import '../../../core/database/models/transaction_model.dart';
 import '../../../core/database/models/category.dart';
 import '../widgets/account_card.dart';
 import '../widgets/category_segmented_bar.dart';
-import '../../../core/widgets/transaction_list_tile.dart';
+import '../../../core/widgets/transaction_segmented_group.dart';
 import '../../../core/widgets/icon_picker.dart';
 
 class AccountsPage extends ConsumerStatefulWidget {
@@ -34,38 +35,64 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final accountsAsync = ref.watch(accountsStreamProvider);
     final currency = ref.watch(currencyProvider);
 
     return Scaffold(
-      backgroundColor: Theme.of(context).brightness == Brightness.dark 
-          ? colorScheme.surface 
-          : const Color(0xFFF8F9FA),
-      appBar: AppBar(
-        title: const Text('Accounts & Wallets', style: TextStyle(fontWeight: FontWeight.bold)),
-        actions: [
-          IconButton(
-            icon: const Icon(Symbols.reorder),
-            onPressed: () {
-              final accounts = accountsAsync.value?.toList() ?? <Account>[];
-              _showReorderBottomSheet(context, accounts);
-            },
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
+      backgroundColor: colorScheme.surface,
       body: accountsAsync.when(
         data: (accounts) {
           if (accounts.isEmpty) {
-            return const Center(child: Text('No accounts found'));
+            return CustomScrollView(
+              slivers: [
+                SliverAppBar.medium(
+                  leading: const AppBackButton(),
+                  title: Text(
+                    'Accounts & Wallets',
+                    style: theme.textTheme.headlineLarge?.copyWith(
+                      fontSize: (theme.textTheme.headlineLarge?.fontSize ?? 32) + 3,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                ),
+                const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(child: Text('No accounts found')),
+                ),
+              ],
+            );
           }
 
-          final currentAccount = accounts[_currentPage];
+          final pageIndex = _currentPage.clamp(0, accounts.length - 1);
+          final currentAccount = accounts[pageIndex];
           
           return CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
+              SliverAppBar.medium(
+                leading: const AppBackButton(),
+                title: Text(
+                  'Accounts & Wallets',
+                  style: theme.textTheme.headlineLarge?.copyWith(
+                    fontSize: (theme.textTheme.headlineLarge?.fontSize ?? 32) + 3,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                actions: [
+                  IconButton(
+                    icon: const Icon(Symbols.reorder),
+                    onPressed: () {
+                      final accs = accountsAsync.value?.toList() ?? <Account>[];
+                      _showReorderBottomSheet(context, accs);
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                ],
+              ),
               // 1. Top Section: Swipeable Cards
               SliverToBoxAdapter(
                 child: Column(
@@ -138,10 +165,11 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
                           child: Center(child: Text('No activity for this account')),
                         );
                       }
-                      return SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) => _buildTransactionItem(context, txs[index]),
-                          childCount: txs.length,
+                      return SliverPadding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        sliver: SliverTransactionGroupedList(
+                          transactions: txs,
+                          onTap: (tx) => context.push('/add_transaction', extra: tx),
                         ),
                       );
                     },
@@ -198,9 +226,9 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
         children: [
           Row(
             children: [
-              _buildStatCard(context, 'Income', totalIncome, Colors.green, Symbols.trending_up, currency),
+              _buildStatCard(context, 'Income', totalIncome, const Color(0xFF10B981), Symbols.trending_up, currency),
               const SizedBox(width: 16),
-              _buildStatCard(context, 'Expense', totalExpense, Colors.red, Symbols.trending_down, currency),
+              _buildStatCard(context, 'Expense', totalExpense, const Color(0xFFEF4444), Symbols.trending_down, currency),
             ],
           ),
           const SizedBox(height: 32),
@@ -259,15 +287,6 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
     );
   }
 
-  Widget _buildTransactionItem(BuildContext context, TransactionModel tx) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: TransactionListTile(
-        tx: tx,
-        onTap: () => context.push('/add_transaction', extra: tx),
-      ),
-    );
-  }
 
   void _showReorderBottomSheet(BuildContext context, List<Account> accounts) {
     showModalBottomSheet(

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/account.dart';
-import '../../../core/database/models/transaction_model.dart';
 import '../../../core/widgets/icon_picker.dart';
+import '../../../core/widgets/transaction_segmented_group.dart';
 import '../../../core/theme/color_extension.dart';
 import '../../../core/services/currency_engine.dart';
+import '../../../core/widgets/app_back_button.dart';
 
 class AccountDetailsPage extends ConsumerWidget {
   final Account account;
@@ -18,7 +18,9 @@ class AccountDetailsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final color = account.color.parseHexColor();
+    final accountsAsync = ref.watch(accountsStreamProvider);
+    final currentAccount = accountsAsync.value?.where((a) => a.id == account.id).firstOrNull ?? account;
+    final color = currentAccount.color.parseHexColor();
 
     final selectedCurrency = ref.watch(currencyProvider);
 
@@ -27,18 +29,27 @@ class AccountDetailsPage extends ConsumerWidget {
         ref.watch(accountTransactionsProvider(account.id));
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(account.name),
-        actions: [
-          IconButton(
-            onPressed: () => context.push('/add_account', extra: account),
-            icon: const Icon(Symbols.edit),
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
+      backgroundColor: colorScheme.surface,
       body: CustomScrollView(
         slivers: [
+          SliverAppBar.medium(
+            leading: const AppBackButton(),
+            title: Text(
+              currentAccount.name,
+              style: theme.textTheme.headlineLarge?.copyWith(
+                fontSize: (theme.textTheme.headlineLarge?.fontSize ?? 32) + 3,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
+              ),
+            ),
+            actions: [
+              IconButton(
+                onPressed: () => context.push('/add_account', extra: currentAccount),
+                icon: const Icon(Symbols.edit),
+              ),
+              const SizedBox(width: 8),
+            ],
+          ),
           SliverToBoxAdapter(
             child: Container(
               margin: const EdgeInsets.all(16),
@@ -67,7 +78,7 @@ class AccountDetailsPage extends ConsumerWidget {
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      AppIcons.getIcon(account.icon),
+                      AppIcons.getIcon(currentAccount.icon),
                       color: Colors.white,
                       size: 32,
                     ),
@@ -84,7 +95,7 @@ class AccountDetailsPage extends ConsumerWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    CurrencyEngine.formatCurrency(account.balance, selectedCurrency),
+                    CurrencyEngine.formatCurrency(currentAccount.balance, selectedCurrency),
                     style: theme.textTheme.displayMedium?.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.w900,
@@ -119,31 +130,9 @@ class AccountDetailsPage extends ConsumerWidget {
 
               return SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final tx = transactions[index];
-                      final isIncome = tx.type == TransactionType.income;
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: colorScheme.surfaceContainerHighest,
-                          child: const Icon(Symbols.receipt_long, size: 20),
-                        ),
-                        title: Text(tx.note ?? 'Transaction',
-                            style:
-                                const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text(DateFormat.yMMMd().format(tx.date)),
-                        trailing: Text(
-                          '${isIncome ? '+' : '-'}${CurrencyEngine.formatCurrency(tx.amount, selectedCurrency)}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w900,
-                            color: isIncome ? Colors.green : colorScheme.error,
-                          ),
-                        ),
-                      );
-                    },
-                    childCount: transactions.length,
-                  ),
+                sliver: SliverTransactionGroupedList(
+                  transactions: transactions,
+                  onTap: (tx) => context.push('/add_transaction', extra: tx),
                 ),
               );
             },

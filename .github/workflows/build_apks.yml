@@ -2,9 +2,9 @@ name: Build Wallet APKs
 
 on:
   push:
-    branches: [ main, develop, Improv ]
+    branches: [ main, develop, Improv, 'sandbox/**' ]
   pull_request:
-    branches: [ main, develop, Improv ]
+    branches: [ main, develop, Improv, 'sandbox/**' ]
   workflow_dispatch: # Allows manual trigger
 
 jobs:
@@ -23,7 +23,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '21'
+          java-version: '17'
           cache: 'gradle'
 
       - name: Setup Flutter
@@ -35,103 +35,263 @@ jobs:
       - name: Install Dependencies
         run: |
           flutter doctor -v
-          yes | flutter doctor --android-licenses
+          yes | flutter doctor --android-licenses || true
           flutter pub get
 
       - name: Setup Signing (Optional)
         env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 || secrets.F_KEYSTORE }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || secrets.F_STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || secrets.F_KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS || secrets.F_KEY_ALIAS }}
         run: |
-          if [ ! -z "$KEYSTORE_BASE64" ]; then
-            echo "Decoding keystore..."
-            mkdir -p android/app
-            echo $KEYSTORE_BASE64 | base64 --decode > android/app/upload-keystore.jks
-            echo "storePassword=$KEYSTORE_PASSWORD" > android/key.properties
-            echo "keyPassword=$KEY_PASSWORD" >> android/key.properties
-            echo "keyAlias=$KEY_ALIAS" >> android/key.properties
-            echo "storeFile=upload-keystore.jks" >> android/key.properties
-          else
-            echo "No signing secrets found. Building unsigned APKs."
+          mkdir -p android/app
+          mkdir -p ~/.android
+          
+          # Always generate default debug keystore so fallback debug signing never fails
+          if [ ! -f ~/.android/debug.keystore ]; then
+            keytool -genkey -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
           fi
+          
+          SIGNING_CONFIGURED=false
+          SIGNING_MODE="CI Fallback (Debug Keystore)"
+          
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "Decoding release keystore..."
+            echo "$KEYSTORE_BASE64" | tr -d '\r\n ' | base64 --decode > android/app/upload-keystore.jks 2>/dev/null || true
+            
+            if [ -s android/app/upload-keystore.jks ]; then
+              # Detect or match key alias
+              TARGET_ALIAS=""
+              if [ -n "$KEY_ALIAS" ] && keytool -list -keystore android/app/upload-keystore.jks -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" > /dev/null 2>&1; then
+                echo "Found matching key alias: $KEY_ALIAS"
+                TARGET_ALIAS="$KEY_ALIAS"
+              else
+                DETECTED_ALIAS=$(keytool -list -v -keystore android/app/upload-keystore.jks -storepass "$KEYSTORE_PASSWORD" 2>/dev/null | grep -i "Alias name:" | head -n 1 | sed 's/[Aa]lias name:\s*//' | tr -d '\r\n')
+                if [ -z "$DETECTED_ALIAS" ]; then
+                  DETECTED_ALIAS=$(keytool -list -keystore android/app/upload-keystore.jks -storepass "$KEYSTORE_PASSWORD" 2>/dev/null | awk -F',' '/PrivateKeyEntry/ {print $1}' | head -n 1 | tr -d '\r\n ')
+                fi
+                if [ -n "$DETECTED_ALIAS" ]; then
+                  echo "Auto-detected key alias in keystore: $DETECTED_ALIAS (configured was: '$KEY_ALIAS')"
+                  TARGET_ALIAS="$DETECTED_ALIAS"
+                fi
+              fi
+
+              if [ -n "$TARGET_ALIAS" ]; then
+                # Pre-flight check: Test if private key can be decrypted using Java KeyStore API (exact same as Gradle)
+                printf '%s\n' \
+                  'import java.io.File;' \
+                  'import java.io.FileInputStream;' \
+                  'import java.security.Key;' \
+                  'import java.security.KeyStore;' \
+                  'public class TestKey {' \
+                  '    public static void main(String[] args) {' \
+                  '        if (args.length < 4) System.exit(1);' \
+                  '        String ksPath = args[0];' \
+                  '        String storePass = args[1];' \
+                  '        String alias = args[2];' \
+                  '        String keyPass = args[3];' \
+                  '        try {' \
+                  '            File f = new File(ksPath);' \
+                  '            KeyStore ks;' \
+                  '            try {' \
+                  '                ks = KeyStore.getInstance("PKCS12");' \
+                  '                try (FileInputStream fis = new FileInputStream(f)) {' \
+                  '                    ks.load(fis, storePass.toCharArray());' \
+                  '                }' \
+                  '            } catch (Exception e) {' \
+                  '                ks = KeyStore.getInstance("JKS");' \
+                  '                try (FileInputStream fis = new FileInputStream(f)) {' \
+                  '                    ks.load(fis, storePass.toCharArray());' \
+                  '                }' \
+                  '            }' \
+                  '            Key k = ks.getKey(alias, keyPass.toCharArray());' \
+                  '            if (k != null) {' \
+                  '                System.exit(0);' \
+                  '            }' \
+                  '        } catch (Exception e) {' \
+                  '            System.exit(2);' \
+                  '        }' \
+                  '        System.exit(3);' \
+                  '    }' \
+                  '}' > TestKey.java
+                
+                KEY_VERIFIED=false
+                TARGET_KEY_PASS=""
+                
+                # Test 1: Try KEY_PASSWORD if provided
+                if [ -n "$KEY_PASSWORD" ] && java TestKey.java android/app/upload-keystore.jks "$KEYSTORE_PASSWORD" "$TARGET_ALIAS" "$KEY_PASSWORD" > /dev/null 2>&1; then
+                  echo "Private key verified with KEY_PASSWORD."
+                  TARGET_KEY_PASS="$KEY_PASSWORD"
+                  KEY_VERIFIED=true
+                # Test 2: Try KEYSTORE_PASSWORD as key password
+                elif [ -n "$KEYSTORE_PASSWORD" ] && java TestKey.java android/app/upload-keystore.jks "$KEYSTORE_PASSWORD" "$TARGET_ALIAS" "$KEYSTORE_PASSWORD" > /dev/null 2>&1; then
+                  echo "Private key verified with KEYSTORE_PASSWORD."
+                  TARGET_KEY_PASS="$KEYSTORE_PASSWORD"
+                  KEY_VERIFIED=true
+                fi
+                
+                rm -f TestKey.java
+                
+                if [ "$KEY_VERIFIED" = "true" ]; then
+                  SIGNING_CONFIGURED=true
+                  SIGNING_MODE="Production Release Keystore (Alias: $TARGET_ALIAS)"
+                  printf "storePassword=%s\nkeyPassword=%s\nkeyAlias=%s\nstoreFile=upload-keystore.jks\n" "$KEYSTORE_PASSWORD" "$TARGET_KEY_PASS" "$TARGET_ALIAS" > android/key.properties
+                  echo "Successfully configured release signing with alias: $TARGET_ALIAS"
+                else
+                  echo "::warning title=Keystore Key Password Mismatch::Could not decrypt private key for alias '$TARGET_ALIAS' with KEY_PASSWORD or KEYSTORE_PASSWORD. Falling back to CI debug keystore."
+                fi
+              else
+                echo "::warning title=No Key Alias Found::No PrivateKeyEntry found in provided release keystore. Falling back to CI debug keystore."
+              fi
+            else
+              echo "::warning title=Invalid Keystore::Decoded release keystore is empty or invalid base64. Falling back to CI debug keystore."
+            fi
+          fi
+          
+          if [ "$SIGNING_CONFIGURED" != "true" ]; then
+            echo "Configuring CI fallback keystore..."
+            rm -f android/app/upload-keystore.jks
+            keytool -genkey -v -keystore android/app/upload-keystore.jks -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+            printf "storePassword=android\nkeyPassword=android\nkeyAlias=androiddebugkey\nstoreFile=upload-keystore.jks\n" > android/key.properties
+            echo "CI fallback keystore configured successfully."
+          fi
+          
+          echo "SIGNING_MODE=$SIGNING_MODE" >> $GITHUB_ENV
+          echo "### 🔑 Signing Setup" >> $GITHUB_STEP_SUMMARY
+          echo "- **Mode**: $SIGNING_MODE" >> $GITHUB_STEP_SUMMARY
 
       - name: Code Generation (Build Runner)
-        run: dart run build_runner build --delete-conflicting-outputs
+        run: dart run build_runner build --delete-conflicting-outputs || true
+
+      - name: Prepare Output Directories
+        run: |
+          mkdir -p build/app/outputs/symbols
+          mkdir -p build/app/outputs/final-apks
 
       - name: Build Universal APK
-        id: build_universal
         run: |
           echo "Building Universal (Fat) APK..."
-          flutter clean
-          flutter pub get
-          mkdir -p build/app/outputs/symbols
-          # Run build and allow it to fail if APK is not found, we will check manual paths next
-          flutter build apk --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --verbose || true
+          flutter build apk --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --verbose --android-skip-build-dependency-validation 2>&1 | tee build_universal.log
+          BUILD_STATUS="${PIPESTATUS[0]}"
+          if [ "$BUILD_STATUS" -ne 0 ]; then
+            ERR_MSG=$(grep -i -E "error:|exception:|failed" build_universal.log | tail -n 15 | tr '\n' ' | ' | sed 's/[^a-zA-Z0-9 ._:\/|-]/ /g')
+            if [ -z "$ERR_MSG" ]; then
+              ERR_MSG=$(tail -n 25 build_universal.log | tr '\n' ' | ' | sed 's/[^a-zA-Z0-9 ._:\/|-]/ /g')
+            fi
+            echo "::error title=Universal APK Build Failed::$ERR_MSG"
+            echo "### ❌ Universal APK Build Failed" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            tail -n 80 build_universal.log >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            exit "$BUILD_STATUS"
+          fi
           
-          # Manually locate APK if standard path is empty
-          if [ ! -f build/app/outputs/flutter-apk/app-release.apk ]; then
-            echo "Standard APK path not found. Searching in android/app/build/outputs/apk/release/..."
-            mkdir -p build/app/outputs/flutter-apk
-            cp android/app/build/outputs/apk/release/app-release.apk build/app/outputs/flutter-apk/app-release.apk || echo "APK not found in android/app path either."
+          # Immediately preserve universal APK before split-abi build overwrites outputs
+          echo "Locating Universal APK..."
+          if [ -f build/app/outputs/flutter-apk/app-release.apk ]; then
+            cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/final-apks/wallet-universal.apk
+          elif [ -f build/app/outputs/flutter-apk/app-release-unsigned.apk ]; then
+            cp build/app/outputs/flutter-apk/app-release-unsigned.apk build/app/outputs/final-apks/wallet-universal.apk
+          else
+            for apk in $(find build android -name "*.apk" 2>/dev/null); do
+              if [[ "$apk" != *"arm"* ]] && [[ "$apk" != *"x86"* ]] && [[ "$apk" != *"final-apks"* ]]; then
+                echo "Found Universal APK at: $apk"
+                cp "$apk" build/app/outputs/final-apks/wallet-universal.apk
+                break
+              fi
+            done
           fi
 
       - name: Build Split APKs
-        if: success() || failure()
         run: |
           echo "Building Split-ABI APKs..."
-          flutter build apk --split-per-abi --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --verbose || true
-          
-          # Manually locate Split APKs
-          if [ ! -f build/app/outputs/flutter-apk/app-arm64-v8a-release.apk ]; then
-             echo "Split APKs not found in standard path. Searching in android/app/build/outputs/apk/release/..."
-             cp android/app/build/outputs/apk/release/app-arm64-v8a-release.apk build/app/outputs/flutter-apk/app-arm64-v8a-release.apk || true
-             cp android/app/build/outputs/apk/release/app-armeabi-v7a-release.apk build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk || true
-             cp android/app/build/outputs/apk/release/app-x86_64-release.apk build/app/outputs/flutter-apk/app-x86_64-release.apk || true
-          fi
-
-      - name: Error Analysis (On Failure)
-        if: failure()
-        run: |
-          echo "::error::Build failed! Analyzing logs for critical errors..."
-          # Final check if any APK was actually generated
-          if [ ! -f build/app/outputs/flutter-apk/app-release.apk ]; then
-             echo "CRITICAL: No APK found after manual search. Build is truly failed."
-             exit 1
-          fi
-
-      - name: Process & Rename APKs
-        if: success()
-        run: |
-          mkdir -p build/app/outputs/final-apks
-          
-          # Check for Universal APK
-          if [ -f build/app/outputs/flutter-apk/app-release.apk ]; then
-            mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/final-apks/wallet-universal.apk
+          flutter build apk --split-per-abi --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --verbose --android-skip-build-dependency-validation 2>&1 | tee build_split.log
+          BUILD_STATUS="${PIPESTATUS[0]}"
+          if [ "$BUILD_STATUS" -ne 0 ]; then
+            ERR_MSG=$(grep -i -E "error:|exception:|failed" build_split.log | tail -n 15 | tr '\n' ' | ' | sed 's/[^a-zA-Z0-9 ._:\/|-]/ /g')
+            if [ -z "$ERR_MSG" ]; then
+              ERR_MSG=$(tail -n 25 build_split.log | tr '\n' ' | ' | sed 's/[^a-zA-Z0-9 ._:\/|-]/ /g')
+            fi
+            echo "::error title=Split APK Build Failed::$ERR_MSG"
+            echo "### ❌ Split APK Build Failed" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            tail -n 80 build_split.log >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            exit "$BUILD_STATUS"
           fi
           
-          # Check for Split APKs
+          # Preserve split APKs
+          echo "Locating Split APKs..."
           if [ -f build/app/outputs/flutter-apk/app-arm64-v8a-release.apk ]; then
-            mv build/app/outputs/flutter-apk/app-arm64-v8a-release.apk build/app/outputs/final-apks/wallet-arm64-v8a.apk
+            cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk build/app/outputs/final-apks/wallet-arm64-v8a.apk
+          fi
+          if [ -f build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk ]; then
+            cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk build/app/outputs/final-apks/wallet-arm-v7a.apk
+          fi
+          if [ -f build/app/outputs/flutter-apk/app-x86_64-release.apk ]; then
+            cp build/app/outputs/flutter-apk/app-x86_64-release.apk build/app/outputs/final-apks/wallet-x86_64.apk
+          fi
+          for apk in $(find build android -name "*.apk" 2>/dev/null); do
+            if [[ "$apk" == *"final-apks"* ]]; then continue; fi
+            if [[ "$apk" == *"arm64"* ]] && [ ! -f build/app/outputs/final-apks/wallet-arm64-v8a.apk ]; then
+              cp "$apk" build/app/outputs/final-apks/wallet-arm64-v8a.apk
+            elif ([[ "$apk" == *"armeabi"* ]] || [[ "$apk" == *"arm-v7a"* ]]) && [ ! -f build/app/outputs/final-apks/wallet-arm-v7a.apk ]; then
+              cp "$apk" build/app/outputs/final-apks/wallet-arm-v7a.apk
+            elif [[ "$apk" == *"x86_64"* ]] && [ ! -f build/app/outputs/final-apks/wallet-x86_64.apk ]; then
+              cp "$apk" build/app/outputs/final-apks/wallet-x86_64.apk
+            fi
+          done
+
+      - name: Verify Output APKs
+        run: |
+          echo "All APKs generated across workspace:"
+          find build android -name "*.apk" 2>/dev/null || true
+          echo "Final APKs staged for artifact upload:"
+          ls -lah build/app/outputs/final-apks/ || true
+          
+          PRIMARY_APK=""
+          if [ -f build/app/outputs/final-apks/wallet-universal.apk ]; then
+            PRIMARY_APK="build/app/outputs/final-apks/wallet-universal.apk"
+          elif [ -f build/app/outputs/final-apks/wallet-arm64-v8a.apk ]; then
+            PRIMARY_APK="build/app/outputs/final-apks/wallet-arm64-v8a.apk"
           fi
           
-          if [ -f build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk ]; then
-            mv build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk build/app/outputs/final-apks/wallet-arm-v7a.apk
+          if [ -z "$PRIMARY_APK" ]; then
+            echo "::error::No APKs were preserved in final-apks!"
+            exit 1
           fi
+          
+          echo "================ APK SIGNATURE VERIFICATION ================"
+          CERT_INFO=$(keytool -printcert -jarfile "$PRIMARY_APK" 2>&1 || true)
+          echo "$CERT_INFO"
+          
+          SIGNER_OWNER=$(echo "$CERT_INFO" | grep -i "Owner:" | head -n 1 | sed 's/[Oo]wner:\s*//')
+          SIGNER_ISSUER=$(echo "$CERT_INFO" | grep -i "Issuer:" | head -n 1 | sed 's/[Ii]ssuer:\s*//')
+          SIGNER_SHA256=$(echo "$CERT_INFO" | grep -i "SHA256:" | head -n 1 | sed 's/.*SHA256:\s*//')
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔐 APK Signature Verification" >> $GITHUB_STEP_SUMMARY
+          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "| :--- | :--- |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Signing Mode** | $SIGNING_MODE |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Certificate Owner** | \`$SIGNER_OWNER\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Certificate Issuer** | \`$SIGNER_ISSUER\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **SHA-256 Fingerprint** | \`$SIGNER_SHA256\` |" >> $GITHUB_STEP_SUMMARY
+          echo "============================================================"
 
       - name: Upload Build Artifacts
-        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: Wallet-APKs
           path: build/app/outputs/final-apks/*.apk
+          if-no-files-found: error
           retention-days: 7
 
       - name: Upload Debug Symbols
-        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: Debug-Symbols
           path: build/app/outputs/symbols/*
+          if-no-files-found: warn
           retention-days: 7
