@@ -18,6 +18,8 @@ class AppBackButton extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Center(
+      widthFactor: 1.0,
+      heightFactor: 1.0,
       child: Material(
         color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(16),
