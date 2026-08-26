@@ -25,6 +25,7 @@ class PersonalizationState {
 
   final bool useDynamicColor;
   final bool isErrorCollectorEnabled;
+  final bool isExpressiveDiversificationEnabled;
 
   PersonalizationState({
     this.grade = 50,
@@ -40,6 +41,7 @@ class PersonalizationState {
     this.isOnboardingComplete = false,
     this.useDynamicColor = true,
     this.isErrorCollectorEnabled = false,
+    this.isExpressiveDiversificationEnabled = true,
     this.userName,
     this.userPhoto,
     this.defaultCurrency,
@@ -63,6 +65,7 @@ class PersonalizationState {
     bool? isOnboardingComplete,
     bool? useDynamicColor,
     bool? isErrorCollectorEnabled,
+    bool? isExpressiveDiversificationEnabled,
     String? userName,
     String? userPhoto,
     String? defaultCurrency,
@@ -85,6 +88,7 @@ class PersonalizationState {
       isOnboardingComplete: isOnboardingComplete ?? this.isOnboardingComplete,
       useDynamicColor: useDynamicColor ?? this.useDynamicColor,
       isErrorCollectorEnabled: isErrorCollectorEnabled ?? this.isErrorCollectorEnabled,
+      isExpressiveDiversificationEnabled: isExpressiveDiversificationEnabled ?? this.isExpressiveDiversificationEnabled,
       userName: userName ?? this.userName,
       userPhoto: userPhoto ?? this.userPhoto,
       defaultCurrency: defaultCurrency ?? this.defaultCurrency,
@@ -110,6 +114,7 @@ class PersonalizationState {
       'isOnboardingComplete': isOnboardingComplete,
       'useDynamicColor': useDynamicColor,
       'isErrorCollectorEnabled': isErrorCollectorEnabled,
+      'isExpressiveDiversificationEnabled': isExpressiveDiversificationEnabled,
       'userName': userName,
       'userPhoto': userPhoto,
       'defaultCurrency': defaultCurrency,
@@ -135,6 +140,7 @@ class PersonalizationState {
       isOnboardingComplete: map['isOnboardingComplete'] as bool? ?? false,
       useDynamicColor: map['useDynamicColor'] as bool? ?? true,
       isErrorCollectorEnabled: map['isErrorCollectorEnabled'] as bool? ?? false,
+      isExpressiveDiversificationEnabled: map['isExpressiveDiversificationEnabled'] as bool? ?? true,
       userName: map['userName'] as String?,
       userPhoto: map['userPhoto'] as String?,
       defaultCurrency: map['defaultCurrency'] as String?,
@@ -251,6 +257,13 @@ class PersonalizationNotifier extends Notifier<PersonalizationState> {
 
   void toggleErrorCollector() {
     state = state.copyWith(isErrorCollectorEnabled: !state.isErrorCollectorEnabled);
+    _save();
+  }
+
+  void toggleExpressiveDiversification([bool? value]) {
+    state = state.copyWith(
+      isExpressiveDiversificationEnabled: value ?? !state.isExpressiveDiversificationEnabled,
+    );
     _save();
   }
 

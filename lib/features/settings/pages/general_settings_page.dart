@@ -126,12 +126,12 @@ class GeneralSettingsPage extends ConsumerWidget {
                       },
                     ),
                     SettingsActionTile(
-                      icon: Symbols.category_rounded,
-                      title: 'Categories',
-                      subtitle: 'Organize transaction labels & icons',
+                      icon: Symbols.auto_awesome_rounded,
+                      title: 'Expressive Showdown',
+                      subtitle: 'Make the experince more expressive',
                       showDivider: true,
                       onTap: () {
-                        context.push('/categories');
+                        context.push('/expressive_showdown');
                       },
                     ),
                     SettingsActionTile(

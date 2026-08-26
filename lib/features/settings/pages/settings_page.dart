@@ -70,12 +70,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         onTap: (ctx) => ctx.push('/currency_selection'),
       ),
       _SearchableSetting(
-        title: 'Categories',
-        subtitle: 'Manage income and expense tags, colors and symbols',
-        keywords: ['category', 'categories', 'tags', 'labels', 'organize', 'spending'],
+        title: 'Expressive Showdown',
+        subtitle: 'Make the experince more expressive',
+        keywords: ['expressive', 'showdown', 'animation', 'style', 'experience', 'material 3', 'motion', 'diversification'],
         category: 'General',
-        icon: Symbols.category_rounded,
-        onTap: (ctx) => ctx.push('/categories'),
+        icon: Symbols.auto_awesome_rounded,
+        onTap: (ctx) => ctx.push('/expressive_showdown'),
       ),
       _SearchableSetting(
         title: 'Send Feedback',

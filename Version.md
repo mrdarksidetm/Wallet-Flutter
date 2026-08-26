@@ -331,3 +331,16 @@ ont_awesome_flutter\ v11 APIs.
   - Updated `.github/workflows/build_apks.yml` and `.github/workflows/codeql.yml` to trigger on `Improv-Sandbox`, `sandbox/**`, `sandbox/*`, and wildcard sandbox patterns (`*sandbox*`, `*Sandbox*`).
 - **Status:** 100% (Workflows updated and pushed).
 
+## [2026-08-27 01:15] - Expressive Showdown Setting & Showcase Screen
+- **Action:** Added "Expressive Showdown" setting to General Settings replacing Categories, created dedicated Material 3 Expressive showcase screen with native Canvas organic shapes, blueprint grid overlays, concentric circles, and interactive diversification toggle.
+- **Changes:**
+  - **General Settings:** Replaced 'Categories' action tile with 'Expressive Showdown' (`Symbols.auto_awesome_rounded`) and subtitle "Make the experince more expressive" navigating to `/expressive_showdown`.
+  - **Showcase Screen (`ExpressiveShowdownPage`):**
+    - `SliverAppBar.medium` with `AppBackButton` squircle navigation and flexible headline title.
+    - Native `CustomPainter` (`_ExpressiveHeroPainter`) drawing organic blooming geometry (tertiary clover petal, primary 12-point starburst, center scallop), concentric circle grid lines (radii 29 to 166), and blueprint wireframes matching the design reference `Android Compact - 1.svg`.
+    - Floating squircle card badge with wallet/card outline and currency emblem featuring subtle perpetual micro-motion.
+    - Pill squircle switch tile (`height: 72`, `rx: 36`) for 'Expressive Diversification' with haptic feedback and dynamic state binding.
+    - Added Expressive capabilities overview (spring physics, Atelier color harmonies, variable typography) and live design token metrics chips.
+  - **State & Persistence:** Added `isExpressiveDiversificationEnabled` to `PersonalizationState` and `PersonalizationNotifier` with SharedPreferences persistence.
+  - **Navigation & Search:** Added `/expressive_showdown` and `/settings/expressive_showdown` routes in `router.dart`, and updated searchable settings index.
+- **Status:** 100% (Verified with `flutter analyze` with 0 issues).
