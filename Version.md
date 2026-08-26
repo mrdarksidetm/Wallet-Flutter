@@ -325,3 +325,9 @@ ont_awesome_flutter\ v11 APIs.
     - Placed `AppBackButton` in standard `AppBar.leading` slot, preventing back arrow shifting when content aligns.
 - **Status:** 100% (All features implemented, static analysis verified with 0 errors).
 
+## [2026-08-27 00:11] - CI/CD Workflow Branch Trigger Expansion
+- **Action:** Expanded branch triggers in GitHub Actions workflows to guarantee automated builds on all sandbox branch naming variations.
+- **Changes:**
+  - Updated `.github/workflows/build_apks.yml` and `.github/workflows/codeql.yml` to trigger on `Improv-Sandbox`, `sandbox/**`, `sandbox/*`, and wildcard sandbox patterns (`*sandbox*`, `*Sandbox*`).
+- **Status:** 100% (Workflows updated and pushed).
+
