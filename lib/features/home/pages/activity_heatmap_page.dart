@@ -41,12 +41,24 @@ class ActivityHeatmapPage extends ConsumerWidget {
 
               // Group transactions by year and month
               final Map<int, Map<int, List<TransactionModel>>> grouped = {};
+              final now = DateTime.now();
+              int minYear = now.year;
               for (var tx in transactions) {
+                if (tx.date.year < minYear) minYear = tx.date.year;
                 final year = tx.date.year;
                 final month = tx.date.month;
                 grouped.putIfAbsent(year, () => {});
                 grouped[year]!.putIfAbsent(month, () => []);
                 grouped[year]![month]!.add(tx);
+              }
+
+              // Ensure all months of each year from minYear to current year are present
+              for (int y = now.year; y >= minYear; y--) {
+                grouped.putIfAbsent(y, () => {});
+                final maxMonth = (y == now.year) ? now.month : 12;
+                for (int m = maxMonth; m >= 1; m--) {
+                  grouped[y]!.putIfAbsent(m, () => []);
+                }
               }
 
               // Sort years and months in descending order
@@ -257,7 +269,11 @@ class _CalendarGrid extends StatelessWidget {
         final bool hasEntry = value > 0;
         final bool isSelected = selectedDate == date;
 
-        final color = _getHeatColor(colorScheme, value, isSelected);
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final color = _getHeatColor(colorScheme, value, isSelected, isDark);
+        final Color textColor = (hasEntry || isSelected)
+            ? (isDark ? Colors.black : Colors.white)
+            : colorScheme.onSurfaceVariant.withValues(alpha: 0.6);
 
         return GestureDetector(
           onTap: hasEntry
@@ -286,10 +302,7 @@ class _CalendarGrid extends StatelessWidget {
                 fontWeight: (hasEntry || isSelected)
                     ? FontWeight.w900
                     : FontWeight.normal,
-                // Make date white color when an entry is recorded or when selected
-                color: (hasEntry || isSelected)
-                    ? Colors.white
-                    : colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                color: textColor,
               ),
             ),
           ),
@@ -298,12 +311,12 @@ class _CalendarGrid extends StatelessWidget {
     );
   }
 
-  Color _getHeatColor(ColorScheme colorScheme, double value, bool isSelected) {
+  Color _getHeatColor(ColorScheme colorScheme, double value, bool isSelected, bool isDark) {
     if (isSelected) return colorScheme.primary;
     if (value == 0) return Colors.transparent;
-    if (value < 500) return colorScheme.primary.withValues(alpha: 0.55);
-    if (value < 2000) return colorScheme.primary.withValues(alpha: 0.75);
-    if (value < 5000) return colorScheme.primary.withValues(alpha: 0.9);
+    if (value < 500) return colorScheme.primary.withValues(alpha: isDark ? 0.45 : 0.55);
+    if (value < 2000) return colorScheme.primary.withValues(alpha: isDark ? 0.70 : 0.75);
+    if (value < 5000) return colorScheme.primary.withValues(alpha: isDark ? 0.85 : 0.90);
     return colorScheme.primary;
   }
 }

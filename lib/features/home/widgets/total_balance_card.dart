@@ -19,6 +19,25 @@ class TotalBalanceCard extends ConsumerWidget {
     required this.monthlyExpense,
   });
 
+  List<FontVariation> _getBalanceFontVariations(double amount) {
+    final intVal = amount.abs().truncate();
+    final digits = intVal == 0 ? 1 : intVal.toString().length;
+    final double t = ((digits - 4) / (12 - 4)).clamp(0.0, 1.0);
+    final double weight = 797.0 - (t * (797.0 - 100.0));
+    final double width = 131.0 - (t * (131.0 - 50.0));
+    const double grade = 59.0;
+    const double roundness = 42.0;
+    const double opticalSize = 86.0;
+
+    return [
+      const FontVariation('GRAD', grade),
+      FontVariation('wght', weight),
+      FontVariation('wdth', width),
+      const FontVariation('ROND', roundness),
+      const FontVariation('opsz', opticalSize),
+    ];
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
@@ -98,19 +117,25 @@ class TotalBalanceCard extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
                 if (isVisible)
-                  AnimatedCounter(
-                    amount: totalBalance,
-                    style: theme.textTheme.displayMedium?.copyWith(
-                      fontWeight: FontWeight.w900,
-                      color: colorScheme.onSurface,
-                      letterSpacing: -1,
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: AnimatedCounter(
+                      amount: totalBalance,
+                      style: theme.textTheme.displayMedium?.copyWith(
+                        fontFamily: 'GoogleSansFlex',
+                        fontVariations: _getBalanceFontVariations(totalBalance),
+                        color: colorScheme.onSurface,
+                        letterSpacing: -1,
+                      ),
                     ),
                   )
                 else
                   Text(
                     '••••••',
                     style: theme.textTheme.displayMedium?.copyWith(
-                      fontWeight: FontWeight.w900,
+                      fontFamily: 'GoogleSansFlex',
+                      fontVariations: _getBalanceFontVariations(totalBalance),
                       color: colorScheme.onSurface,
                       letterSpacing: 4,
                     ),

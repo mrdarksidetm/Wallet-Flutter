@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/database/models/account.dart';
 import '../../../core/database/models/category.dart';
 import '../../../core/database/models/auxiliary_models.dart';
@@ -30,6 +31,7 @@ class _AddEditRecurringPageState extends ConsumerState<AddEditRecurringPage> {
   TransactionType _type = TransactionType.expense;
   RecurrenceFrequency _frequency = RecurrenceFrequency.monthly;
   DateTime _nextDate = DateTime.now();
+  bool _notifyOneDayBefore = false;
 
   @override
   void initState() {
@@ -40,6 +42,7 @@ class _AddEditRecurringPageState extends ConsumerState<AddEditRecurringPage> {
     _type = widget.recurring?.type ?? TransactionType.expense;
     _frequency = widget.recurring?.frequency ?? RecurrenceFrequency.monthly;
     _nextDate = widget.recurring?.nextDate ?? DateTime.now();
+    _notifyOneDayBefore = widget.recurring?.notifyOneDayBefore ?? false;
     _selectedAccount = widget.recurring?.account.value;
     _selectedCategory = widget.recurring?.category.value;
   }
@@ -65,6 +68,7 @@ class _AddEditRecurringPageState extends ConsumerState<AddEditRecurringPage> {
       ..type = _type
       ..frequency = _frequency
       ..nextDate = _nextDate
+      ..notifyOneDayBefore = _notifyOneDayBefore
       ..createdAt = widget.recurring?.createdAt ?? DateTime.now()
       ..updatedAt = DateTime.now()
       ..isActive = widget.recurring?.isActive ?? true;
@@ -198,6 +202,69 @@ class _AddEditRecurringPageState extends ConsumerState<AddEditRecurringPage> {
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16)),
               tileColor: theme.colorScheme.surfaceContainerLow,
+            ),
+            const SizedBox(height: 16),
+            Container(
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color:
+                      theme.colorScheme.outlineVariant.withValues(alpha: 0.35),
+                ),
+              ),
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Symbols.notifications_active_rounded,
+                          color: theme.colorScheme.primary, size: 22),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Bill Due Notification',
+                              style: theme.textTheme.titleSmall
+                                  ?.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                            Text(
+                              'Choose when to receive the payment reminder',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  SizedBox(
+                    width: double.infinity,
+                    child: SegmentedButton<bool>(
+                      segments: const [
+                        ButtonSegment<bool>(
+                          value: false,
+                          label: Text('Same Day'),
+                          icon: Icon(Symbols.today_rounded, size: 18),
+                        ),
+                        ButtonSegment<bool>(
+                          value: true,
+                          label: Text('One Day Before'),
+                          icon: Icon(Symbols.event_upcoming_rounded, size: 18),
+                        ),
+                      ],
+                      selected: {_notifyOneDayBefore},
+                      onSelectionChanged: (selected) {
+                        setState(() => _notifyOneDayBefore = selected.first);
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 48),
             FilledButton.icon(

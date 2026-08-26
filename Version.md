@@ -279,3 +279,28 @@ ont_awesome_flutter\ v11 APIs.
   - **Toolchain & CI/CD:** Stabilized AGP 8.11.1 / 8.13.0 and Gradle 8.11.1 / 8.14.5 targeting SDK 35/36 with fallback keystore generation, CodeQL workflow, and multi-ABI APK verification.
 - **Status:** 100% (All features verified, release notes generated, ready for merge).
 
+## [2026-08-26 23:20] - Version 4.5.5: Typography, Recurring Notifications & Calendar Heatmap Navigation
+- **Action:** Upgraded project to version 4.5.5 (September 2026) with dynamic balance variable typography, recurring bill notification system with customizable timing, home heatmap month navigation, full history expansion, and contrast-aware theme rendering.
+- **Changes:**
+  - **Version Upgrade:** Bumped application version to `v4.5.5+1 (September 2026)` across `pubspec.yaml`, `about_page.dart`, and `settings_page.dart`.
+  - **Variable Font Typography:**
+    - Live Preview type tester sample text updated to include numeric sequence `1234567890` after `...lazy dog`.
+    - Dynamic variable font variations for Home Screen total balance cards (`AnimatedBalanceHero` and `TotalBalanceCard`):
+      - 1-4 digits: `GRAD=59.0`, `wght=797.0`, `wdth=131.0`, `ROND=42.0`, `opsz=86.0`.
+      - 12+ digits: `wght=100.0`, `wdth=50.0`.
+      - Smooth linear interpolation scaling between 4 and 12 digits, fitted with `BoxFit.scaleDown` to ensure flawless rendering across all screen sizes.
+  - **Recurring Bill Notifications & Scheduling:**
+    - Added `notifyOneDayBefore` field to `Recurring` model with full Isar schema and serialization support.
+    - Updated `AddEditRecurringPage` with Material 3 Expressive `SegmentedButton` to select reminder timing: "Same Day" vs "One Day Before".
+    - Enhanced `NotificationService` with `scheduleRecurringBillNotification` and `cancelNotification` targeting exact 9:00 AM alarm triggers.
+    - Integrated `RecurringService` with `NotificationService` to automatically dispatch instant notifications ("Bill Due" / "Your <frequency> payment for <name> is due") upon occurrence processing and reschedule for upcoming cycles.
+    - Added automatic due recurring checks on database ready in `main.dart`.
+    - Displayed reminder timing metadata in `RecurringPage` list items.
+  - **Calendar Heatmap & Activity History Navigation:**
+    - Added month-switching navigation buttons (`<` and `>`) to the Home Screen `ActivityInsightsSection` allowing users to browse past and future months directly.
+    - Header arrow on Home Screen expands to the full `ActivityHeatmapPage` showing complete multi-year, multi-month history.
+    - Fixed contrast color rendering in both Home Heatmap and Activity History:
+      - Light mode: Date text inside active/highlighted squares switches to crisp white (`Colors.white`).
+      - Dark mode: Date text inside active/highlighted squares switches to crisp black (`Colors.black`) for optimal legibility.
+- **Status:** 100% (All features implemented, static analysis verified with 0 errors).
+

@@ -19,7 +19,7 @@ class AboutPage extends ConsumerStatefulWidget {
 }
 
 class _AboutPageState extends ConsumerState<AboutPage> {
-  String _currentVersion = '4.0.5';
+  String _currentVersion = '4.5.5';
 
   int _versionTapCount = 0;
   DateTime? _lastTapTime;

@@ -16,7 +16,7 @@ class SettingsPage extends ConsumerStatefulWidget {
 }
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
-  String _currentVersion = '4.0.5';
+  String _currentVersion = '4.5.5';
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
@@ -442,7 +442,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             // App Version Footer
             Center(
               child: Text(
-                'Wallet v$_currentVersion (June 2026)',
+                'Wallet v$_currentVersion (September 2026)',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
                   fontWeight: FontWeight.w500,

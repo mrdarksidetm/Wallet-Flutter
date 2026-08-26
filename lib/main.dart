@@ -91,7 +91,10 @@ class WalletApp extends ConsumerWidget {
           debugShowCheckedModeBanner: false,
           builder: (context, child) {
             return isarInit.when(
-              data: (_) => child!,
+              data: (_) {
+                ref.read(recurringServiceProvider).checkRecurringTransactions();
+                return child!;
+              },
               loading: () => const Scaffold(
                 body: Center(child: CircularProgressIndicator()),
               ),
