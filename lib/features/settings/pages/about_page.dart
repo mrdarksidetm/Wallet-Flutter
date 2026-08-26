@@ -120,20 +120,19 @@ class _AboutPageState extends ConsumerState<AboutPage> {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Top Bar: Back Button
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: AppBackButton(),
-              ),
-              const SizedBox(height: 24),
-
-              _buildAppIcon(colorScheme),
+      appBar: AppBar(
+        leading: const AppBackButton(),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(height: 8),
+            _buildAppIcon(colorScheme),
               const SizedBox(height: 20),
               Text(
                 'Wallet',
@@ -310,8 +309,7 @@ class _AboutPageState extends ConsumerState<AboutPage> {
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildPillButton({

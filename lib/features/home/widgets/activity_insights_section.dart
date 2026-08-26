@@ -28,7 +28,7 @@ class _ActivityInsightsSectionState extends ConsumerState<ActivityInsightsSectio
 
   @override
   Widget build(BuildContext context) {
-    final transactionsAsync = ref.watch(transactionsStreamProvider);
+    final transactionsAsync = ref.watch(allTransactionsStreamProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 

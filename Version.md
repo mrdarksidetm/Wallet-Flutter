@@ -304,3 +304,24 @@ ont_awesome_flutter\ v11 APIs.
       - Dark mode: Date text inside active/highlighted squares switches to crisp black (`Colors.black`) for optimal legibility.
 - **Status:** 100% (All features implemented, static analysis verified with 0 errors).
 
+## [2026-08-27 00:05] - Recent Transactions Upper Squircle Section, Pill Filters & Heatmap Stream Fix
+- **Action:** Implemented contrasting upper-squircle Recent Transactions section on Home, redesigned filter bar with interactive pill-shaped controls across Home and All Transactions, fixed calendar heatmap stream hydration for past months, and stabilized AboutPage back navigation.
+- **Changes:**
+  - **Home Screen Recent Transactions Section:**
+    - Wrapped Recent Transactions in an elevated upper-squircle container (`borderRadius: BorderRadius.vertical(top: Radius.circular(32))`) with contrasting background (`surfaceContainerLow` / `surfaceContainerHigh`) and drag handle accent.
+    - Placed pill-shaped filter buttons (Date, Account, Type) directly beneath the heading in a horizontal scrollable row.
+    - Integrated "View all" quick text action in the heading and a full-width tonal button at the bottom.
+  - **All Transactions Filter Expansion:**
+    - Added a horizontally scrollable pill filter bar below the AppBar header featuring:
+      - **Date Sort Pill** (`Symbols.calendar_month_rounded`)
+      - **Account Sort Pill** (`Symbols.account_balance_wallet_rounded`)
+      - **Sort Order Toggle Pill** (`Symbols.arrow_upward_rounded` / `Symbols.arrow_downward_rounded`, 'Oldest' vs 'Newest')
+      - **Type Filter Pill** (`All`, `Income`, `Expense`, `Transfer`)
+      - **Archive Toggle Pill** (`Active` vs `Archived`)
+    - Cleaned up redundant AppBar action popups.
+  - **Calendar Heatmap Past Month Stream Fix:**
+    - Switched `ActivityInsightsSection` and `ActivityHeatmapPage` to `allTransactionsStreamProvider` (from 50-limit `transactionsStreamProvider`), allowing historical transactions from all previous months and years to hydrate accurately.
+  - **About Page Navigation Fix:**
+    - Placed `AppBackButton` in standard `AppBar.leading` slot, preventing back arrow shifting when content aligns.
+- **Status:** 100% (All features implemented, static analysis verified with 0 errors).
+

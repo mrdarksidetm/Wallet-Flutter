@@ -11,7 +11,7 @@ class ActivityHeatmapPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final transactionsAsync = ref.watch(transactionsStreamProvider);
+    final transactionsAsync = ref.watch(allTransactionsStreamProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -43,8 +43,10 @@ class ActivityHeatmapPage extends ConsumerWidget {
               final Map<int, Map<int, List<TransactionModel>>> grouped = {};
               final now = DateTime.now();
               int minYear = now.year;
+              int maxYear = now.year;
               for (var tx in transactions) {
                 if (tx.date.year < minYear) minYear = tx.date.year;
+                if (tx.date.year > maxYear) maxYear = tx.date.year;
                 final year = tx.date.year;
                 final month = tx.date.month;
                 grouped.putIfAbsent(year, () => {});
@@ -52,10 +54,11 @@ class ActivityHeatmapPage extends ConsumerWidget {
                 grouped[year]![month]!.add(tx);
               }
 
-              // Ensure all months of each year from minYear to current year are present
-              for (int y = now.year; y >= minYear; y--) {
+              // Ensure all months of each year from minYear to maxYear are present
+              for (int y = maxYear; y >= minYear; y--) {
                 grouped.putIfAbsent(y, () => {});
-                final maxMonth = (y == now.year) ? now.month : 12;
+                final maxMonth =
+                    (y == maxYear && maxYear == now.year) ? now.month : 12;
                 for (int m = maxMonth; m >= 1; m--) {
                   grouped[y]!.putIfAbsent(m, () => []);
                 }
