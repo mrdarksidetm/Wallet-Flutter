@@ -7592,19 +7592,24 @@ const RecurringSchema = CollectionSchema(
       name: r'nextDate',
       type: IsarType.dateTime,
     ),
-    r'type': PropertySchema(
+    r'notifyOneDayBefore': PropertySchema(
       id: 8,
+      name: r'notifyOneDayBefore',
+      type: IsarType.bool,
+    ),
+    r'type': PropertySchema(
+      id: 9,
       name: r'type',
       type: IsarType.string,
       enumMap: _RecurringtypeEnumValueMap,
     ),
     r'updatedAt': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'uuid': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'uuid',
       type: IsarType.string,
     )
@@ -7683,9 +7688,10 @@ void _recurringSerialize(
   writer.writeBool(offsets[5], object.isDeleted);
   writer.writeString(offsets[6], object.name);
   writer.writeDateTime(offsets[7], object.nextDate);
-  writer.writeString(offsets[8], object.type.name);
-  writer.writeDateTime(offsets[9], object.updatedAt);
-  writer.writeString(offsets[10], object.uuid);
+  writer.writeBool(offsets[8], object.notifyOneDayBefore);
+  writer.writeString(offsets[9], object.type.name);
+  writer.writeDateTime(offsets[10], object.updatedAt);
+  writer.writeString(offsets[11], object.uuid);
 }
 
 Recurring _recurringDeserialize(
@@ -7706,11 +7712,12 @@ Recurring _recurringDeserialize(
   object.isDeleted = reader.readBool(offsets[5]);
   object.name = reader.readString(offsets[6]);
   object.nextDate = reader.readDateTime(offsets[7]);
+  object.notifyOneDayBefore = reader.readBoolOrNull(offsets[8]) ?? false;
   object.type =
-      _RecurringtypeValueEnumMap[reader.readStringOrNull(offsets[8])] ??
+      _RecurringtypeValueEnumMap[reader.readStringOrNull(offsets[9])] ??
           TransactionType.income;
-  object.updatedAt = reader.readDateTime(offsets[9]);
-  object.uuid = reader.readString(offsets[10]);
+  object.updatedAt = reader.readDateTime(offsets[10]);
+  object.uuid = reader.readString(offsets[11]);
   return object;
 }
 
@@ -7740,11 +7747,13 @@ P _recurringDeserializeProp<P>(
     case 7:
       return (reader.readDateTime(offset)) as P;
     case 8:
+      return (reader.readBoolOrNull(offset) ?? false) as P;
+    case 9:
       return (_RecurringtypeValueEnumMap[reader.readStringOrNull(offset)] ??
           TransactionType.income) as P;
-    case 9:
-      return (reader.readDateTime(offset)) as P;
     case 10:
+      return (reader.readDateTime(offset)) as P;
+    case 11:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');

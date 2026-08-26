@@ -3,11 +3,18 @@ import '../models/auxiliary_models.dart';
 import '../models/transaction_model.dart';
 import '../services/transaction_service.dart';
 
+import '../../services/notification_service.dart';
+
 class RecurringService {
   final Isar isar;
   final TransactionService transactionService;
+  final NotificationService? notificationService;
 
-  RecurringService({required this.isar, required this.transactionService});
+  RecurringService({
+    required this.isar,
+    required this.transactionService,
+    this.notificationService,
+  });
 
   Future<void> saveRecurring(Recurring recurring) async {
     await isar.writeTxn(() async {
@@ -18,6 +25,25 @@ class RecurringService {
         await recurring.transferAccount.save();
       }
     });
+
+    if (recurring.isActive) {
+      await notificationService?.scheduleRecurringBillNotification(
+        id: recurring.id,
+        name: recurring.name,
+        frequencyName: recurring.frequency.name,
+        nextDate: recurring.nextDate,
+        notifyOneDayBefore: recurring.notifyOneDayBefore,
+      );
+    } else {
+      await notificationService?.cancelNotification(recurring.id);
+    }
+  }
+
+  Future<void> deleteRecurring(int id) async {
+    await isar.writeTxn(() async {
+      await isar.recurrings.delete(id);
+    });
+    await notificationService?.cancelNotification(id);
   }
 
   /// Checks and processes due recurring transactions
@@ -53,6 +79,12 @@ class RecurringService {
         transferAccount: recurring.transferAccount.value,
       );
 
+      // Push notification when an occurrence comes
+      await notificationService?.showInstantNotification(
+        'Bill Due',
+        'Your ${recurring.frequency.name} payment for ${recurring.name} is due',
+      );
+
       // Update next date
       await isar.writeTxn(() async {
         recurring.nextDate =
@@ -65,6 +97,19 @@ class RecurringService {
         }
         await isar.recurrings.put(recurring);
       });
+
+      // Reschedule notification for the upcoming occurrence
+      if (recurring.isActive) {
+        await notificationService?.scheduleRecurringBillNotification(
+          id: recurring.id,
+          name: recurring.name,
+          frequencyName: recurring.frequency.name,
+          nextDate: recurring.nextDate,
+          notifyOneDayBefore: recurring.notifyOneDayBefore,
+        );
+      } else {
+        await notificationService?.cancelNotification(recurring.id);
+      }
     } catch (e) {
       // Log error or handle failure
     }

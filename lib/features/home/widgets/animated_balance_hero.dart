@@ -42,6 +42,25 @@ class _AnimatedBalanceHeroState extends ConsumerState<AnimatedBalanceHero>
     super.dispose();
   }
 
+  List<FontVariation> _getBalanceFontVariations(double amount) {
+    final intVal = amount.abs().truncate();
+    final digits = intVal == 0 ? 1 : intVal.toString().length;
+    final double t = ((digits - 4) / (12 - 4)).clamp(0.0, 1.0);
+    final double weight = 797.0 - (t * (797.0 - 100.0));
+    final double width = 131.0 - (t * (131.0 - 50.0));
+    const double grade = 59.0;
+    const double roundness = 42.0;
+    const double opticalSize = 86.0;
+
+    return [
+      const FontVariation('GRAD', grade),
+      FontVariation('wght', weight),
+      FontVariation('wdth', width),
+      const FontVariation('ROND', roundness),
+      const FontVariation('opsz', opticalSize),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -175,26 +194,32 @@ class _AnimatedBalanceHeroState extends ConsumerState<AnimatedBalanceHero>
 
                   // Rolling Balance Text
                   if (isVisible)
-                    TweenAnimationBuilder<double>(
-                      tween: Tween<double>(begin: 0, end: widget.totalBalance),
-                      duration: const Duration(milliseconds: 1500),
-                      curve: Curves.easeOutCubic,
-                      builder: (context, value, child) {
-                        return Text(
-                          CurrencyEngine.formatCurrency(value, currency),
-                          style: theme.textTheme.displayMedium?.copyWith(
-                            fontWeight: FontWeight.w900,
-                            color: colorScheme.onSurface,
-                            letterSpacing: -1,
-                          ),
-                        );
-                      },
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: TweenAnimationBuilder<double>(
+                        tween: Tween<double>(begin: 0, end: widget.totalBalance),
+                        duration: const Duration(milliseconds: 1500),
+                        curve: Curves.easeOutCubic,
+                        builder: (context, value, child) {
+                          return Text(
+                            CurrencyEngine.formatCurrency(value, currency),
+                            style: theme.textTheme.displayMedium?.copyWith(
+                              fontFamily: 'GoogleSansFlex',
+                              fontVariations: _getBalanceFontVariations(widget.totalBalance),
+                              color: colorScheme.onSurface,
+                              letterSpacing: -1,
+                            ),
+                          );
+                        },
+                      ),
                     )
                   else
                     Text(
                       '••••••',
                       style: theme.textTheme.displayMedium?.copyWith(
-                        fontWeight: FontWeight.w900,
+                        fontFamily: 'GoogleSansFlex',
+                        fontVariations: _getBalanceFontVariations(widget.totalBalance),
                         color: colorScheme.onSurface,
                         letterSpacing: 4,
                       ),

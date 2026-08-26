@@ -2,9 +2,9 @@ name: "CodeQL Analysis"
 
 on:
   push:
-    branches: [ main, develop, Improv, 'sandbox/**' ]
+    branches: [ main, develop, Improv, 'Improv-Sandbox', 'sandbox/**', 'sandbox/*', '*sandbox*', '*Sandbox*' ]
   pull_request:
-    branches: [ main, develop, Improv, 'sandbox/**' ]
+    branches: [ main, develop, Improv, 'Improv-Sandbox', 'sandbox/**', 'sandbox/*', '*sandbox*', '*Sandbox*' ]
   schedule:
     - cron: '0 6 * * 1'
 

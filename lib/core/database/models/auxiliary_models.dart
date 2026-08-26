@@ -152,6 +152,8 @@ class Recurring {
   DateTime nextDate = DateTime.now();
   DateTime? endDate;
 
+  bool notifyOneDayBefore = false;
+
   bool isActive = true;
   DateTime createdAt = DateTime.now();
   DateTime updatedAt = DateTime.now();

@@ -81,6 +81,44 @@ class NotificationService {
     );
   }
 
+  Future<void> scheduleRecurringBillNotification({
+    required int id,
+    required String name,
+    required String frequencyName,
+    required DateTime nextDate,
+    required bool notifyOneDayBefore,
+  }) async {
+    const title = 'Bill Due';
+    final body = 'Your $frequencyName payment for $name is due';
+
+    DateTime scheduledDate;
+    if (notifyOneDayBefore) {
+      final dayBefore = nextDate.subtract(const Duration(days: 1));
+      scheduledDate =
+          DateTime(dayBefore.year, dayBefore.month, dayBefore.day, 9, 0);
+    } else {
+      scheduledDate =
+          DateTime(nextDate.year, nextDate.month, nextDate.day, 9, 0);
+    }
+
+    try {
+      await cancelNotification(id);
+    } catch (_) {}
+
+    final now = DateTime.now();
+    if (scheduledDate.isAfter(now)) {
+      try {
+        await scheduleNotification(id, title, body, scheduledDate);
+      } catch (_) {}
+    }
+  }
+
+  Future<void> cancelNotification(int id) async {
+    try {
+      await _notificationsPlugin.cancel(id: id);
+    } catch (_) {}
+  }
+
   Future<void> cancelAll() async {
     await _notificationsPlugin.cancelAll();
   }

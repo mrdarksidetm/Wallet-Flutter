@@ -28,7 +28,7 @@ class _ActivityInsightsSectionState extends ConsumerState<ActivityInsightsSectio
 
   @override
   Widget build(BuildContext context) {
-    final transactionsAsync = ref.watch(transactionsStreamProvider);
+    final transactionsAsync = ref.watch(allTransactionsStreamProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -138,27 +138,53 @@ class _ActivityInsightsSectionState extends ConsumerState<ActivityInsightsSectio
           const SizedBox(height: 20),
           Divider(color: colorScheme.outlineVariant.withValues(alpha: 0.5), height: 1),
           const SizedBox(height: 20),
-          Text(
-            DateFormat('MMMM yyyy').format(_currentMonth),
-            style: theme.textTheme.labelLarge?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                icon: const Icon(Symbols.chevron_left_rounded, size: 20),
+                visualDensity: VisualDensity.compact,
+                onPressed: () {
+                  setState(() {
+                    _currentMonth = DateTime(
+                        _currentMonth.year, _currentMonth.month - 1);
+                  });
+                },
+              ),
+              Text(
+                DateFormat('MMMM yyyy').format(_currentMonth),
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Symbols.chevron_right_rounded, size: 20),
+                visualDensity: VisualDensity.compact,
+                onPressed: () {
+                  setState(() {
+                    _currentMonth = DateTime(
+                        _currentMonth.year, _currentMonth.month + 1);
+                  });
+                },
+              ),
+            ],
           ),
-          const SizedBox(height: 20),
-          _buildCalendarGrid(colorScheme, aggregatedData),
+          const SizedBox(height: 14),
+          _buildCalendarGrid(theme, colorScheme, aggregatedData),
         ],
       ),
     );
   }
 
-  Widget _buildCalendarGrid(ColorScheme colorScheme, Map<DateTime, double> aggregatedData) {
+  Widget _buildCalendarGrid(ThemeData theme, ColorScheme colorScheme, Map<DateTime, double> aggregatedData) {
     final int daysInMonth = DateUtils.getDaysInMonth(_currentMonth.year, _currentMonth.month);
     final DateTime firstDayOfMonth = DateTime(_currentMonth.year, _currentMonth.month, 1);
     int startOffset = firstDayOfMonth.weekday - 1; 
     if (startOffset < 0) startOffset = 6; 
 
     final int totalCells = startOffset + daysInMonth;
+    final isDark = theme.brightness == Brightness.dark;
 
     return GridView.builder(
       shrinkWrap: true,
@@ -183,7 +209,12 @@ class _ActivityInsightsSectionState extends ConsumerState<ActivityInsightsSectio
                           cellDate.day == _selectedDate.day;
 
         final double dayValue = aggregatedData[cellDate] ?? 0.0;
-        final Color cellColor = _getHeatColor(colorScheme, dayValue);
+        final bool hasEntry = dayValue > 0;
+        final Color cellColor = _getHeatColor(colorScheme, dayValue, isDark);
+
+        final Color textColor = (hasEntry || isSelected)
+            ? (isDark ? Colors.black : Colors.white)
+            : colorScheme.onSurfaceVariant;
 
         return GestureDetector(
           onTap: () {
@@ -204,9 +235,9 @@ class _ActivityInsightsSectionState extends ConsumerState<ActivityInsightsSectio
             child: Text(
               day.toString(),
               style: TextStyle(
-                color: dayValue > 0 ? colorScheme.onPrimaryContainer : colorScheme.onSurfaceVariant,
+                color: textColor,
                 fontSize: 13,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                fontWeight: (isSelected || hasEntry) ? FontWeight.bold : FontWeight.w500,
               ),
             ),
           ),
@@ -215,13 +246,13 @@ class _ActivityInsightsSectionState extends ConsumerState<ActivityInsightsSectio
     );
   }
 
-  Color _getHeatColor(ColorScheme colorScheme, double value) {
+  Color _getHeatColor(ColorScheme colorScheme, double value, bool isDark) {
     if (value == 0) return Colors.transparent;
     
     // Intensity based on amount
-    if (value < 500) return colorScheme.primaryContainer.withValues(alpha: 0.4);
-    if (value < 2000) return colorScheme.primaryContainer.withValues(alpha: 0.7);
-    if (value < 5000) return colorScheme.primaryContainer;
+    if (value < 500) return colorScheme.primary.withValues(alpha: isDark ? 0.45 : 0.55);
+    if (value < 2000) return colorScheme.primary.withValues(alpha: isDark ? 0.70 : 0.75);
+    if (value < 5000) return colorScheme.primary.withValues(alpha: isDark ? 0.85 : 0.90);
     return colorScheme.primary;
   }
 
