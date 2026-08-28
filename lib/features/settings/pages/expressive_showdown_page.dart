@@ -1,10 +1,12 @@
-import 'dart:math' as math;
+import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import '../../../core/database/providers.dart';
 import '../../../core/theme/personalization_provider.dart';
+import '../../../core/theme/theme_provider.dart';
 import '../../../core/widgets/app_back_button.dart';
 import '../widgets/settings_segmented_card.dart';
 
@@ -20,25 +22,103 @@ class ExpressiveShowdownPage extends ConsumerStatefulWidget {
 }
 
 class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late final AnimationController _motionController;
+  late final AnimationController _shapeMorphController;
+  late final AnimationController _springPadController;
+
+  int _selectedShapeIndex = 0;
+  double _springDragOffset = 0.0;
+
+  static const List<_ShapeDescriptor> _expressiveShapes = [
+    _ShapeDescriptor(
+      name: 'Squircle',
+      type: _ShapeType.squircle,
+      subtitle: 'Smooth super-ellipse with continuous curvature',
+      badge: 'Continuous C2',
+      icon: Symbols.crop_square_rounded,
+    ),
+    _ShapeDescriptor(
+      name: '4-Leaf Petal',
+      type: _ShapeType.petal,
+      subtitle: 'Intersecting organic clover quadrants',
+      badge: 'Floral Emblem',
+      icon: Symbols.local_florist_rounded,
+    ),
+    _ShapeDescriptor(
+      name: '8-Point Starburst',
+      type: _ShapeType.starburst,
+      subtitle: 'Radial badge with smoothed vertices',
+      badge: 'Accent Badge',
+      icon: Symbols.auto_awesome_rounded,
+    ),
+    _ShapeDescriptor(
+      name: 'Scallop Medallion',
+      type: _ShapeType.scallop,
+      subtitle: 'Circular container with 12-wave harmonic edge',
+      badge: 'Harmonic',
+      icon: Symbols.military_tech_rounded,
+    ),
+    _ShapeDescriptor(
+      name: 'Pill Capsule',
+      type: _ShapeType.pill,
+      subtitle: 'Extended stadium container with maximal fillet',
+      badge: 'Action Target',
+      icon: Symbols.pill_rounded,
+    ),
+    _ShapeDescriptor(
+      name: 'Asymmetric Arch',
+      type: _ShapeType.asymmetric,
+      subtitle: 'Contrasting diagonal corner radii for editorial layout',
+      badge: 'Editorial',
+      icon: Symbols.interests_rounded,
+    ),
+  ];
 
   @override
   void initState() {
     super.initState();
     _motionController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 12),
+      duration: const Duration(seconds: 8),
     );
 
-    // Perpetual subtle breathing micro-motion
+    _shapeMorphController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 650),
+    );
+
+    _springPadController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+
+    _shapeMorphController.forward();
     _motionController.repeat();
   }
 
   @override
   void dispose() {
     _motionController.dispose();
+    _shapeMorphController.dispose();
+    _springPadController.dispose();
     super.dispose();
+  }
+
+  void _triggerSpringImpulse() {
+    HapticFeedback.mediumImpact();
+    _springPadController.reset();
+    _springPadController.forward();
+  }
+
+  void _selectShape(int index) {
+    if (_selectedShapeIndex == index) return;
+    HapticFeedback.selectionClick();
+    setState(() {
+      _selectedShapeIndex = index;
+    });
+    _shapeMorphController.reset();
+    _shapeMorphController.forward();
   }
 
   @override
@@ -46,7 +126,6 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final personalization = ref.watch(personalizationProvider);
-    final currency = ref.watch(currencyProvider);
     final isExpressive = personalization.isExpressiveDiversificationEnabled;
 
     if (!isExpressive && _motionController.isAnimating) {
@@ -66,7 +145,7 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
           SliverAppBar.medium(
             leading: const AppBackButton(),
             title: Text(
-              'Expressive Showdown',
+              'Expressive',
               style: theme.textTheme.headlineLarge?.copyWith(
                 fontSize: (theme.textTheme.headlineLarge?.fontSize ?? 32) + 3,
                 fontWeight: FontWeight.w800,
@@ -74,22 +153,56 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
               ),
             ),
           ),
+
+          // Expressive Showcase Hero Banner (The ONLY backdrop banner on the page)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+              child: AnimatedBuilder(
+                animation: _motionController,
+                builder: (context, child) {
+                  final scale = isExpressive
+                      ? 1.0 + (sin(_motionController.value * 2 * pi) * 0.012)
+                      : 1.0;
+                  return Transform.scale(
+                    scale: scale,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: colorScheme.surfaceContainerLow,
+                        borderRadius: BorderRadius.circular(outerRadius),
+                        border: Border.all(
+                          color: colorScheme.outlineVariant
+                              .withValues(alpha: 0.25),
+                          width: 1.0,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: colorScheme.shadow.withValues(alpha: 0.04),
+                            blurRadius: 16,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: AspectRatio(
+                        aspectRatio: 412 / 190,
+                        child: SvgPicture.asset(
+                          'assets/images/expressive_showdown_banner.svg',
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 36),
             sliver: SliverList.list(
               children: [
-                // Hero Expressive Graphic Showcase Banner
-                _buildHeroBanner(
-                  context,
-                  colorScheme,
-                  outerRadius,
-                  currency,
-                  isExpressive,
-                ),
-
-                const SizedBox(height: 20),
-
-                // Primary Setting: Expressive Diversification Switch Card
+                // Primary Setting: Expressive Diversification Switch Card (Matching skeleton)
                 _buildExpressiveDiversificationCard(
                   context,
                   theme,
@@ -98,81 +211,113 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
                   isExpressive,
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 28),
 
-                // Section Header
-                Padding(
-                  padding: const EdgeInsets.only(left: 4, bottom: 12),
-                  child: Text(
-                    'EXPRESSIVE CAPABILITIES',
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: colorScheme.primary,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
+                // Section 1: Expressive Shape Morphology Playground
+                _buildSectionHeader(
+                  theme,
+                  colorScheme,
+                  title: 'EXPRESSIVE SHAPE MORPHOLOGY',
+                  badgeText: 'Interactive',
+                  icon: Symbols.shapes_rounded,
+                ),
+                const SizedBox(height: 12),
+                _buildShapePlaygroundCard(
+                  theme,
+                  colorScheme,
+                  personalization,
+                  outerRadius,
+                  isExpressive,
                 ),
 
-                // Expressive Motion & Dynamics Segmented Group
+                const SizedBox(height: 28),
+
+                // Section 2: Spring Dynamics & Tactile Physics
+                _buildSectionHeader(
+                  theme,
+                  colorScheme,
+                  title: 'SPRING DYNAMICS & TACTILE PHYSICS',
+                  badgeText: isExpressive ? 'Active' : 'M3 Linear',
+                  icon: Symbols.motion_photos_on_rounded,
+                ),
+                const SizedBox(height: 12),
+                _buildSpringDynamicsCard(
+                  theme,
+                  colorScheme,
+                  personalization,
+                  outerRadius,
+                  isExpressive,
+                ),
+
+                const SizedBox(height: 28),
+
+                // Section 3: Atelier Color Harmonies
+                _buildSectionHeader(
+                  theme,
+                  colorScheme,
+                  title: 'ATELIER COLOR HARMONIES',
+                  badgeText: personalization.colorSchemeVariant.toUpperCase(),
+                  icon: Symbols.palette_rounded,
+                ),
+                const SizedBox(height: 12),
+                _buildAtelierColorSection(
+                  theme,
+                  colorScheme,
+                  personalization,
+                  outerRadius,
+                ),
+
+                const SizedBox(height: 28),
+
+                // Section 4: Variable Typography Engine
+                _buildSectionHeader(
+                  theme,
+                  colorScheme,
+                  title: 'VARIABLE TYPOGRAPHY DYNAMICS',
+                  badgeText: 'Google Sans Flex',
+                  icon: Symbols.font_download_rounded,
+                ),
+                const SizedBox(height: 12),
+                _buildVariableTypographyCard(
+                  theme,
+                  colorScheme,
+                  personalization,
+                  outerRadius,
+                ),
+
+                const SizedBox(height: 28),
+
+                // Section 5: Design Token Metrics Inspector
+                _buildSectionHeader(
+                  theme,
+                  colorScheme,
+                  title: 'MATERIAL 3 EXPRESSIVE TOKENS',
+                  icon: Symbols.token_rounded,
+                ),
+                const SizedBox(height: 12),
+                _buildDesignTokensCard(
+                  theme,
+                  colorScheme,
+                  personalization,
+                  outerRadius,
+                  isExpressive,
+                ),
+
+                const SizedBox(height: 24),
+
+                // Quick Navigation Card to Full Personalization
                 SettingsSegmentedGroup(
                   children: [
                     SettingsActionTile(
-                      icon: Symbols.motion_photos_on_rounded,
-                      title: 'Dynamic Spring Physics',
+                      icon: Symbols.tune_rounded,
+                      title: 'All Appearance & Sliders',
                       subtitle:
-                          'Perpetual micro-motion, organic squircle morphing & reactive sheets',
-                      showDivider: true,
-                      trailing: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: isExpressive
-                              ? colorScheme.primaryContainer
-                              : colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          isExpressive ? 'Active' : 'Paused',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: isExpressive
-                                ? colorScheme.onPrimaryContainer
-                                : colorScheme.onSurfaceVariant,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      onTap: () {
-                        ref
-                            .read(personalizationProvider.notifier)
-                            .toggleExpressiveDiversification();
-                      },
-                    ),
-                    SettingsActionTile(
-                      icon: Symbols.palette_rounded,
-                      title: 'Atelier Color Harmonies',
-                      subtitle:
-                          'Variant: ${personalization.colorSchemeVariant.toUpperCase()} • Dynamic chroma calibration',
-                      showDivider: true,
-                      onTap: () => context.push('/personalization'),
-                    ),
-                    SettingsActionTile(
-                      icon: Symbols.font_download_rounded,
-                      title: 'Variable Typography',
-                      subtitle:
-                          'Google Sans Flex: weight ${personalization.weight.toInt()}, grade ${personalization.grade.toInt()}',
+                          'Fine-tune variable optical size, grade, slant and corner fillets',
                       showDivider: false,
                       onTap: () => context.push('/personalization'),
                     ),
                   ],
                 ),
-
-                const SizedBox(height: 20),
-
-                // Design Token Metrics Card
-                _buildDesignTokensCard(
-                    theme, colorScheme, personalization, outerRadius),
-
-                const SizedBox(height: 32),
               ],
             ),
           ),
@@ -181,131 +326,57 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
     );
   }
 
-  Widget _buildHeroBanner(
-    BuildContext context,
-    ColorScheme colorScheme,
-    double outerRadius,
-    String currency,
-    bool isExpressive,
-  ) {
-    return Container(
-      height: 200,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E1A22), // Dark expressive canvas base
-        borderRadius: BorderRadius.circular(outerRadius),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.shadow.withValues(alpha: 0.12),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Stack(
-        fit: StackFit.expand,
+  // --- Section Header with optional badge ---
+  Widget _buildSectionHeader(
+    ThemeData theme,
+    ColorScheme colorScheme, {
+    required String title,
+    String? badgeText,
+    required IconData icon,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Row(
         children: [
-          // Animated Canvas with Organic Shapes, Blueprint Grid & Concentric Circles
-          AnimatedBuilder(
-            animation: _motionController,
-            builder: (context, child) {
-              return CustomPaint(
-                painter: _ExpressiveHeroPainter(
-                  animationProgress:
-                      isExpressive ? _motionController.value : 0.0,
-                  primaryColor: colorScheme.primary,
-                  primaryContainerColor: colorScheme.primaryContainer,
-                  tertiaryColor: colorScheme.tertiary,
-                  surfaceContainerColor: colorScheme.surfaceContainerHighest,
-                  outlineColor: colorScheme.outlineVariant,
-                  isExpressive: isExpressive,
-                ),
-              );
-            },
+          Icon(
+            icon,
+            size: 16,
+            color: colorScheme.primary,
           ),
-
-          // Central Floating Squircle Card with Currency / Wallet Emblem
-          Center(
-            child: AnimatedBuilder(
-              animation: _motionController,
-              builder: (context, child) {
-                final scale = isExpressive
-                    ? 1.0 + 0.03 * math.sin(_motionController.value * 2 * math.pi)
-                    : 1.0;
-                return Transform.scale(
-                  scale: scale,
-                  child: child,
-                );
-              },
-              child: Container(
-                width: 110,
-                height: 110,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(34),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.55),
-                    width: 2.0,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.25),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // Wallet / Card squircle outline
-                    Container(
-                      width: 82,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: const Color(0xFFE6E0E9).withValues(alpha: 0.85),
-                          width: 3.5,
-                        ),
-                      ),
-                    ),
-
-                    // Central Scalloped Badge with Currency Emblem
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF4F378B).withValues(alpha: 0.75),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: const Color(0xFFE6E0E9),
-                          width: 2.5,
-                        ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          currency.isNotEmpty ? currency : '₹',
-                          style: const TextStyle(
-                            color: Color(0xFFE6E0E9),
-                            fontSize: 22,
-                            fontWeight: FontWeight.w900,
-                            fontFamily: 'GoogleSansFlex',
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              title,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: colorScheme.primary,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.1,
+                fontSize: 12,
               ),
             ),
           ),
+          if (badgeText != null)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: colorScheme.primaryContainer.withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                badgeText,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: colorScheme.onPrimaryContainer,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 10,
+                ),
+              ),
+            ),
         ],
       ),
     );
   }
 
+  // --- Hero Switch Card (Matching exact wireframe/skeleton rx=36 pill) ---
   Widget _buildExpressiveDiversificationCard(
     BuildContext context,
     ThemeData theme,
@@ -319,6 +390,7 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
+          HapticFeedback.mediumImpact();
           ref
               .read(personalizationProvider.notifier)
               .toggleExpressiveDiversification();
@@ -329,24 +401,45 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
             children: [
-              // Icon Badge
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: isExpressive
-                      ? colorScheme.primaryContainer
-                      : colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Icon(
-                  Symbols.auto_awesome_rounded,
-                  size: 24,
-                  color: isExpressive
-                      ? colorScheme.onPrimaryContainer
-                      : colorScheme.onSurfaceVariant,
-                  fill: personalization.fillIcons ? 1.0 : 0.0,
-                ),
+              // Icon Badge with subtle rotation when active
+              AnimatedBuilder(
+                animation: _motionController,
+                builder: (context, child) {
+                  final rotation = isExpressive
+                      ? sin(_motionController.value * 2 * pi) * 0.15
+                      : 0.0;
+                  return Transform.rotate(
+                    angle: rotation,
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: isExpressive
+                            ? colorScheme.primaryContainer
+                            : colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: isExpressive
+                            ? [
+                                BoxShadow(
+                                  color: colorScheme.primary
+                                      .withValues(alpha: 0.2),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: Icon(
+                        Symbols.auto_awesome_rounded,
+                        size: 24,
+                        color: isExpressive
+                            ? colorScheme.onPrimaryContainer
+                            : colorScheme.onSurfaceVariant,
+                        fill: personalization.fillIcons ? 1.0 : 0.0,
+                      ),
+                    ),
+                  );
+                },
               ),
 
               const SizedBox(width: 16),
@@ -380,7 +473,18 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
               // Material 3 Switch with checkmark
               Switch(
                 value: isExpressive,
+                thumbIcon: WidgetStateProperty.resolveWith<Icon?>((states) {
+                  if (states.contains(WidgetState.selected)) {
+                    return Icon(
+                      Icons.check_rounded,
+                      size: 16,
+                      color: colorScheme.onPrimary,
+                    );
+                  }
+                  return null;
+                }),
                 onChanged: (value) {
+                  HapticFeedback.selectionClick();
                   ref
                       .read(personalizationProvider.notifier)
                       .toggleExpressiveDiversification(value);
@@ -393,7 +497,546 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
     );
   }
 
-  Widget _buildDesignTokensCard(
+  // --- Section 1: Shape Morphing Playground Card ---
+  Widget _buildShapePlaygroundCard(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    PersonalizationState personalization,
+    double outerRadius,
+    bool isExpressive,
+  ) {
+    final currentDescriptor = _expressiveShapes[_selectedShapeIndex];
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(outerRadius),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.25),
+          width: 1.0,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Live Shape Canvas Preview
+          Center(
+            child: SizedBox(
+              height: 150,
+              width: 150,
+              child: AnimatedBuilder(
+                animation: Listenable.merge(
+                    [_shapeMorphController, _motionController]),
+                builder: (context, child) {
+                  final morphProgress = CurvedAnimation(
+                    parent: _shapeMorphController,
+                    curve: Curves.easeOutBack,
+                  ).value;
+
+                  final breathScale = isExpressive
+                      ? 1.0 + (sin(_motionController.value * 2 * pi) * 0.02)
+                      : 1.0;
+
+                  return Transform.scale(
+                    scale: breathScale,
+                    child: CustomPaint(
+                      painter: _ExpressiveShapePainter(
+                        shapeType: currentDescriptor.type,
+                        progress: morphProgress,
+                        primaryColor: colorScheme.primary,
+                        containerColor: colorScheme.primaryContainer,
+                        accentColor: colorScheme.tertiaryContainer,
+                        outlineColor:
+                            colorScheme.primary.withValues(alpha: 0.35),
+                      ),
+                      child: Center(
+                        child: Icon(
+                          currentDescriptor.icon,
+                          size: 36,
+                          color: colorScheme.onPrimaryContainer,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Shape Title & Description Badge
+          Center(
+            child: Column(
+              children: [
+                Text(
+                  currentDescriptor.name,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 17,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  currentDescriptor.subtitle,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 18),
+
+          // Shape Selection Chips
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: List.generate(_expressiveShapes.length, (index) {
+              final shape = _expressiveShapes[index];
+              final isSelected = index == _selectedShapeIndex;
+              return ChoiceChip(
+                label: Text(shape.name),
+                selected: isSelected,
+                avatar: Icon(
+                  shape.icon,
+                  size: 16,
+                  color: isSelected
+                      ? colorScheme.onPrimaryContainer
+                      : colorScheme.onSurfaceVariant,
+                ),
+                labelStyle: TextStyle(
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                  color: isSelected
+                      ? colorScheme.onPrimaryContainer
+                      : colorScheme.onSurface,
+                ),
+                selectedColor: colorScheme.primaryContainer,
+                backgroundColor: colorScheme.surfaceContainerHighest,
+                side: BorderSide(
+                  color: isSelected
+                      ? colorScheme.primary
+                      : colorScheme.outlineVariant.withValues(alpha: 0.3),
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                onSelected: (_) => _selectShape(index),
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- Section 2: Spring Dynamics & Tactile Physics Card ---
+  Widget _buildSpringDynamicsCard(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    PersonalizationState personalization,
+    double outerRadius,
+    bool isExpressive,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(outerRadius),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.25),
+          width: 1.0,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Tactile Spring Simulator',
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Tap or drag the interactive card to experience damped harmonic oscillation & haptic triggers.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Interactive Bouncy Drag / Tap Card
+          GestureDetector(
+            onPanUpdate: (details) {
+              setState(() {
+                _springDragOffset =
+                    (_springDragOffset + details.delta.dy * 0.4)
+                        .clamp(-25.0, 25.0);
+              });
+            },
+            onPanEnd: (_) {
+              setState(() {
+                _springDragOffset = 0.0;
+              });
+              _triggerSpringImpulse();
+            },
+            onTap: _triggerSpringImpulse,
+            child: AnimatedBuilder(
+              animation: _springPadController,
+              builder: (context, child) {
+                // Harmonic damped oscillation formula
+                final t = _springPadController.value * 6.0;
+                final bounce = _springPadController.isAnimating
+                    ? sin(t * 3.5) * exp(-t * 0.9) * 12.0
+                    : 0.0;
+
+                final currentOffset = _springDragOffset + bounce;
+
+                return Transform.translate(
+                  offset: Offset(0, currentOffset),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 18, horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: isExpressive
+                          ? colorScheme.secondaryContainer
+                          : colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: colorScheme.primary.withValues(alpha: 0.3),
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: colorScheme.shadow.withValues(alpha: 0.08),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Symbols.touch_app_rounded,
+                            color: colorScheme.onPrimary,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Tap to Feel Spring Physics',
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                isExpressive
+                                    ? 'Stiffness: 300 N/m • Damping: 0.75'
+                                    : 'Linear M3 Curve • Standard Easing',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: isExpressive
+                                      ? colorScheme.onSecondaryContainer
+                                      : colorScheme.onSurfaceVariant,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        FilledButton.tonalIcon(
+                          onPressed: _triggerSpringImpulse,
+                          icon: const Icon(Symbols.play_arrow_rounded, size: 18),
+                          label: const Text('Impulse'),
+                          style: FilledButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 8),
+                            textStyle: const TextStyle(fontSize: 12),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Expressive Micro-Motion & Bottom Sheet Actions
+          SettingsSegmentedGroup(
+            children: [
+              SettingsActionTile(
+                icon: Symbols.water_drop_rounded,
+                title: 'Fluid Organic Morphing',
+                subtitle:
+                    'Dynamic morphing on Floating Action Buttons and Bottom Sheets',
+                showDivider: true,
+                trailing: Switch(
+                  value: isExpressive,
+                  onChanged: (v) {
+                    ref
+                        .read(personalizationProvider.notifier)
+                        .toggleExpressiveDiversification(v);
+                  },
+                ),
+              ),
+              SettingsActionTile(
+                icon: Symbols.vibration_rounded,
+                title: 'Tactile Haptic Feedback',
+                subtitle: 'Calibrated micro-vibrations on transaction triggers',
+                showDivider: false,
+                trailing: Switch(
+                  value: personalization.vibrateOnTransaction,
+                  onChanged: (_) {
+                    ref
+                        .read(personalizationProvider.notifier)
+                        .toggleVibration();
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- Section 3: Atelier Color Harmonies ---
+  Widget _buildAtelierColorSection(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    PersonalizationState personalization,
+    double outerRadius,
+  ) {
+    final variants = [
+      {'name': 'expressive', 'label': 'Expressive'},
+      {'name': 'vibrant', 'label': 'Vibrant'},
+      {'name': 'fruitSalad', 'label': 'Fruit Salad'},
+      {'name': 'rainbow', 'label': 'Rainbow'},
+      {'name': 'tonalSpot', 'label': 'Tonal Spot'},
+      {'name': 'monochrome', 'label': 'Monochrome'},
+    ];
+
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(outerRadius),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.25),
+          width: 1.0,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Dynamic Chroma Calibration',
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Select high-chroma scheme variants inspired by Material 3 Expressive Atelier palettes.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Horizontal Palette Cards
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            clipBehavior: Clip.none,
+            child: Row(
+              children: variants.map((v) {
+                final name = v['name']!;
+                final label = v['label']!;
+                final isSelected = personalization.colorSchemeVariant == name;
+                final colors = _getPaletteColors(name, isDark);
+
+                return Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: GestureDetector(
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      ref
+                          .read(personalizationProvider.notifier)
+                          .updateColorSchemeVariant(name);
+                      final variantEnum = ColorSchemeVariant.values.firstWhere(
+                        (e) => e.name == name,
+                        orElse: () => ColorSchemeVariant.tonalSpot,
+                      );
+                      ref
+                          .read(themeControllerProvider.notifier)
+                          .setVariant(variantEnum);
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 250),
+                      width: 86,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 12, horizontal: 6),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? colorScheme.primaryContainer
+                                .withValues(alpha: 0.35)
+                            : colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: isSelected
+                              ? colorScheme.primary
+                              : colorScheme.outlineVariant
+                                  .withValues(alpha: 0.3),
+                          width: isSelected ? 2.0 : 1.0,
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: 44,
+                            height: 44,
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                Positioned.fill(
+                                  child: CustomPaint(
+                                    painter: _PalettePainter(
+                                      topColor: colors['top']!,
+                                      bottomLeftColor: colors['bottomLeft']!,
+                                      bottomRightColor: colors['bottomRight']!,
+                                    ),
+                                  ),
+                                ),
+                                if (isSelected)
+                                  Container(
+                                    width: 22,
+                                    height: 22,
+                                    decoration: BoxDecoration(
+                                      color: colorScheme.primary,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      Icons.check_rounded,
+                                      color: colorScheme.onPrimary,
+                                      size: 14,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            label,
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: isSelected
+                                  ? FontWeight.w800
+                                  : FontWeight.w600,
+                              color: isSelected
+                                  ? colorScheme.primary
+                                  : colorScheme.onSurface,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Map<String, Color> _getPaletteColors(String variant, bool isDark) {
+    switch (variant) {
+      case 'expressive':
+        return {
+          'top': isDark ? const Color(0xFFFFB596) : const Color(0xFFFFDBCA),
+          'bottomLeft':
+              isDark ? const Color(0xFFC7BFFF) : const Color(0xFFE5DEFF),
+          'bottomRight':
+              isDark ? const Color(0xFFB36700) : const Color(0xFFFF9800),
+        };
+      case 'vibrant':
+        return {
+          'top': isDark ? const Color(0xFFFFB0C8) : const Color(0xFFFFD8E4),
+          'bottomLeft':
+              isDark ? const Color(0xFFFFB787) : const Color(0xFFFFDCC1),
+          'bottomRight':
+              isDark ? const Color(0xFFB01D56) : const Color(0xFFE91E63),
+        };
+      case 'fruitSalad':
+        return {
+          'top': isDark ? const Color(0xFFA1DECA) : const Color(0xFFC3EEDD),
+          'bottomLeft':
+              isDark ? const Color(0xFFFFB1C1) : const Color(0xFFFFD8DF),
+          'bottomRight':
+              isDark ? const Color(0xFF007A50) : const Color(0xFF00B074),
+        };
+      case 'rainbow':
+        return {
+          'top': isDark ? const Color(0xFFFFB0D0) : const Color(0xFFFFD8E6),
+          'bottomLeft':
+              isDark ? const Color(0xFFA3DDB3) : const Color(0xFFC4EED0),
+          'bottomRight':
+              isDark ? const Color(0xFF7B1FA2) : const Color(0xFF9C27B0),
+        };
+      case 'tonalSpot':
+        return {
+          'top': isDark ? const Color(0xFF9BB1E8) : const Color(0xFFD3DFFF),
+          'bottomLeft':
+              isDark ? const Color(0xFFCBBCD6) : const Color(0xFFE8D5EC),
+          'bottomRight':
+              isDark ? const Color(0xFF42567D) : const Color(0xFF677799),
+        };
+      case 'monochrome':
+      default:
+        return {
+          'top': isDark ? const Color(0xFFBDBDBD) : const Color(0xFFE0E0E0),
+          'bottomLeft':
+              isDark ? const Color(0xFF757575) : const Color(0xFFBDBDBD),
+          'bottomRight':
+              isDark ? const Color(0xFF212121) : const Color(0xFF424242),
+        };
+    }
+  }
+
+  // --- Section 4: Variable Typography Engine Card ---
+  Widget _buildVariableTypographyCard(
     ThemeData theme,
     ColorScheme colorScheme,
     PersonalizationState personalization,
@@ -404,6 +1047,132 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(outerRadius),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.25),
+          width: 1.0,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Live Variable Font Preview Sample
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Expressive Typography',
+                  style: TextStyle(
+                    fontFamily: 'GoogleSansFlex',
+                    fontSize: 22,
+                    fontWeight: FontWeight.values[
+                        ((personalization.weight / 100).clamp(1, 9).toInt()) -
+                            1],
+                    letterSpacing: -0.5,
+                    color: colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Weight: ${personalization.weight.toInt()} • Grade: ${personalization.grade.toInt()} • Width: ${personalization.width.toInt()}%',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Font Weight Slider
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Weight (wght)',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                '${personalization.weight.toInt()}',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: colorScheme.primary,
+                ),
+              ),
+            ],
+          ),
+          Slider(
+            value: personalization.weight,
+            min: 100,
+            max: 900,
+            divisions: 8,
+            label: '${personalization.weight.toInt()}',
+            onChanged: (v) {
+              ref.read(personalizationProvider.notifier).updateWeight(v);
+            },
+          ),
+
+          // Grade Slider
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Grade (GRAD)',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                '${personalization.grade.toInt()}',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: colorScheme.primary,
+                ),
+              ),
+            ],
+          ),
+          Slider(
+            value: personalization.grade,
+            min: -200,
+            max: 200,
+            divisions: 16,
+            label: '${personalization.grade.toInt()}',
+            onChanged: (v) {
+              ref.read(personalizationProvider.notifier).updateGrade(v);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- Section 5: Design Token Metrics Inspector ---
+  Widget _buildDesignTokensCard(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    PersonalizationState personalization,
+    double outerRadius,
+    bool isExpressive,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(outerRadius),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.25),
+          width: 1.0,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -417,9 +1186,10 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
               ),
               const SizedBox(width: 10),
               Text(
-                'Material 3 Expressive Tokens',
+                'Active Expressive Parameters',
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.bold,
+                  fontSize: 14,
                 ),
               ),
             ],
@@ -430,7 +1200,7 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
               _buildTokenChip(
                 theme,
                 colorScheme,
-                'Radius',
+                'Fillet',
                 '${personalization.roundness.toInt()}dp',
               ),
               const SizedBox(width: 8),
@@ -451,8 +1221,8 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
               _buildTokenChip(
                 theme,
                 colorScheme,
-                'Width',
-                '${personalization.width.toInt()}%',
+                'Motion',
+                isExpressive ? 'Spring' : 'Linear',
               ),
             ],
           ),
@@ -469,7 +1239,7 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
   ) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
         decoration: BoxDecoration(
           color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
           borderRadius: BorderRadius.circular(16),
@@ -489,6 +1259,7 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
               style: theme.textTheme.labelMedium?.copyWith(
                 fontWeight: FontWeight.w800,
                 color: colorScheme.onSurface,
+                fontSize: 12,
               ),
             ),
           ],
@@ -498,183 +1269,200 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
   }
 }
 
-/// Custom Canvas Painter rendering the organic shapes, blueprint grid,
-/// concentric circles, and geometry from the SVG reference.
-class _ExpressiveHeroPainter extends CustomPainter {
-  final double animationProgress;
-  final Color primaryColor;
-  final Color primaryContainerColor;
-  final Color tertiaryColor;
-  final Color surfaceContainerColor;
-  final Color outlineColor;
-  final bool isExpressive;
+// --- Supporting Shape Data Classes & Custom Painters ---
 
-  _ExpressiveHeroPainter({
-    required this.animationProgress,
+enum _ShapeType {
+  squircle,
+  petal,
+  starburst,
+  scallop,
+  pill,
+  asymmetric,
+}
+
+class _ShapeDescriptor {
+  final String name;
+  final _ShapeType type;
+  final String subtitle;
+  final String badge;
+  final IconData icon;
+
+  const _ShapeDescriptor({
+    required this.name,
+    required this.type,
+    required this.subtitle,
+    required this.badge,
+    required this.icon,
+  });
+}
+
+class _ExpressiveShapePainter extends CustomPainter {
+  final _ShapeType shapeType;
+  final double progress;
+  final Color primaryColor;
+  final Color containerColor;
+  final Color accentColor;
+  final Color outlineColor;
+
+  _ExpressiveShapePainter({
+    required this.shapeType,
+    required this.progress,
     required this.primaryColor,
-    required this.primaryContainerColor,
-    required this.tertiaryColor,
-    required this.surfaceContainerColor,
+    required this.containerColor,
+    required this.accentColor,
     required this.outlineColor,
-    required this.isExpressive,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width * 0.5, size.height * 0.5);
-    final rotationAngle = animationProgress * 2 * math.pi;
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = min(size.width / 2, size.height / 2) * 0.9 * progress;
 
-    // 1. Left Organic Petal Blossom Shape (Tertiary Color)
-    _drawLeftPetalBlossom(canvas, size, center, rotationAngle);
+    final Path path = Path();
 
-    // 2. Right Starburst Shape (Primary Color)
-    _drawRightStarburst(canvas, size, center, rotationAngle);
+    switch (shapeType) {
+      case _ShapeType.squircle:
+        final r = radius * 0.95;
+        final rect = Rect.fromCenter(
+            center: center, width: r * 2, height: r * 2);
+        path.addRRect(RRect.fromRectAndRadius(rect, Radius.circular(r * 0.45)));
+        break;
 
-    // 3. Center Scallop Flower Shape (Deep Primary / Container Color)
-    _drawCenterScallop(canvas, size, center, rotationAngle);
+      case _ShapeType.petal:
+        // 4-leaf organic flower (matching left emblem on SVG backdrop)
+        final lobeRadius = radius * 0.52;
+        path.addOval(Rect.fromCircle(
+            center: center + Offset(-lobeRadius * 0.6, 0), radius: lobeRadius));
+        path.addOval(Rect.fromCircle(
+            center: center + Offset(lobeRadius * 0.6, 0), radius: lobeRadius));
+        path.addOval(Rect.fromCircle(
+            center: center + Offset(0, -lobeRadius * 0.6), radius: lobeRadius));
+        path.addOval(Rect.fromCircle(
+            center: center + Offset(0, lobeRadius * 0.6), radius: lobeRadius));
+        break;
 
-    // 4. Blueprint Grid Lines (Horizontal & Vertical)
-    _drawBlueprintGrid(canvas, size);
+      case _ShapeType.starburst:
+        // 8-point smooth starburst (matching right emblem on SVG backdrop)
+        const int points = 8;
+        final outerR = radius;
+        final innerR = radius * 0.62;
+        for (int i = 0; i < points * 2; i++) {
+          final r = i.isEven ? outerR : innerR;
+          final angle = (i * pi) / points - (pi / 2);
+          final x = center.dx + r * cos(angle);
+          final y = center.dy + r * sin(angle);
+          if (i == 0) {
+            path.moveTo(x, y);
+          } else {
+            path.lineTo(x, y);
+          }
+        }
+        path.close();
+        break;
 
-    // 5. Concentric Blueprint Circles
-    _drawConcentricCircles(canvas, center);
-  }
+      case _ShapeType.scallop:
+        // 12-wave circular medallion
+        const int waves = 12;
+        for (int i = 0; i <= 360; i += 2) {
+          final rad = i * pi / 180;
+          final waveR = radius * 0.85 + (sin(rad * waves) * radius * 0.12);
+          final x = center.dx + waveR * cos(rad);
+          final y = center.dy + waveR * sin(rad);
+          if (i == 0) {
+            path.moveTo(x, y);
+          } else {
+            path.lineTo(x, y);
+          }
+        }
+        path.close();
+        break;
 
-  void _drawLeftPetalBlossom(
-      Canvas canvas, Size size, Offset center, double rotationAngle) {
-    final paint = Paint()
-      ..color = const Color(0xFF7D5260) // Material 3 baseline tertiary
+      case _ShapeType.pill:
+        final w = radius * 2.0;
+        final h = radius * 1.25;
+        final rect = Rect.fromCenter(center: center, width: w, height: h);
+        path.addRRect(RRect.fromRectAndRadius(rect, Radius.circular(h / 2)));
+        break;
+
+      case _ShapeType.asymmetric:
+        final r = radius * 0.95;
+        final rect = Rect.fromCenter(
+            center: center, width: r * 2, height: r * 2);
+        path.addRRect(RRect.fromRectAndCorners(
+          rect,
+          topLeft: Radius.circular(r * 0.65),
+          bottomRight: Radius.circular(r * 0.65),
+          topRight: Radius.circular(r * 0.15),
+          bottomLeft: Radius.circular(r * 0.15),
+        ));
+        break;
+    }
+
+    // Fill with expressive gradient
+    final paintFill = Paint()
+      ..shader = LinearGradient(
+        colors: [containerColor, accentColor],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ).createShader(Rect.fromCircle(center: center, radius: radius))
       ..style = PaintingStyle.fill;
 
-    final leftCenter = Offset(size.width * 0.18, size.height * 0.5);
-    final angleOffset = isExpressive ? math.sin(rotationAngle) * 0.1 : 0.0;
+    canvas.drawPath(path, paintFill);
 
-    canvas.save();
-    canvas.translate(leftCenter.dx, leftCenter.dy);
-    canvas.rotate(angleOffset);
+    // Outline stroke
+    final paintStroke = Paint()
+      ..color = outlineColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
 
-    final path = Path();
-    const double radius = 70.0;
-    const int lobes = 4;
-
-    for (int i = 0; i <= 360; i += 2) {
-      final rad = i * math.pi / 180;
-      final r = radius * (0.65 + 0.35 * math.cos(lobes * rad));
-      final x = r * math.cos(rad);
-      final y = r * math.sin(rad);
-      if (i == 0) {
-        path.moveTo(x, y);
-      } else {
-        path.lineTo(x, y);
-      }
-    }
-    path.close();
-    canvas.drawPath(path, paint);
-    canvas.restore();
-  }
-
-  void _drawRightStarburst(
-      Canvas canvas, Size size, Offset center, double rotationAngle) {
-    final paint = Paint()
-      ..color = const Color(0xFF6750A4) // Material 3 baseline primary
-      ..style = PaintingStyle.fill;
-
-    final rightCenter = Offset(size.width * 0.82, size.height * 0.5);
-    final angle = isExpressive ? rotationAngle * 0.5 : 0.0;
-
-    canvas.save();
-    canvas.translate(rightCenter.dx, rightCenter.dy);
-    canvas.rotate(angle);
-
-    final path = Path();
-    const int points = 12;
-    const double outerR = 85.0;
-    const double innerR = 48.0;
-
-    for (int i = 0; i < points * 2; i++) {
-      final isOuter = i.isEven;
-      final r = isOuter ? outerR : innerR;
-      final theta = i * math.pi / points;
-      final x = r * math.cos(theta);
-      final y = r * math.sin(theta);
-      if (i == 0) {
-        path.moveTo(x, y);
-      } else {
-        path.lineTo(x, y);
-      }
-    }
-    path.close();
-    canvas.drawPath(path, paint);
-    canvas.restore();
-  }
-
-  void _drawCenterScallop(
-      Canvas canvas, Size size, Offset center, double rotationAngle) {
-    final paint = Paint()
-      ..color = const Color(0xFF4F378B) // Material 3 deep primary
-      ..style = PaintingStyle.fill;
-
-    final angle = isExpressive ? -rotationAngle * 0.3 : 0.0;
-
-    canvas.save();
-    canvas.translate(center.dx, center.dy);
-    canvas.rotate(angle);
-
-    final path = Path();
-    const double radius = 78.0;
-    const int lobes = 8;
-
-    for (int i = 0; i <= 360; i += 2) {
-      final rad = i * math.pi / 180;
-      final r = radius * (0.8 + 0.2 * math.cos(lobes * rad));
-      final x = r * math.cos(rad);
-      final y = r * math.sin(rad);
-      if (i == 0) {
-        path.moveTo(x, y);
-      } else {
-        path.lineTo(x, y);
-      }
-    }
-    path.close();
-    canvas.drawPath(path, paint);
-    canvas.restore();
-  }
-
-  void _drawBlueprintGrid(Canvas canvas, Size size) {
-    final gridPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.22)
-      ..strokeWidth = 1.0
-      ..style = PaintingStyle.stroke;
-
-    // Horizontal grid lines
-    const double lineSpacingY = 11.5;
-    for (double y = 0; y <= size.height; y += lineSpacingY) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
-    }
-
-    // Vertical grid lines
-    const double lineSpacingX = 11.0;
-    for (double x = 0; x <= size.width; x += lineSpacingX) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), gridPaint);
-    }
-  }
-
-  void _drawConcentricCircles(Canvas canvas, Offset center) {
-    final circlePaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.25)
-      ..strokeWidth = 1.0
-      ..style = PaintingStyle.stroke;
-
-    const radii = [29.0, 46.0, 66.0, 86.0, 117.0, 143.0, 166.0];
-    for (final r in radii) {
-      canvas.drawCircle(center, r, circlePaint);
-    }
+    canvas.drawPath(path, paintStroke);
   }
 
   @override
-  bool shouldRepaint(covariant _ExpressiveHeroPainter oldDelegate) {
-    return oldDelegate.animationProgress != animationProgress ||
-        oldDelegate.isExpressive != isExpressive ||
-        oldDelegate.primaryColor != primaryColor;
+  bool shouldRepaint(covariant _ExpressiveShapePainter oldDelegate) {
+    return oldDelegate.shapeType != shapeType ||
+        oldDelegate.progress != progress ||
+        oldDelegate.primaryColor != primaryColor ||
+        oldDelegate.containerColor != containerColor;
+  }
+}
+
+/// A custom painter that draws a circle split into three colored segments for palette previews
+class _PalettePainter extends CustomPainter {
+  final Color topColor;
+  final Color bottomLeftColor;
+  final Color bottomRightColor;
+
+  _PalettePainter({
+    required this.topColor,
+    required this.bottomLeftColor,
+    required this.bottomRightColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Offset center = Offset(size.width / 2, size.height / 2);
+    final double radius = min(size.width / 2, size.height / 2);
+    final Rect rect = Rect.fromCircle(center: center, radius: radius);
+    final Paint paint = Paint()..style = PaintingStyle.fill;
+
+    // Top half
+    paint.color = topColor;
+    canvas.drawArc(rect, pi, pi, true, paint);
+
+    // Bottom right quarter
+    paint.color = bottomRightColor;
+    canvas.drawArc(rect, 0, pi / 2, true, paint);
+
+    // Bottom left quarter
+    paint.color = bottomLeftColor;
+    canvas.drawArc(rect, pi / 2, pi / 2, true, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _PalettePainter oldDelegate) {
+    return oldDelegate.topColor != topColor ||
+        oldDelegate.bottomLeftColor != bottomLeftColor ||
+        oldDelegate.bottomRightColor != bottomRightColor;
   }
 }

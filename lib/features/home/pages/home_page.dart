@@ -338,21 +338,9 @@ class _HomeRecentTransactionsSectionState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Drag handle accent for squircle section feel
-          Center(
-            child: Container(
-              margin: const EdgeInsets.only(top: 12, bottom: 6),
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: colorScheme.outlineVariant.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
           // Heading row
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 10, 16, 10),
+            padding: const EdgeInsets.fromLTRB(20, 16, 16, 10),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
