@@ -643,7 +643,7 @@ class _LoansPageState extends ConsumerState<LoansPage> {
                           await ref.read(loanRepositoryProvider).save(item);
                           final personalization =
                               ref.read(personalizationProvider);
-                          await ref.read(hapticServiceProvider).selection(
+                          await ref.read(hapticServiceProvider).transaction(
                               personalization.vibrateOnTransaction);
 
                           if (context.mounted) {

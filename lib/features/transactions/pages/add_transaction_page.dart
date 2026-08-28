@@ -986,15 +986,21 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
     );
   }
 
-  Future<void> _pickIcon() async {
-    final icon = await showModalBottomSheet<String>(
+  void _pickIcon() {
+    showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (context) => const IconPickerBottomSheet(),
+      builder: (context) => IconPickerWidget(
+        selectedIcon: _selectedIcon ?? _selectedCategory?.icon ?? 'shopping_cart',
+        selectedColor: _selectedColor != null
+            ? _selectedColor!.parseHexColor()
+            : _selectedCategory?.color.parseHexColor() ?? Colors.blue,
+        onIconSelected: (icon) {
+          setState(() => _selectedIcon = icon);
+          Navigator.pop(context);
+        },
+      ),
     );
-    if (icon != null) {
-      setState(() => _selectedIcon = icon);
-    }
   }
 
   Future<void> _pickColor() async {
