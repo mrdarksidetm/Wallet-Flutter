@@ -334,6 +334,7 @@ class _FAB extends ConsumerWidget {
       '/budgets',
       '/bill_splitter',
       '/activity_heatmap',
+      '/loans',
     ];
     // Don't hide for /reports anymore
     return hiddenRoutes

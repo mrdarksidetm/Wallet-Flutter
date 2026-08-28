@@ -44,6 +44,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
   // People & Debt/Loan Integration
   Person? _selectedPerson;
   Loan? _selectedLinkedLoan;
+  bool _isDebtToggleOn = false;
   bool _isNewLoanCreation = false;
   bool _isLoading = false;
   DateTime _selectedDateTime = DateTime.now();
@@ -116,6 +117,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
         _selectedPerson = tx.person.value;
         _selectedDateTime = tx.date;
         _selectedLinkedLoan = linkedLoan;
+        _isDebtToggleOn = linkedLoan != null;
         _isLoading = false;
       });
     }
@@ -126,101 +128,6 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
     _amountController.dispose();
     _noteController.dispose();
     super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final effectiveColor = _getEffectiveColor(colorScheme);
-    final effectiveIcon =
-        _selectedIcon ?? _selectedCategory?.icon ?? 'category';
-
-    return Scaffold(
-      appBar: _buildAppBar(colorScheme),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildTypeSelector(),
-            const SizedBox(height: 28),
-
-            // Enlarged Clean Amount Input with persistent active currency symbol and font variations
-            _buildAmountInput(theme, colorScheme, effectiveColor),
-
-            const SizedBox(height: 28),
-
-            _buildNoteInput(),
-            const SizedBox(height: 16),
-            _buildDateTimePicker(colorScheme),
-            const SizedBox(height: 16),
-
-            // Debt Payment / Collection Integration Section (Placed below date & time)
-            if (_transactionType == TransactionType.expense ||
-                _transactionType == TransactionType.income) ...[
-              _buildDebtIntegrationCard(theme, colorScheme),
-              const SizedBox(height: 16),
-            ],
-
-            // Category & Icon section (Disabled/hidden when a debt repayment or collection is initiated)
-            if (_transactionType != TransactionType.transfer) ...[
-              if (_selectedLinkedLoan != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: colorScheme.outlineVariant.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.info_outline_rounded, size: 18, color: colorScheme.onSurfaceVariant),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          'Category is not required for debt repayments or collections.',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              else ...[
-                _buildCategorySelector(colorScheme),
-                const SizedBox(height: 16),
-                _buildIconAndColorOverrides(
-                    theme, colorScheme, effectiveIcon, effectiveColor),
-              ],
-              const SizedBox(height: 24),
-            ],
-
-            _buildPeopleSection(theme, colorScheme),
-            const SizedBox(height: 24),
-            _buildAccountSelector(colorScheme),
-
-            if (_transactionType == TransactionType.transfer) ...[
-              const SizedBox(height: 16),
-              _buildTransferAccountSelector(colorScheme),
-            ],
-
-            const SizedBox(height: 48),
-            _buildSaveButton(),
-          ],
-        ),
-      ),
-    );
   }
 
   Color _getEffectiveColor(ColorScheme colorScheme) {
@@ -250,6 +157,170 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
     );
   }
 
+  Widget _buildSectionCard({
+    required ColorScheme colorScheme,
+    required List<Widget> children,
+    EdgeInsetsGeometry padding = const EdgeInsets.all(16),
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: padding,
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.25),
+          width: 0.8,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: children,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final effectiveColor = _getEffectiveColor(colorScheme);
+    final effectiveIcon =
+        _selectedIcon ?? _selectedCategory?.icon ?? 'category';
+
+    return Scaffold(
+      backgroundColor: colorScheme.surface,
+      appBar: _buildAppBar(colorScheme),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Segment 1: Type Selector + Extra Big Amount + Note Input
+            _buildSectionCard(
+              colorScheme: colorScheme,
+              padding: const EdgeInsets.all(18),
+              children: [
+                _buildTypeSelector(),
+                const SizedBox(height: 20),
+                _buildAmountInput(theme, colorScheme, effectiveColor),
+                const SizedBox(height: 16),
+                _buildNoteInput(colorScheme),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            // Segment 2: Timing & Debt Toggle
+            _buildSectionCard(
+              colorScheme: colorScheme,
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              children: [
+                _buildDateTimePicker(colorScheme),
+                if (_transactionType != TransactionType.transfer) ...[
+                  Divider(
+                    height: 1,
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.15),
+                  ),
+                  _buildDebtSwitchTile(theme, colorScheme),
+                  if (_isDebtToggleOn) ...[
+                    const SizedBox(height: 8),
+                    _buildDebtSelectionSubCard(theme, colorScheme),
+                    const SizedBox(height: 12),
+                  ],
+                ],
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            // Segment 3: Categorization & Visual Overrides (Disabled when Debt is active)
+            if (_transactionType != TransactionType.transfer) ...[
+              if (_isDebtToggleOn)
+                _buildSectionCard(
+                  colorScheme: colorScheme,
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline_rounded,
+                          size: 18,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Category is not required for loan or debt transactions.',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                )
+              else
+                _buildSectionCard(
+                  colorScheme: colorScheme,
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  children: [
+                    _buildCategorySelector(colorScheme),
+                    Divider(
+                      height: 1,
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.15),
+                    ),
+                    const SizedBox(height: 8),
+                    _buildIconAndColorOverrides(
+                        theme, colorScheme, effectiveIcon, effectiveColor),
+                    const SizedBox(height: 4),
+                  ],
+                ),
+              const SizedBox(height: 16),
+            ],
+
+            // Segment 4: Accounts & People
+            _buildSectionCard(
+              colorScheme: colorScheme,
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              children: [
+                _buildAccountSelector(colorScheme),
+                if (_transactionType == TransactionType.transfer) ...[
+                  Divider(
+                    height: 1,
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.15),
+                  ),
+                  _buildTransferAccountSelector(colorScheme),
+                ],
+                Divider(
+                  height: 1,
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.15),
+                ),
+                _buildPeopleSection(theme, colorScheme),
+              ],
+            ),
+
+            const SizedBox(height: 32),
+
+            // Segment 5: Primary Save Action
+            _buildSaveButton(),
+            const SizedBox(height: 32),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildTypeSelector() {
     return Center(
       child: SegmentedButton<TransactionType>(
@@ -273,13 +344,15 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
             _transactionType = newSelection.first;
             _selectedCategory = null;
             _selectedLinkedLoan = null;
+            _isDebtToggleOn = false;
+            _isNewLoanCreation = false;
           });
         },
       ),
     );
   }
 
-  // --- Large Clean Amount Input with persistent active currency symbol & font variations ---
+  // --- Extra Big Hero Amount Input with persistent active currency symbol & font variations ---
   Widget _buildAmountInput(
       ThemeData theme, ColorScheme colorScheme, Color effectiveColor) {
     final selectedCurrency = ref.watch(currencyProvider);
@@ -295,7 +368,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
 
     return Container(
       alignment: Alignment.center,
-      padding: const EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.symmetric(vertical: 16),
       child: FittedBox(
         fit: BoxFit.scaleDown,
         child: Row(
@@ -307,13 +380,13 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
             Text(
               symbol,
               style: TextStyle(
-                fontSize: 48,
+                fontSize: 58,
                 color: effectiveColor,
-                letterSpacing: -1.0,
+                letterSpacing: -1.5,
                 fontVariations: amountFontVariations,
               ),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 8),
             IntrinsicWidth(
               child: TextField(
                 controller: _amountController,
@@ -321,17 +394,17 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
                     const TextInputType.numberWithOptions(decimal: true),
                 textAlign: TextAlign.start,
                 style: TextStyle(
-                  fontSize: 48,
+                  fontSize: 58,
                   color: effectiveColor,
-                  letterSpacing: -1.0,
+                  letterSpacing: -1.5,
                   fontVariations: amountFontVariations,
                 ),
                 decoration: InputDecoration(
                   hintText: '0.00',
                   hintStyle: TextStyle(
-                    fontSize: 48,
+                    fontSize: 58,
                     color: colorScheme.onSurface.withValues(alpha: 0.22),
-                    letterSpacing: -1.0,
+                    letterSpacing: -1.5,
                     fontVariations: amountFontVariations,
                   ),
                   filled: false,
@@ -348,183 +421,36 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
     );
   }
 
-  // --- Debt Payment (Expense) and Collection (Income) Integration ---
-  Widget _buildDebtIntegrationCard(ThemeData theme, ColorScheme colorScheme) {
-    final isExpense = _transactionType == TransactionType.expense;
-    final targetLoanType = isExpense ? LoanType.borrowed : LoanType.lent;
-    final loansAsync = ref.watch(loansStreamProvider);
-    final selectedCurrency = ref.watch(currencyProvider);
-
-    return loansAsync.when(
-      data: (loans) {
-        final activeDebts =
-            loans.where((l) => l.type == targetLoanType && !l.isPaid).toList();
-
-        if (activeDebts.isEmpty && _selectedLinkedLoan == null) {
-          return const SizedBox.shrink();
-        }
-
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: _selectedLinkedLoan != null
-                ? (isExpense
-                    ? const Color(0xFFEF4444).withValues(alpha: 0.12)
-                    : const Color(0xFF10B981).withValues(alpha: 0.12))
-                : colorScheme.surfaceContainerLow,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: _selectedLinkedLoan != null
-                  ? (isExpense
-                      ? const Color(0xFFEF4444).withValues(alpha: 0.4)
-                      : const Color(0xFF10B981).withValues(alpha: 0.4))
-                  : colorScheme.outlineVariant.withValues(alpha: 0.3),
-              width: _selectedLinkedLoan != null ? 1.5 : 1.0,
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    isExpense
-                        ? Symbols.money_off_rounded
-                        : Symbols.attach_money_rounded,
-                    size: 20,
-                    color: isExpense
-                        ? const Color(0xFFEF4444)
-                        : const Color(0xFF10B981),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      isExpense
-                          ? 'Repay a Borrowed Debt'
-                          : 'Collect a Lent Debt',
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  if (_selectedLinkedLoan != null)
-                    IconButton(
-                      icon: const Icon(Icons.close_rounded, size: 18),
-                      tooltip: 'Unlink debt',
-                      visualDensity: VisualDensity.compact,
-                      onPressed: () {
-                        setState(() {
-                          _selectedLinkedLoan = null;
-                        });
-                      },
-                    ),
-                ],
-              ),
-              const SizedBox(height: 10),
-
-              // Dropdown to pick active debt
-              DropdownButtonFormField<Loan?>(
-                value: _selectedLinkedLoan,
-                decoration: InputDecoration(
-                  labelText: isExpense ? 'Select Debt to Repay' : 'Select Debt to Collect',
-                  hintText: 'None (Regular transaction)',
-                  filled: true,
-                  fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                ),
-                items: [
-                  const DropdownMenuItem<Loan?>(
-                    value: null,
-                    child: Text('None (Regular transaction)'),
-                  ),
-                  ...activeDebts.map((loan) {
-                    final personName = loan.person.value?.name ?? 'Contact';
-                    return DropdownMenuItem<Loan?>(
-                      value: loan,
-                      child: Text(
-                        '$personName - ${CurrencyEngine.formatCurrency(loan.amount, selectedCurrency)}',
-                      ),
-                    );
-                  }),
-                ],
-                onChanged: (loan) {
-                  setState(() {
-                    _selectedLinkedLoan = loan;
-                    if (loan != null) {
-                      _selectedCategory = null;
-                      if (loan.person.value != null) {
-                        _selectedPerson = loan.person.value;
-                      }
-                      if (_noteController.text.isEmpty) {
-                        _noteController.text = isExpense
-                            ? 'Debt repayment to ${loan.person.value?.name ?? 'lender'}'
-                            : 'Debt collection from ${loan.person.value?.name ?? 'borrower'}';
-                      }
-                    }
-                  });
-                },
-              ),
-
-              if (_selectedLinkedLoan != null) ...[
-                const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Total debt: ${CurrencyEngine.formatCurrency(_selectedLinkedLoan!.amount, selectedCurrency)}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          _amountController.text =
-                              _selectedLinkedLoan!.amount.toStringAsFixed(2);
-                        });
-                      },
-                      style: TextButton.styleFrom(
-                        visualDensity: VisualDensity.compact,
-                      ),
-                      child: const Text('Fill Full Amount'),
-                    ),
-                  ],
-                ),
-              ],
-            ],
-          ),
-        );
-      },
-      loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
-    );
-  }
-
-  Widget _buildNoteInput() {
-    return TextField(
-      controller: _noteController,
-      decoration: const InputDecoration(
-        labelText: 'Note',
-        prefixIcon: Icon(Icons.notes_rounded),
-        hintText: 'What was this for?',
+  Widget _buildNoteInput(ColorScheme colorScheme) {
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+      child: TextField(
+        controller: _noteController,
+        decoration: const InputDecoration(
+          icon: Icon(Icons.notes_rounded, size: 20),
+          hintText: 'Add note / memo (optional)',
+          border: InputBorder.none,
+          isDense: true,
+          contentPadding: EdgeInsets.symmetric(vertical: 12),
+        ),
       ),
     );
   }
 
   Widget _buildDateTimePicker(ColorScheme colorScheme) {
     return ListTile(
+      contentPadding: EdgeInsets.zero,
       onTap: _pickDateTime,
       leading: const Icon(Symbols.calendar_month),
-      title: const Text('Date & Time'),
+      title: const Text('Date & Time',
+          style: TextStyle(fontWeight: FontWeight.w700)),
       subtitle:
           Text(DateFormat('MMM dd, yyyy - hh:mm a').format(_selectedDateTime)),
       trailing: const Icon(Icons.chevron_right_rounded),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      tileColor: colorScheme.surfaceContainerLow,
     );
   }
 
@@ -557,16 +483,193 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
     }
   }
 
+  // --- Switch style for Debt/Loan with short label ("Add to loans" / "Add to debts") ---
+  Widget _buildDebtSwitchTile(ThemeData theme, ColorScheme colorScheme) {
+    final isExpense = _transactionType == TransactionType.expense;
+    final title = isExpense ? 'Add to loans' : 'Add to debts';
+    final subtitle = isExpense
+        ? 'Repay existing or create a loan'
+        : 'Collect existing or create a debt';
+
+    return SwitchListTile(
+      contentPadding: EdgeInsets.zero,
+      value: _isDebtToggleOn,
+      onChanged: (val) {
+        setState(() {
+          _isDebtToggleOn = val;
+          if (!val) {
+            _selectedLinkedLoan = null;
+            _isNewLoanCreation = false;
+          } else {
+            _selectedCategory = null;
+          }
+        });
+      },
+      title: Text(
+        title,
+        style: const TextStyle(fontWeight: FontWeight.w700),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: colorScheme.onSurfaceVariant,
+        ),
+      ),
+      secondary: Icon(
+        isExpense ? Symbols.money_off_rounded : Symbols.attach_money_rounded,
+        color: isExpense ? const Color(0xFFEF4444) : const Color(0xFF10B981),
+      ),
+    );
+  }
+
+  Widget _buildDebtSelectionSubCard(ThemeData theme, ColorScheme colorScheme) {
+    final isExpense = _transactionType == TransactionType.expense;
+    final targetLoanType = isExpense ? LoanType.borrowed : LoanType.lent;
+    final loansAsync = ref.watch(loansStreamProvider);
+    final selectedCurrency = ref.watch(currencyProvider);
+
+    return loansAsync.when(
+      data: (loans) {
+        final activeDebts =
+            loans.where((l) => l.type == targetLoanType && !l.isPaid).toList();
+
+        return Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: (isExpense ? const Color(0xFFEF4444) : const Color(0xFF10B981))
+                .withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: (isExpense
+                      ? const Color(0xFFEF4444)
+                      : const Color(0xFF10B981))
+                  .withValues(alpha: 0.3),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                isExpense
+                    ? 'Select existing loan or record new'
+                    : 'Select existing debt or record new',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 8),
+
+              // Dropdown to pick active debt
+              DropdownButtonFormField<Loan?>(
+                value: _selectedLinkedLoan,
+                decoration: InputDecoration(
+                  labelText: isExpense ? 'Existing Loan to Repay' : 'Existing Debt to Collect',
+                  hintText: 'None (Create new entry below)',
+                  filled: true,
+                  fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                ),
+                items: [
+                  const DropdownMenuItem<Loan?>(
+                    value: null,
+                    child: Text('None (New Loan/Debt)'),
+                  ),
+                  ...activeDebts.map((loan) {
+                    final personName = loan.person.value?.name ?? 'Contact';
+                    return DropdownMenuItem<Loan?>(
+                      value: loan,
+                      child: Text(
+                        '$personName - ${CurrencyEngine.formatCurrency(loan.amount, selectedCurrency)}',
+                      ),
+                    );
+                  }),
+                ],
+                onChanged: (loan) {
+                  setState(() {
+                    _selectedLinkedLoan = loan;
+                    _selectedCategory = null;
+                    if (loan != null) {
+                      _isNewLoanCreation = false;
+                      if (loan.person.value != null) {
+                        _selectedPerson = loan.person.value;
+                      }
+                      if (_noteController.text.isEmpty) {
+                        _noteController.text = isExpense
+                            ? 'Debt repayment to ${loan.person.value?.name ?? 'lender'}'
+                            : 'Debt collection from ${loan.person.value?.name ?? 'borrower'}';
+                      }
+                    }
+                  });
+                },
+              ),
+
+              if (_selectedLinkedLoan != null) ...[
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Total: ${CurrencyEngine.formatCurrency(_selectedLinkedLoan!.amount, selectedCurrency)}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          _amountController.text =
+                              _selectedLinkedLoan!.amount.toStringAsFixed(2);
+                        });
+                      },
+                      style: TextButton.styleFrom(
+                        visualDensity: VisualDensity.compact,
+                      ),
+                      child: const Text('Fill Full Amount'),
+                    ),
+                  ],
+                ),
+              ] else ...[
+                const SizedBox(height: 8),
+                CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  value: _isNewLoanCreation,
+                  onChanged: (val) =>
+                      setState(() => _isNewLoanCreation = val ?? false),
+                  title: Text(
+                    isExpense
+                        ? 'Create new loan entry in Loans page'
+                        : 'Create new debt entry in Loans page',
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                  ),
+                  controlAffinity: ListTileControlAffinity.leading,
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+      loading: () => const LinearProgressIndicator(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
   Widget _buildCategorySelector(ColorScheme colorScheme) {
     final categoriesAsync = ref.watch(categoriesStreamProvider);
     return ListTile(
+      contentPadding: EdgeInsets.zero,
       onTap: () => _showCategoryPicker(categoriesAsync.value ?? []),
       leading: const Icon(Icons.category_rounded),
-      title: const Text('Category'),
+      title: const Text('Category',
+          style: TextStyle(fontWeight: FontWeight.w700)),
       subtitle: Text(_selectedCategory?.name ?? 'Select Category'),
       trailing: const Icon(Icons.chevron_right_rounded),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      tileColor: colorScheme.surfaceContainerLow,
     );
   }
 
@@ -576,25 +679,27 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
       children: [
         Expanded(
           child: ListTile(
+            contentPadding: EdgeInsets.zero,
             onTap: _pickIcon,
-            leading: Icon(AppIcons.getIcon(effectiveIcon), color: effectiveColor),
-            title: const Text('Icon'),
-            subtitle: Text(effectiveIcon),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            tileColor: colorScheme.surfaceContainerLow,
+            leading:
+                Icon(AppIcons.getIcon(effectiveIcon), color: effectiveColor),
+            title: const Text('Icon',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+            subtitle: Text(effectiveIcon, style: const TextStyle(fontSize: 11)),
+            trailing: const Icon(Icons.edit_rounded, size: 16),
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 8),
         Expanded(
           child: ListTile(
+            contentPadding: EdgeInsets.zero,
             onTap: _pickColor,
-            leading: CircleAvatar(backgroundColor: effectiveColor, radius: 14),
-            title: const Text('Color'),
-            subtitle: Text(_selectedColor != null ? 'Custom' : 'Category'),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            tileColor: colorScheme.surfaceContainerLow,
+            leading: CircleAvatar(backgroundColor: effectiveColor, radius: 12),
+            title: const Text('Color',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+            subtitle: Text(_selectedColor != null ? 'Custom' : 'Category',
+                style: const TextStyle(fontSize: 11)),
+            trailing: const Icon(Icons.palette_rounded, size: 16),
           ),
         ),
       ],
@@ -603,41 +708,19 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
 
   Widget _buildPeopleSection(ThemeData theme, ColorScheme colorScheme) {
     final peopleAsync = ref.watch(personsStreamProvider);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ListTile(
-          onTap: () => _showPersonPicker(peopleAsync.value ?? []),
-          leading: const Icon(Icons.person_outline_rounded),
-          title: const Text('Person (Optional)'),
-          subtitle: Text(_selectedPerson?.name ?? 'None'),
-          trailing: _selectedPerson != null
-              ? IconButton(
-                  icon: const Icon(Icons.close_rounded),
-                  onPressed: () => setState(() => _selectedPerson = null),
-                )
-              : const Icon(Icons.chevron_right_rounded),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          tileColor: colorScheme.surfaceContainerLow,
-        ),
-        if (_selectedPerson != null &&
-            _transactionType != TransactionType.transfer &&
-            _selectedLinkedLoan == null) ...[
-          const SizedBox(height: 8),
-          CheckboxListTile(
-            value: _isNewLoanCreation,
-            onChanged: (val) =>
-                setState(() => _isNewLoanCreation = val ?? false),
-            title: Text(_transactionType == TransactionType.income
-                ? 'Record as money borrowed (Debt to pay back)'
-                : 'Record as money lent (Debt owed to you)'),
-            subtitle: const Text('Creates a new entry in Loans & Debts'),
-            contentPadding: EdgeInsets.zero,
-            controlAffinity: ListTileControlAffinity.leading,
-          ),
-        ],
-      ],
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      onTap: () => _showPersonPicker(peopleAsync.value ?? []),
+      leading: const Icon(Icons.person_outline_rounded),
+      title: const Text('Person / Contact',
+          style: TextStyle(fontWeight: FontWeight.w700)),
+      subtitle: Text(_selectedPerson?.name ?? 'None (Optional)'),
+      trailing: _selectedPerson != null
+          ? IconButton(
+              icon: const Icon(Icons.close_rounded, size: 18),
+              onPressed: () => setState(() => _selectedPerson = null),
+            )
+          : const Icon(Icons.chevron_right_rounded),
     );
   }
 
@@ -647,24 +730,30 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
       data: (accounts) {
         if (accounts.isEmpty) {
           return const ListTile(
+            contentPadding: EdgeInsets.zero,
             title: Text('No accounts available'),
             subtitle: Text('Please create an account first'),
           );
         }
         _selectedAccount ??= accounts.first;
         return ListTile(
+          contentPadding: EdgeInsets.zero,
           onTap: () => _showAccountPicker(accounts, isTransfer: false),
           leading: const Icon(Symbols.account_balance),
           title: Text(
-              _transactionType == TransactionType.transfer ? 'From Account' : 'Account'),
+            _transactionType == TransactionType.transfer
+                ? 'From Account'
+                : 'Account',
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
           subtitle: Text(_selectedAccount?.name ?? 'Select Account'),
           trailing: const Icon(Icons.chevron_right_rounded),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          tileColor: colorScheme.surfaceContainerLow,
         );
       },
-      loading: () => const ListTile(title: Text('Loading accounts...')),
+      loading: () => const ListTile(
+        contentPadding: EdgeInsets.zero,
+        title: Text('Loading accounts...'),
+      ),
       error: (_, __) => const SizedBox.shrink(),
     );
   }
@@ -678,14 +767,13 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
         if (available.isEmpty) return const SizedBox.shrink();
         _selectedTransferAccount ??= available.first;
         return ListTile(
+          contentPadding: EdgeInsets.zero,
           onTap: () => _showAccountPicker(available, isTransfer: true),
           leading: const Icon(Symbols.account_balance_wallet),
-          title: const Text('To Account'),
+          title: const Text('To Account',
+              style: TextStyle(fontWeight: FontWeight.w700)),
           subtitle: Text(_selectedTransferAccount?.name ?? 'Select Account'),
           trailing: const Icon(Icons.chevron_right_rounded),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          tileColor: colorScheme.surfaceContainerLow,
         );
       },
       loading: () => const SizedBox.shrink(),
@@ -728,6 +816,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
 
     if (_selectedAccount == null ||
         (_transactionType != TransactionType.transfer &&
+            !_isDebtToggleOn &&
             _selectedLinkedLoan == null &&
             _selectedCategory == null)) {
       ScaffoldMessenger.of(context).showSnackBar(

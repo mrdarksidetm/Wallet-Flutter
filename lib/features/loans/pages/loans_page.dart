@@ -26,6 +26,7 @@ class LoansPage extends ConsumerStatefulWidget {
 class _LoansPageState extends ConsumerState<LoansPage> {
   bool _isBorrowedExpanded = true;
   bool _isLentExpanded = true;
+  bool _isSheetOpen = false;
   final Set<int> _expandedLoanIds = {};
 
   void _toggleLoanExpand(int loanId) {
@@ -38,23 +39,42 @@ class _LoansPageState extends ConsumerState<LoansPage> {
     });
   }
 
+  Future<void> _openInstallmentSheet(Loan item, double remainingAmount) async {
+    setState(() => _isSheetOpen = true);
+    await AddDebtInstallmentSheet.show(
+      context,
+      loan: item,
+      remainingAmount: remainingAmount,
+    );
+    if (mounted) {
+      setState(() => _isSheetOpen = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final selectedCurrency = ref.watch(currencyProvider);
     final currencyFormat = NumberFormat.simpleCurrency(name: selectedCurrency);
+    final fillIcons = ref.watch(personalizationProvider).fillIcons;
 
     final loansAsync = ref.watch(loansStreamProvider);
     final transactionsAsync = ref.watch(transactionsStreamProvider);
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/add_loan'),
-        icon: const Icon(Symbols.add_rounded),
-        label: const Text('Add Loan / Debt'),
-      ),
+      floatingActionButton: _isSheetOpen
+          ? null
+          : FloatingActionButton(
+              backgroundColor: colorScheme.primaryContainer,
+              foregroundColor: colorScheme.onPrimaryContainer,
+              onPressed: () => context.push('/add_loan'),
+              child: Icon(
+                Symbols.add_rounded,
+                fill: fillIcons ? 1.0 : 0.0,
+              ),
+            ),
       body: CustomScrollView(
         slivers: [
           SliverAppBar.medium(
@@ -546,7 +566,40 @@ class _LoansPageState extends ConsumerState<LoansPage> {
                     const Divider(height: 1),
                     const SizedBox(height: 16),
 
-                    // Installment History Header & "+ Add Installment" Action
+                    // 1. Prominent Primary Action Button (Record Repayment / Make Payment)
+                    if (!isCompleted) ...[
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton.icon(
+                          onPressed: () =>
+                              _openInstallmentSheet(item, remainingAmount),
+                          icon: Icon(
+                            isLent
+                                ? Symbols.payments_rounded
+                                : Symbols.add_card_rounded,
+                            size: 18,
+                          ),
+                          label: Text(
+                            isLent ? 'Record Repayment' : 'Make Payment',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: themeColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
+                    // 2. Installment Breakdown Header
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -557,34 +610,16 @@ class _LoansPageState extends ConsumerState<LoansPage> {
                             letterSpacing: 0.2,
                           ),
                         ),
-                        if (!isCompleted)
-                          FilledButton.tonalIcon(
-                            onPressed: () {
-                              AddDebtInstallmentSheet.show(
-                                context,
-                                loan: item,
-                                remainingAmount: remainingAmount,
-                              );
-                            },
-                            icon: const Icon(Symbols.add_rounded, size: 16),
-                            label: const Text('Add Part'),
-                            style: FilledButton.styleFrom(
-                              visualDensity: VisualDensity.compact,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 6),
-                              textStyle: const TextStyle(fontSize: 12),
-                            ),
-                          ),
                       ],
                     ),
 
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 10),
 
-                    // Installment Payments List
+                    // 3. Installment Payments List
                     if (installments.isEmpty)
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            vertical: 16, horizontal: 12),
+                            vertical: 16, horizontal: 14),
                         decoration: BoxDecoration(
                           color: colorScheme.surfaceContainerHighest
                               .withValues(alpha: 0.3),
@@ -601,7 +636,9 @@ class _LoansPageState extends ConsumerState<LoansPage> {
                             const SizedBox(width: 10),
                             Expanded(
                               child: Text(
-                                'No partial payments recorded yet. Tap "+ Add Part" to record payments made in parts.',
+                                isLent
+                                    ? 'No repayments recorded yet.'
+                                    : 'No payments recorded yet.',
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: colorScheme.onSurfaceVariant,
                                 ),
