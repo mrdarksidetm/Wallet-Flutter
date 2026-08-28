@@ -39,13 +39,14 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          cache: true
+          cache: false
 
       - name: Grant Execute Permission for Gradlew
         run: test -f android/gradlew && chmod +x android/gradlew || true
 
       - name: Install Dependencies
         run: |
+          flutter clean
           flutter doctor -v
           yes | flutter doctor --android-licenses || true
           flutter pub get
