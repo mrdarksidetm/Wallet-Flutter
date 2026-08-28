@@ -32,6 +32,9 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - name: Grant Execute Permission for Gradlew
+        run: chmod +x android/gradlew
+
       - name: Install Dependencies
         run: |
           flutter doctor -v
@@ -171,21 +174,9 @@ jobs:
 
       - name: Build Universal APK
         run: |
+          set -o pipefail
           echo "Building Universal (Fat) APK..."
           flutter build apk --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --verbose --android-skip-build-dependency-validation 2>&1 | tee build_universal.log
-          BUILD_STATUS="${PIPESTATUS[0]}"
-          if [ "$BUILD_STATUS" -ne 0 ]; then
-            ERR_MSG=$(grep -i -E "error:|exception:|failed" build_universal.log | tail -n 15 | tr '\n' ' | ' | sed 's/[^a-zA-Z0-9 ._:\/|-]/ /g')
-            if [ -z "$ERR_MSG" ]; then
-              ERR_MSG=$(tail -n 25 build_universal.log | tr '\n' ' | ' | sed 's/[^a-zA-Z0-9 ._:\/|-]/ /g')
-            fi
-            echo "::error title=Universal APK Build Failed::$ERR_MSG"
-            echo "### ❌ Universal APK Build Failed" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            tail -n 80 build_universal.log >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            exit "$BUILD_STATUS"
-          fi
           
           # Immediately preserve universal APK before split-abi build overwrites outputs
           echo "Locating Universal APK..."
@@ -205,21 +196,9 @@ jobs:
 
       - name: Build Split APKs
         run: |
+          set -o pipefail
           echo "Building Split-ABI APKs..."
           flutter build apk --split-per-abi --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --verbose --android-skip-build-dependency-validation 2>&1 | tee build_split.log
-          BUILD_STATUS="${PIPESTATUS[0]}"
-          if [ "$BUILD_STATUS" -ne 0 ]; then
-            ERR_MSG=$(grep -i -E "error:|exception:|failed" build_split.log | tail -n 15 | tr '\n' ' | ' | sed 's/[^a-zA-Z0-9 ._:\/|-]/ /g')
-            if [ -z "$ERR_MSG" ]; then
-              ERR_MSG=$(tail -n 25 build_split.log | tr '\n' ' | ' | sed 's/[^a-zA-Z0-9 ._:\/|-]/ /g')
-            fi
-            echo "::error title=Split APK Build Failed::$ERR_MSG"
-            echo "### ❌ Split APK Build Failed" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            tail -n 80 build_split.log >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            exit "$BUILD_STATUS"
-          fi
           
           # Preserve split APKs
           echo "Locating Split APKs..."
@@ -295,3 +274,44 @@ jobs:
           path: build/app/outputs/symbols/*
           if-no-files-found: warn
           retention-days: 7
+
+      - name: Publish Errors to Job Summary
+        if: failure()
+        run: |
+          echo "## ❌ Build Failure Summary" >> $GITHUB_STEP_SUMMARY
+          echo "Here are the compiler and build error messages:" >> $GITHUB_STEP_SUMMARY
+          echo '```text' >> $GITHUB_STEP_SUMMARY
+          
+          LOG_FILE=""
+          if [ -f build_split.log ] && grep -qE "(^e: |^FAILURE:|^\* What went wrong:|^> Task :app:compile|^> Compilation error|error:|Exception:|Error:)" build_split.log; then
+            LOG_FILE="build_split.log"
+          elif [ -f build_universal.log ]; then
+            LOG_FILE="build_universal.log"
+          fi
+          
+          if [ -n "$LOG_FILE" ] && [ -f "$LOG_FILE" ]; then
+            if grep -qE "(^e: |^FAILURE:|^\* What went wrong:|^> Task :app:compile|^> Compilation error|error:|Exception:|Error:)" "$LOG_FILE"; then
+              grep -B 2 -A 5 -E "(^e: |^FAILURE:|^\* What went wrong:|^> Task :app:compile|^> Compilation error|error:|Exception:|Error:)" "$LOG_FILE" | head -n 60 >> $GITHUB_STEP_SUMMARY
+            else
+              tail -n 40 "$LOG_FILE" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "No build log found or failure occurred in a setup step." >> $GITHUB_STEP_SUMMARY
+          fi
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          
+          if [ -n "$LOG_FILE" ] && [ -f "$LOG_FILE" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "<details><summary><b>📋 Full Build Log Tail (Click to expand)</b></summary>" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo '```text' >> $GITHUB_STEP_SUMMARY
+            tail -n 100 "$LOG_FILE" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "</details>" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Publish Success to Job Summary
+        if: success()
+        run: |
+          echo "## ✅ Build Succeeded!" >> $GITHUB_STEP_SUMMARY
+          echo "Wallet APKs have been compiled successfully and uploaded as artifacts below." >> $GITHUB_STEP_SUMMARY

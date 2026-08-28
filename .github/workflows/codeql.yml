@@ -41,6 +41,9 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - name: Grant Execute Permission for Gradlew
+        run: chmod +x android/gradlew
+
       - name: Install Dependencies
         run: |
           flutter doctor -v
@@ -55,9 +58,27 @@ jobs:
 
       - name: Build Android Code for CodeQL Extraction
         run: |
-          flutter build apk --debug --no-tree-shake-icons --android-skip-build-dependency-validation
+          set -o pipefail
+          flutter build apk --debug --no-tree-shake-icons --android-skip-build-dependency-validation 2>&1 | tee build_codeql.log
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
           category: "/language:${{matrix.language}}"
+
+      - name: Publish Errors to Job Summary
+        if: failure()
+        run: |
+          echo "## ❌ CodeQL Build Failure Summary" >> $GITHUB_STEP_SUMMARY
+          echo "Here are the compiler and build error messages:" >> $GITHUB_STEP_SUMMARY
+          echo '```text' >> $GITHUB_STEP_SUMMARY
+          if [ -f build_codeql.log ]; then
+            if grep -qE "(^e: |^FAILURE:|^\* What went wrong:|^> Task :app:compile|^> Compilation error|error:|Exception:|Error:)" build_codeql.log; then
+              grep -B 2 -A 5 -E "(^e: |^FAILURE:|^\* What went wrong:|^> Task :app:compile|^> Compilation error|error:|Exception:|Error:)" build_codeql.log | head -n 60 >> $GITHUB_STEP_SUMMARY
+            else
+              tail -n 40 build_codeql.log >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "No build log found or failure occurred in setup." >> $GITHUB_STEP_SUMMARY
+          fi
+          echo '```' >> $GITHUB_STEP_SUMMARY
