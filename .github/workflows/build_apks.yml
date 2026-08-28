@@ -33,7 +33,7 @@ jobs:
           cache: true
 
       - name: Grant Execute Permission for Gradlew
-        run: chmod +x android/gradlew
+        run: test -f android/gradlew && chmod +x android/gradlew || true
 
       - name: Install Dependencies
         run: |
