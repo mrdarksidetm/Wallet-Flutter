@@ -165,9 +165,7 @@ class _SearchResults extends ConsumerWidget {
           filter: (p) => _matchesPerson(p, query),
           builder: (p) => _ResultTile(
             title: p.name,
-            subtitle: p.phoneNumber?.isNotEmpty == true
-                ? p.phoneNumber!
-                : (p.email?.isNotEmpty == true ? p.email! : 'Contact'),
+            subtitle: p.contact?.isNotEmpty == true ? p.contact! : 'Contact',
             icon: Symbols.person,
             onTap: () => context.push('/people'),
           ),
@@ -181,7 +179,7 @@ class _SearchResults extends ConsumerWidget {
           builder: (g) => _ResultTile(
             title: g.name,
             subtitle:
-                'Target: ${CurrencyEngine.formatCurrency(g.targetAmount, selectedCurrency)} • Due ${DateFormat.yMMMd().format(g.targetDate)}',
+                'Target: ${CurrencyEngine.formatCurrency(g.targetAmount, selectedCurrency)} • Due ${DateFormat.yMMMd().format(g.deadline)}',
             icon: Symbols.flag,
             onTap: () => context.push('/goals'),
           ),
@@ -195,7 +193,7 @@ class _SearchResults extends ConsumerWidget {
           builder: (l) => _ResultTile(
             title: l.note?.isNotEmpty == true ? l.note! : 'Loan',
             subtitle:
-                '${CurrencyEngine.formatCurrency(l.amount, selectedCurrency)} • ${DateFormat.yMMMd().format(l.date)}',
+                '${CurrencyEngine.formatCurrency(l.amount, selectedCurrency)} • ${DateFormat.yMMMd().format(l.createdAt)}',
             icon: Symbols.front_loader,
             onTap: () => context.push('/loans'),
           ),
@@ -344,8 +342,7 @@ class _SearchResults extends ConsumerWidget {
   bool _matchesPerson(Person p, String query) {
     final q = query.toLowerCase();
     if (p.name.toLowerCase().contains(q)) return true;
-    if ((p.phoneNumber?.toLowerCase() ?? '').contains(q)) return true;
-    if ((p.email?.toLowerCase() ?? '').contains(q)) return true;
+    if ((p.contact?.toLowerCase() ?? '').contains(q)) return true;
     return false;
   }
 
@@ -364,7 +361,7 @@ class _SearchResults extends ConsumerWidget {
         CurrencyEngine.formatCurrency(g.targetAmount, currency).toLowerCase();
     if (targetStr.contains(q) || customFormatted.contains(q)) return true;
 
-    final dateStr = DateFormat.yMMMd().format(g.targetDate).toLowerCase();
+    final dateStr = DateFormat.yMMMd().format(g.deadline).toLowerCase();
     if (dateStr.contains(q)) return true;
 
     return false;
@@ -385,7 +382,7 @@ class _SearchResults extends ConsumerWidget {
         CurrencyEngine.formatCurrency(l.amount, currency).toLowerCase();
     if (amountStr.contains(q) || customFormatted.contains(q)) return true;
 
-    final dateStr = DateFormat.yMMMd().format(l.date).toLowerCase();
+    final dateStr = DateFormat.yMMMd().format(l.createdAt).toLowerCase();
     if (dateStr.contains(q)) return true;
 
     return false;
