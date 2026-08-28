@@ -34,6 +34,15 @@ subprojects {
     if (project.name != "app") {
         project.evaluationDependsOn(":app")
     }
+    project.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class.java).configureEach {
+        if (project.name != "app") {
+            kotlinOptions {
+                languageVersion = "1.9"
+                apiVersion = "1.9"
+                jvmTarget = "17"
+            }
+        }
+    }
 }
 
 tasks.register<Delete>("clean") {
