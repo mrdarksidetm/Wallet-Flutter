@@ -50,6 +50,7 @@ jobs:
           flutter doctor -v
           yes | flutter doctor --android-licenses || true
           flutter pub get
+          find ~/.pub-cache -name "ReceiveIntentPlugin.kt" -exec sed -i 's/this::activityBinding.isInitialized/::activityBinding.isInitialized/g' {} + 2>/dev/null || true
           dart run build_runner build --delete-conflicting-outputs || true
 
       - name: Setup Signing Key for Build
