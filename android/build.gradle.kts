@@ -5,7 +5,7 @@ buildscript {
     }
     dependencies {
         classpath("com.android.tools.build:gradle:8.11.1")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.21")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.24")
     }
 }
 
@@ -33,15 +33,6 @@ subprojects {
 subprojects {
     if (project.name != "app") {
         project.evaluationDependsOn(":app")
-    }
-    project.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class.java).configureEach {
-        if (project.name != "app") {
-            kotlinOptions {
-                languageVersion = "1.9"
-                apiVersion = "1.9"
-                jvmTarget = "17"
-            }
-        }
     }
 }
 
