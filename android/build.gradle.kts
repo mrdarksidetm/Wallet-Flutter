@@ -34,6 +34,11 @@ subprojects {
     if (project.name != "app") {
         project.evaluationDependsOn(":app")
     }
+    afterEvaluate {
+        if (project.hasProperty("android")) {
+            dependencies.add("implementation", "org.jetbrains.kotlin:kotlin-reflect:1.9.24")
+        }
+    }
 }
 
 tasks.register<Delete>("clean") {
