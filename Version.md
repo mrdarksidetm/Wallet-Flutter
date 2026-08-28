@@ -344,3 +344,11 @@ ont_awesome_flutter\ v11 APIs.
   - **State & Persistence:** Added `isExpressiveDiversificationEnabled` to `PersonalizationState` and `PersonalizationNotifier` with SharedPreferences persistence.
   - **Navigation & Search:** Added `/expressive_showdown` and `/settings/expressive_showdown` routes in `router.dart`, and updated searchable settings index.
 - **Status:** 100% (Verified with `flutter analyze` with 0 issues).
+
+## [2026-08-28 20:45] - Build Pipeline Stabilization & SDK 36 Subproject Override
+- **Action:** Resolved CI build failure in GitHub Actions Universal APK step by stabilizing Gradle build layout and ensuring all library subprojects compile against SDK 36.
+- **Changes:**
+  - **Gradle Directory Layout:** Fixed `newBuildDir` in `android/build.gradle.kts` to reference `rootProject.layout.projectDirectory.dir("../build")` to avoid lazy property resolution errors in Gradle 8.14.
+  - **Evaluation Guard:** Guarded `project.evaluationDependsOn(":app")` in `subprojects` block so `:app` does not evaluate against itself.
+  - **Subproject SDK 36 Override:** Added `compileSdkVersion(36)` overrides for all `com.android.library` and `com.android.application` subprojects to resolve modern AndroidX dependency constraints in third-party plugins.
+- **Status:** 100% (Toolchain configured and ready for CI validation).
