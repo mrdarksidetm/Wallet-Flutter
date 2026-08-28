@@ -220,6 +220,7 @@ class _HomeFinanceGrid extends ConsumerWidget {
     // Watch accountsStreamProvider to ensure the grid updates when accounts change
     ref.watch(accountsStreamProvider);
     final selectedCurrency = ref.watch(currencyProvider);
+    final isVisible = ref.watch(personalizationProvider.select((p) => p.isBalanceVisible));
 
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -238,7 +239,9 @@ class _HomeFinanceGrid extends ConsumerWidget {
             title: 'Accounts',
             accentColor: colorScheme.primary,
             subtitle: totalAssetBalanceAsync.when(
-              data: (v) => '${CurrencyEngine.formatCurrency(v, selectedCurrency)} total',
+              data: (v) => isVisible
+                  ? '${CurrencyEngine.formatCurrency(v, selectedCurrency)} total'
+                  : '•••• total',
               loading: () => '...',
               error: (_, __) => 'Error',
             ),
@@ -468,11 +471,13 @@ class _HomeRecentTransactionsSectionState
                 });
               }
 
+              final isVisible = ref.watch(personalizationProvider.select((p) => p.isBalanceVisible));
               final recentTxs = sortedTxs.take(10).toList();
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: TransactionGroupedList(
                   transactions: recentTxs,
+                  obscureAmount: !isVisible,
                   onTap: (tx) => context.push('/add_transaction', extra: tx),
                 ),
               );

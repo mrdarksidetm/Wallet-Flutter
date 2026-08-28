@@ -18,6 +18,7 @@ class TransactionListTile extends ConsumerWidget {
   final VoidCallback? onTap;
   final bool isGrouped;
   final bool showDivider;
+  final bool obscureAmount;
 
   const TransactionListTile({
     super.key,
@@ -25,6 +26,7 @@ class TransactionListTile extends ConsumerWidget {
     this.onTap,
     this.isGrouped = false,
     this.showDivider = false,
+    this.obscureAmount = false,
   });
 
   void _showContextMenu(BuildContext context, WidgetRef ref) {
@@ -166,15 +168,25 @@ class TransactionListTile extends ConsumerWidget {
           ],
         ],
       ),
-      trailing: Text(
-        '${isIncome ? '+' : '-'}${CurrencyEngine.formatCurrency(tx.amount, selectedCurrency)}',
-        style: theme.textTheme.titleMedium?.copyWith(
-          fontWeight: FontWeight.w900,
-          color: isIncome ? AppColors.income : AppColors.expense,
-          letterSpacing: -0.3,
-          fontSize: 15,
-        ),
-      ),
+      trailing: obscureAmount
+          ? Text(
+              '••••',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w900,
+                color: isIncome ? AppColors.income : AppColors.expense,
+                letterSpacing: 2,
+                fontSize: 15,
+              ),
+            )
+          : Text(
+              '${isIncome ? '+' : '-'}${CurrencyEngine.formatCurrency(tx.amount, selectedCurrency)}',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w900,
+                color: isIncome ? AppColors.income : AppColors.expense,
+                letterSpacing: -0.3,
+                fontSize: 15,
+              ),
+            ),
     );
 
     if (isGrouped) {

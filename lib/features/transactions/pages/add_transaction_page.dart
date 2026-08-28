@@ -16,6 +16,7 @@ import '../../../core/widgets/primary_atelier_button.dart';
 import '../../../core/theme/color_extension.dart';
 import '../../../core/database/models/auxiliary_models.dart';
 import '../../../core/widgets/expressive_bottom_sheet.dart';
+import '../../../core/widgets/expressive_shape.dart';
 import '../../../core/services/currency_engine.dart';
 import '../../../core/widgets/app_back_button.dart';
 import '../../people/widgets/person_avatar.dart';
@@ -39,9 +40,10 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
   String? _selectedIcon;
   String? _selectedColor;
 
-  // Loan Integration
+  // People & Debt/Loan Integration
   Person? _selectedPerson;
-  bool _isLoan = false;
+  Loan? _selectedLinkedLoan;
+  bool _isNewLoanCreation = false;
   bool _isLoading = false;
   DateTime _selectedDateTime = DateTime.now();
 
@@ -68,13 +70,6 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
 
   Future<void> _initializeData() async {
     final tx = widget.transaction!;
-    
-    // [ACTION]: Robustly loading all linked entities for editing.
-    // [M3 UPDATE]: We ensure links are loaded from Isar, but use ID fallbacks 
-    // from the transaction record if the link returns null.
-    // [WHY]: This prevents the "forgotten fields" bug where links might not 
-    // be eagerly loaded, ensuring icon, category, color, person, and accounts 
-    // are all correctly restored in the UI.
 
     await Future.wait([
       tx.account.load(),
@@ -93,10 +88,24 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
       cat = await ref.read(categoryRepositoryProvider).getById(tx.categoryId);
     }
 
+    // Check if this transaction has a linked loan tag
+    Loan? linkedLoan;
+    if (tx.tags != null) {
+      for (final tag in tx.tags!) {
+        if (tag.startsWith('loan_')) {
+          final loanId = int.tryParse(tag.replaceFirst('loan_', ''));
+          if (loanId != null) {
+            linkedLoan = await ref.read(loanRepositoryProvider).getById(loanId);
+            if (linkedLoan != null) break;
+          }
+        }
+      }
+    }
+
     if (mounted) {
       setState(() {
         _transactionType = tx.type;
-        _amountController.text = tx.amount.toString();
+        _amountController.text = tx.amount > 0 ? tx.amount.toString() : '';
         _noteController.text = tx.note ?? '';
         _selectedIcon = tx.icon;
         _selectedColor = tx.color;
@@ -105,6 +114,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
         _selectedTransferAccount = tx.transferAccount.value;
         _selectedPerson = tx.person.value;
         _selectedDateTime = tx.date;
+        _selectedLinkedLoan = linkedLoan;
         _isLoading = false;
       });
     }
@@ -128,7 +138,8 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final effectiveColor = _getEffectiveColor(colorScheme);
-    final effectiveIcon = _selectedIcon ?? _selectedCategory?.icon ?? 'category';
+    final effectiveIcon =
+        _selectedIcon ?? _selectedCategory?.icon ?? 'category';
 
     return Scaffold(
       appBar: _buildAppBar(colorScheme),
@@ -138,26 +149,42 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildTypeSelector(),
-            const SizedBox(height: 32),
-            _buildAmountInput(theme, effectiveColor),
-            const SizedBox(height: 32),
+            const SizedBox(height: 28),
+
+            // Enlarged Clean Amount Input with low-opacity $ 0.00 watermark
+            _buildAmountInput(theme, colorScheme, effectiveColor),
+
+            const SizedBox(height: 28),
+
+            // Debt Payment / Collection Integration Section
+            if (_transactionType == TransactionType.expense ||
+                _transactionType == TransactionType.income) ...[
+              _buildDebtIntegrationCard(theme, colorScheme),
+              const SizedBox(height: 16),
+            ],
+
             _buildNoteInput(),
             const SizedBox(height: 16),
             _buildDateTimePicker(colorScheme),
             const SizedBox(height: 16),
+
             if (_transactionType != TransactionType.transfer) ...[
               _buildCategorySelector(colorScheme),
               const SizedBox(height: 16),
-              _buildIconAndColorOverrides(theme, colorScheme, effectiveIcon, effectiveColor),
+              _buildIconAndColorOverrides(
+                  theme, colorScheme, effectiveIcon, effectiveColor),
               const SizedBox(height: 24),
             ],
-            _buildPeopleAndLoanSection(theme, colorScheme),
+
+            _buildPeopleSection(theme, colorScheme),
             const SizedBox(height: 24),
             _buildAccountSelector(colorScheme),
+
             if (_transactionType == TransactionType.transfer) ...[
               const SizedBox(height: 16),
               _buildTransferAccountSelector(colorScheme),
             ],
+
             const SizedBox(height: 48),
             _buildSaveButton(),
           ],
@@ -168,13 +195,16 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
 
   Color _getEffectiveColor(ColorScheme colorScheme) {
     if (_selectedColor != null) return _selectedColor!.parseHexColor();
-    if (_selectedCategory != null) return _selectedCategory!.color.parseHexColor();
+    if (_selectedCategory != null) {
+      return _selectedCategory!.color.parseHexColor();
+    }
     return colorScheme.primary;
   }
 
   PreferredSizeWidget _buildAppBar(ColorScheme colorScheme) {
     return AppBar(
-      title: Text(widget.transaction == null ? 'Add Transaction' : 'Edit Transaction'),
+      title: Text(
+          widget.transaction == null ? 'Add Transaction' : 'Edit Transaction'),
       leading: AppBackButton(
         icon: Symbols.close_rounded,
         onPressed: () => context.pop(),
@@ -183,7 +213,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
         if (widget.transaction != null)
           IconButton(
             onPressed: _delete,
-            icon: Icon(Symbols.delete, color: colorScheme.error),
+            icon: Icon(Symbols.delete_rounded, color: colorScheme.error),
           ),
         const SizedBox(width: 8),
       ],
@@ -194,39 +224,221 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
     return Center(
       child: SegmentedButton<TransactionType>(
         segments: const [
-          ButtonSegment(value: TransactionType.expense, label: Text('Expense'), icon: Icon(Icons.remove_rounded)),
-          ButtonSegment(value: TransactionType.income, label: Text('Income'), icon: Icon(Icons.add_rounded)),
-          ButtonSegment(value: TransactionType.transfer, label: Text('Transfer'), icon: Icon(Icons.swap_horiz_rounded)),
+          ButtonSegment(
+              value: TransactionType.expense,
+              label: Text('Expense'),
+              icon: Icon(Icons.remove_rounded)),
+          ButtonSegment(
+              value: TransactionType.income,
+              label: Text('Income'),
+              icon: Icon(Icons.add_rounded)),
+          ButtonSegment(
+              value: TransactionType.transfer,
+              label: Text('Transfer'),
+              icon: Icon(Icons.swap_horiz_rounded)),
         ],
         selected: {_transactionType},
         onSelectionChanged: (Set<TransactionType> newSelection) {
           setState(() {
             _transactionType = newSelection.first;
             _selectedCategory = null;
+            _selectedLinkedLoan = null;
           });
         },
       ),
     );
   }
 
-  Widget _buildAmountInput(ThemeData theme, Color effectiveColor) {
+  // --- Large Clean Amount Input without dark background ---
+  Widget _buildAmountInput(
+      ThemeData theme, ColorScheme colorScheme, Color effectiveColor) {
     final selectedCurrency = ref.watch(currencyProvider);
-    return TextField(
-      controller: _amountController,
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      style: theme.textTheme.displayMedium?.copyWith(
-        fontWeight: FontWeight.bold,
-        color: effectiveColor,
+    final symbol = CurrencyEngine.getSymbol(selectedCurrency);
+
+    return Container(
+      alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: TextField(
+        controller: _amountController,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        style: TextStyle(
+          fontSize: 48,
+          fontWeight: FontWeight.w900,
+          color: effectiveColor,
+          letterSpacing: -1.0,
+        ),
+        textAlign: TextAlign.center,
+        decoration: InputDecoration(
+          // Low-opacity watermark hint with symbol in front
+          hintText: '$symbol 0.00',
+          hintStyle: TextStyle(
+            fontSize: 48,
+            fontWeight: FontWeight.w900,
+            color: colorScheme.onSurface.withValues(alpha: 0.22),
+            letterSpacing: -1.0,
+          ),
+          filled: false,
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          contentPadding: EdgeInsets.zero,
+        ),
       ),
-      textAlign: TextAlign.center,
-      decoration: InputDecoration(
-        hintText: '0.00',
-        prefixText: '${CurrencyEngine.getSymbol(selectedCurrency)} ',
-        prefixStyle: theme.textTheme.displaySmall?.copyWith(color: theme.colorScheme.outline),
-        border: InputBorder.none,
-        enabledBorder: InputBorder.none,
-        focusedBorder: InputBorder.none,
-      ),
+    );
+  }
+
+  // --- Debt Payment (Expense) and Collection (Income) Integration ---
+  Widget _buildDebtIntegrationCard(ThemeData theme, ColorScheme colorScheme) {
+    final isExpense = _transactionType == TransactionType.expense;
+    final targetLoanType = isExpense ? LoanType.borrowed : LoanType.lent;
+    final loansAsync = ref.watch(loansStreamProvider);
+    final selectedCurrency = ref.watch(currencyProvider);
+
+    return loansAsync.when(
+      data: (loans) {
+        final activeDebts =
+            loans.where((l) => l.type == targetLoanType && !l.isPaid).toList();
+
+        if (activeDebts.isEmpty && _selectedLinkedLoan == null) {
+          return const SizedBox.shrink();
+        }
+
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: _selectedLinkedLoan != null
+                ? (isExpense
+                    ? const Color(0xFFEF4444).withValues(alpha: 0.12)
+                    : const Color(0xFF10B981).withValues(alpha: 0.12))
+                : colorScheme.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: _selectedLinkedLoan != null
+                  ? (isExpense
+                      ? const Color(0xFFEF4444).withValues(alpha: 0.4)
+                      : const Color(0xFF10B981).withValues(alpha: 0.4))
+                  : colorScheme.outlineVariant.withValues(alpha: 0.3),
+              width: _selectedLinkedLoan != null ? 1.5 : 1.0,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    isExpense
+                        ? Symbols.money_off_rounded
+                        : Symbols.attach_money_rounded,
+                    size: 20,
+                    color: isExpense
+                        ? const Color(0xFFEF4444)
+                        : const Color(0xFF10B981),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      isExpense
+                          ? 'Repay a Borrowed Debt'
+                          : 'Collect a Lent Debt',
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  if (_selectedLinkedLoan != null)
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded, size: 18),
+                      tooltip: 'Unlink debt',
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () {
+                        setState(() {
+                          _selectedLinkedLoan = null;
+                        });
+                      },
+                    ),
+                ],
+              ),
+              const SizedBox(height: 10),
+
+              // Dropdown to pick active debt
+              DropdownButtonFormField<Loan?>(
+                value: _selectedLinkedLoan,
+                decoration: InputDecoration(
+                  labelText: isExpense ? 'Select Debt to Repay' : 'Select Debt to Collect',
+                  hintText: 'None (Regular transaction)',
+                  filled: true,
+                  fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                ),
+                items: [
+                  const DropdownMenuItem<Loan?>(
+                    value: null,
+                    child: Text('None (Regular transaction)'),
+                  ),
+                  ...activeDebts.map((loan) {
+                    final personName = loan.person.value?.name ?? 'Contact';
+                    return DropdownMenuItem<Loan?>(
+                      value: loan,
+                      child: Text(
+                        '$personName - ${CurrencyEngine.formatCurrency(loan.amount, selectedCurrency)}',
+                      ),
+                    );
+                  }),
+                ],
+                onChanged: (loan) {
+                  setState(() {
+                    _selectedLinkedLoan = loan;
+                    if (loan != null) {
+                      if (loan.person.value != null) {
+                        _selectedPerson = loan.person.value;
+                      }
+                      if (_noteController.text.isEmpty) {
+                        _noteController.text = isExpense
+                            ? 'Debt repayment to ${loan.person.value?.name ?? 'lender'}'
+                            : 'Debt collection from ${loan.person.value?.name ?? 'borrower'}';
+                      }
+                    }
+                  });
+                },
+              ),
+
+              if (_selectedLinkedLoan != null) ...[
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Total debt: ${CurrencyEngine.formatCurrency(_selectedLinkedLoan!.amount, selectedCurrency)}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          _amountController.text =
+                              _selectedLinkedLoan!.amount.toStringAsFixed(2);
+                        });
+                      },
+                      style: TextButton.styleFrom(
+                        visualDensity: VisualDensity.compact,
+                      ),
+                      child: const Text('Fill Full Amount'),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 
@@ -246,7 +458,8 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
       onTap: _pickDateTime,
       leading: const Icon(Symbols.calendar_month),
       title: const Text('Date & Time'),
-      subtitle: Text(DateFormat('MMM dd, yyyy - hh:mm a').format(_selectedDateTime)),
+      subtitle:
+          Text(DateFormat('MMM dd, yyyy - hh:mm a').format(_selectedDateTime)),
       trailing: const Icon(Icons.chevron_right_rounded),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       tileColor: colorScheme.surfaceContainerLow,
@@ -295,30 +508,30 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
     );
   }
 
-  Widget _buildIconAndColorOverrides(ThemeData theme, ColorScheme colorScheme, String effectiveIcon, Color effectiveColor) {
+  Widget _buildIconAndColorOverrides(ThemeData theme, ColorScheme colorScheme,
+      String effectiveIcon, Color effectiveColor) {
     return Row(
       children: [
         Expanded(
-          child: Hero(
-            tag: widget.transaction != null ? 'tx_icon_${widget.transaction!.id}' : 'new_tx_icon',
-            child: ListTile(
-              onTap: () => _pickIcon(effectiveIcon, effectiveColor),
-              leading: Icon(AppIcons.getIcon(effectiveIcon), color: effectiveColor),
-              title: const Text('Icon'),
-              subtitle: Text(_selectedIcon == null ? 'Default' : 'Custom'),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              tileColor: colorScheme.surfaceContainerLow,
-            ),
+          child: ListTile(
+            onTap: _pickIcon,
+            leading: Icon(AppIcons.getIcon(effectiveIcon), color: effectiveColor),
+            title: const Text('Icon'),
+            subtitle: Text(effectiveIcon),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            tileColor: colorScheme.surfaceContainerLow,
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: ListTile(
-            onTap: () => _pickColor(theme, effectiveColor),
-            leading: CircleAvatar(backgroundColor: effectiveColor, radius: 12),
+            onTap: _pickColor,
+            leading: CircleAvatar(backgroundColor: effectiveColor, radius: 14),
             title: const Text('Color'),
-            subtitle: Text(_selectedColor == null ? 'Default' : 'Custom'),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            subtitle: Text(_selectedColor != null ? 'Custom' : 'Category'),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             tileColor: colorScheme.surfaceContainerLow,
           ),
         ),
@@ -326,69 +539,40 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
     );
   }
 
-  void _pickIcon(String effectiveIcon, Color effectiveColor) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => IconPickerWidget(
-        selectedIcon: effectiveIcon,
-        selectedColor: effectiveColor,
-        onIconSelected: (icon) {
-          setState(() => _selectedIcon = icon);
-          Navigator.pop(context);
-        },
-      ),
-    );
-  }
-
-  Future<void> _pickColor(ThemeData theme, Color effectiveColor) async {
-    final Color newColor = await showColorPickerDialog(
-      context,
-      effectiveColor,
-      title: Text('Select Color', style: theme.textTheme.titleLarge),
-      width: 40, height: 40, spacing: 0, runSpacing: 0, borderRadius: 0,
-      wheelDiameter: 165, enableOpacity: false, showColorCode: true, colorCodeHasColor: true,
-      pickersEnabled: const <ColorPickerType, bool>{
-        ColorPickerType.both: false,
-        ColorPickerType.primary: true,
-        ColorPickerType.accent: true,
-        ColorPickerType.bw: false,
-        ColorPickerType.custom: true,
-        ColorPickerType.wheel: true,
-      },
-    );
-    setState(() => _selectedColor = '0x${newColor.value.toRadixString(16).toUpperCase()}');
-  }
-
-  Widget _buildPeopleAndLoanSection(ThemeData theme, ColorScheme colorScheme) {
+  Widget _buildPeopleSection(ThemeData theme, ColorScheme colorScheme) {
     final peopleAsync = ref.watch(personsStreamProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('People & Loans', style: theme.textTheme.titleSmall?.copyWith(color: colorScheme.primary, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
         ListTile(
           onTap: () => _showPersonPicker(peopleAsync.value ?? []),
-          leading: _selectedPerson != null 
-            ? PersonAvatar(person: _selectedPerson!, radius: 16)
-            : const Icon(Symbols.person),
-          title: const Text('With Person'),
+          leading: const Icon(Icons.person_outline_rounded),
+          title: const Text('Person (Optional)'),
           subtitle: Text(_selectedPerson?.name ?? 'None'),
-          trailing: _selectedPerson != null 
-            ? IconButton(icon: const Icon(Icons.close), onPressed: () => setState(() { _selectedPerson = null; _isLoan = false; }))
-            : const Icon(Icons.chevron_right_rounded),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          trailing: _selectedPerson != null
+              ? IconButton(
+                  icon: const Icon(Icons.close_rounded),
+                  onPressed: () => setState(() => _selectedPerson = null),
+                )
+              : const Icon(Icons.chevron_right_rounded),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           tileColor: colorScheme.surfaceContainerLow,
         ),
-        if (_selectedPerson != null && widget.transaction == null) ...[
+        if (_selectedPerson != null &&
+            _transactionType != TransactionType.transfer &&
+            _selectedLinkedLoan == null) ...[
           const SizedBox(height: 8),
-          SwitchListTile(
-            title: const Text('Add to Loans'),
-            subtitle: const Text('Create a debt entry for this person'),
-            value: _isLoan,
-            onChanged: (val) => setState(() => _isLoan = val),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            tileColor: colorScheme.surfaceContainerLow,
+          CheckboxListTile(
+            value: _isNewLoanCreation,
+            onChanged: (val) =>
+                setState(() => _isNewLoanCreation = val ?? false),
+            title: Text(_transactionType == TransactionType.income
+                ? 'Record as money borrowed (Debt to pay back)'
+                : 'Record as money lent (Debt owed to you)'),
+            subtitle: const Text('Creates a new entry in Loans & Debts'),
+            contentPadding: EdgeInsets.zero,
+            controlAffinity: ListTileControlAffinity.leading,
           ),
         ],
       ],
@@ -397,57 +581,102 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
 
   Widget _buildAccountSelector(ColorScheme colorScheme) {
     final accountsAsync = ref.watch(accountsStreamProvider);
-    return ListTile(
-      onTap: () => _showAccountPicker(accountsAsync.value ?? []),
-      leading: const Icon(Icons.account_balance_wallet_rounded),
-      title: const Text('Account'),
-      subtitle: Text(_selectedAccount?.name ?? 'Select Account'),
-      trailing: const Icon(Icons.chevron_right_rounded),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      tileColor: colorScheme.surfaceContainerLow,
+    return accountsAsync.when(
+      data: (accounts) {
+        if (accounts.isEmpty) {
+          return const ListTile(
+            title: Text('No accounts available'),
+            subtitle: Text('Please create an account first'),
+          );
+        }
+        _selectedAccount ??= accounts.first;
+        return ListTile(
+          onTap: () => _showAccountPicker(accounts, isTransfer: false),
+          leading: const Icon(Symbols.account_balance),
+          title: Text(
+              _transactionType == TransactionType.transfer ? 'From Account' : 'Account'),
+          subtitle: Text(_selectedAccount?.name ?? 'Select Account'),
+          trailing: const Icon(Icons.chevron_right_rounded),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          tileColor: colorScheme.surfaceContainerLow,
+        );
+      },
+      loading: () => const ListTile(title: Text('Loading accounts...')),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 
   Widget _buildTransferAccountSelector(ColorScheme colorScheme) {
     final accountsAsync = ref.watch(accountsStreamProvider);
-    return ListTile(
-      onTap: () => _showAccountPicker(accountsAsync.value ?? [], isTransfer: true),
-      leading: const Icon(Icons.swap_horiz_rounded),
-      title: const Text('To Account'),
-      subtitle: Text(_selectedTransferAccount?.name ?? 'Select Target Account'),
-      trailing: const Icon(Icons.chevron_right_rounded),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      tileColor: colorScheme.surfaceContainerLow,
+    return accountsAsync.when(
+      data: (accounts) {
+        final available =
+            accounts.where((a) => a.id != _selectedAccount?.id).toList();
+        if (available.isEmpty) return const SizedBox.shrink();
+        _selectedTransferAccount ??= available.first;
+        return ListTile(
+          onTap: () => _showAccountPicker(available, isTransfer: true),
+          leading: const Icon(Symbols.account_balance_wallet),
+          title: const Text('To Account'),
+          subtitle: Text(_selectedTransferAccount?.name ?? 'Select Account'),
+          trailing: const Icon(Icons.chevron_right_rounded),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          tileColor: colorScheme.surfaceContainerLow,
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 
   Widget _buildSaveButton() {
     return PrimaryAtelierButton(
       onPressed: _save,
-      icon: const Icon(Symbols.save, color: Colors.white),
-      label: Text(
-        widget.transaction != null ? 'Update Transaction' : 'Save Transaction',
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-      ),
+      label: widget.transaction == null ? 'Save Transaction' : 'Update Transaction',
+      icon: Symbols.check_rounded,
     );
   }
 
   Future<void> _save() async {
     final amount = double.tryParse(_amountController.text) ?? 0.0;
     if (amount <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter a valid amount')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Enter a valid amount')));
       return;
     }
 
-    if (_selectedAccount == null || (_transactionType != TransactionType.transfer && _selectedCategory == null)) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select account and category')));
+    // Auto-assign default category if user selected a debt repayment without picking category
+    if (_selectedCategory == null &&
+        _transactionType != TransactionType.transfer) {
+      final allCategories =
+          await ref.read(categoryRepositoryProvider).getAll();
+      final matchingCategories = allCategories
+          .where((c) =>
+              c.type.name == _transactionType.name && !c.isDeleted)
+          .toList();
+      if (matchingCategories.isNotEmpty) {
+        _selectedCategory = matchingCategories.first;
+      }
+    }
+
+    if (_selectedAccount == null ||
+        (_transactionType != TransactionType.transfer &&
+            _selectedCategory == null)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select account and category')));
       return;
     }
 
     // Overbudget Check
-    if (_transactionType == TransactionType.expense && _selectedCategory!.budgetLimit != null) {
-      final stats = await ref.read(statisticsServiceProvider).watchBudgets().first;
-      final categoryStat = stats.firstWhere((s) => s['categoryId'] == _selectedCategory!.id, orElse: () => {});
+    if (_transactionType == TransactionType.expense &&
+        _selectedCategory!.budgetLimit != null) {
+      final stats =
+          await ref.read(statisticsServiceProvider).watchBudgets().first;
+      final categoryStat = stats.firstWhere(
+          (s) => s['categoryId'] == _selectedCategory!.id,
+          orElse: () => {});
       if (categoryStat.isNotEmpty) {
         final spent = categoryStat['spent'] as double;
         final limit = _selectedCategory!.budgetLimit!;
@@ -456,10 +685,15 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
             context: context,
             builder: (context) => AlertDialog(
               title: const Text('Over Budget Warning'),
-              content: Text('This transaction will exceed your monthly budget for ${_selectedCategory!.name}.\n\nLimit: $limit\nCurrently Spent: $spent\nNew Total: ${spent + amount}\n\nDo you want to continue?'),
+              content: Text(
+                  'This transaction will exceed your monthly budget for ${_selectedCategory!.name}.\n\nLimit: $limit\nCurrently Spent: $spent\nNew Total: ${spent + amount}\n\nDo you want to continue?'),
               actions: [
-                TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-                TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Continue')),
+                TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('Cancel')),
+                TextButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    child: const Text('Continue')),
               ],
             ),
           );
@@ -472,15 +706,23 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
       final service = ref.read(transactionServiceProvider);
       final personalization = ref.read(personalizationProvider);
 
+      final List<String> tags = [];
+      if (_selectedLinkedLoan != null) {
+        tags.add('loan_${_selectedLinkedLoan!.id}');
+      }
+
       if (widget.transaction != null) {
         final updatedTx = TransactionModel()
           ..id = widget.transaction!.id
           ..amount = amount
           ..date = _selectedDateTime
           ..type = _transactionType
-          ..note = _noteController.text.isNotEmpty ? _noteController.text : null
+          ..note = _noteController.text.isNotEmpty
+              ? _noteController.text
+              : null
           ..icon = _selectedIcon
           ..color = _selectedColor
+          ..tags = tags
           ..createdAt = widget.transaction!.createdAt
           ..updatedAt = DateTime.now();
 
@@ -492,30 +734,46 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
         await service.updateTransaction(widget.transaction!, updatedTx);
       } else {
         await service.addTransaction(
-          amount: amount, date: _selectedDateTime, type: _transactionType,
-          account: _selectedAccount!, category: _selectedCategory,
-          note: _noteController.text.isNotEmpty ? _noteController.text : null,
-          transferAccount: _selectedTransferAccount, icon: _selectedIcon,
-          color: _selectedColor, person: _selectedPerson,
+          amount: amount,
+          date: _selectedDateTime,
+          type: _transactionType,
+          account: _selectedAccount!,
+          category: _selectedCategory,
+          note: _noteController.text.isNotEmpty
+              ? _noteController.text
+              : null,
+          transferAccount: _selectedTransferAccount,
+          icon: _selectedIcon,
+          color: _selectedColor,
+          person: _selectedPerson,
+          tags: tags,
         );
 
-        if (_isLoan && _selectedPerson != null) {
+        // New Loan creation if checkbox was ticked
+        if (_isNewLoanCreation && _selectedPerson != null) {
           final loanService = ref.read(loanServiceProvider);
           final loan = Loan()
             ..amount = amount
-            ..type = _transactionType == TransactionType.income ? LoanType.borrowed : LoanType.lent
+            ..type = _transactionType == TransactionType.income
+                ? LoanType.borrowed
+                : LoanType.lent
             ..note = _noteController.text
-            ..createdAt = DateTime.now()
+            ..createdAt = _selectedDateTime
             ..updatedAt = DateTime.now();
           loan.person.value = _selectedPerson;
           await loanService.saveLoan(loan);
         }
       }
 
-      await ref.read(hapticServiceProvider).transaction(personalization.vibrateOnTransaction);
+      await ref
+          .read(hapticServiceProvider)
+          .transaction(personalization.vibrateOnTransaction);
       if (mounted) context.pop();
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
     }
   }
 
@@ -524,12 +782,16 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Transaction?'),
-        content: const Text('This action cannot be undone and will revert the account balance.'),
+        content: const Text(
+            'This action cannot be undone and will revert the account balance.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel')),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+            style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.error),
             child: const Text('Delete'),
           ),
         ],
@@ -538,10 +800,15 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
 
     if (confirmed == true && widget.transaction != null) {
       try {
-        await ref.read(transactionServiceProvider).deleteTransaction(widget.transaction!);
+        await ref
+            .read(transactionServiceProvider)
+            .deleteTransaction(widget.transaction!);
         if (mounted) context.pop();
       } catch (e) {
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Delete failed: $e')));
+        if (mounted) {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('Delete failed: $e')));
+        }
       }
     }
   }
@@ -556,10 +823,14 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
           children: [
             ListTile(
               leading: CircleAvatar(
-                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                child: Icon(Icons.add_rounded, color: Theme.of(context).colorScheme.onPrimaryContainer),
+                backgroundColor:
+                    Theme.of(context).colorScheme.primaryContainer,
+                child: Icon(Icons.add_rounded,
+                    color:
+                        Theme.of(context).colorScheme.onPrimaryContainer),
               ),
-              title: const Text('Add New Person', style: TextStyle(fontWeight: FontWeight.bold)),
+              title: const Text('Add New Person',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               onTap: () {
                 Navigator.pop(context);
                 _showAddPersonDialog();
@@ -582,10 +853,13 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
               final isSelected = _selectedPerson?.id == p.id;
               return ListTile(
                 leading: PersonAvatar(person: p, radius: 20),
-                title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                title: Text(p.name,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
                 subtitle: p.contact != null ? Text(p.contact!) : null,
-                trailing: isSelected ? Icon(Icons.check_circle, color: color) : null,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                trailing:
+                    isSelected ? Icon(Icons.check_circle, color: color) : null,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
                 onTap: () {
                   setState(() => _selectedPerson = p);
                   Navigator.pop(context);
@@ -606,7 +880,8 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
         title: const Text('Add Person'),
         content: TextField(
           controller: nameController,
-          decoration: const InputDecoration(labelText: 'Name', hintText: 'Enter name...'),
+          decoration: const InputDecoration(
+              labelText: 'Name', hintText: 'Enter name...'),
           autofocus: true,
           textCapitalization: TextCapitalization.words,
         ),
@@ -619,7 +894,8 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
               if (nameController.text.isNotEmpty) {
                 final person = Person()
                   ..name = nameController.text
-                  ..color = '0x${Colors.blue.value.toRadixString(16).toUpperCase()}'
+                  ..color =
+                      '0x${Colors.blue.value.toRadixString(16).toUpperCase()}'
                   ..createdAt = DateTime.now()
                   ..updatedAt = DateTime.now();
                 await ref.read(personServiceProvider).savePerson(person);
@@ -641,7 +917,9 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
       context: context,
       builder: (context) {
         final filtered = categories.where((c) {
-          if (_transactionType == TransactionType.transfer) return c.type == CategoryType.transfer;
+          if (_transactionType == TransactionType.transfer) {
+            return c.type == CategoryType.transfer;
+          }
           return c.type.name == _transactionType.name;
         }).toList();
 
@@ -649,16 +927,18 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
           itemCount: filtered.length,
           itemBuilder: (context, index) {
             final cat = filtered[index];
+            final color = cat.color.parseHexColor();
             return ListTile(
-              leading: Icon(AppIcons.getIcon(cat.icon), color: cat.color.parseHexColor()),
+              leading: Icon(AppIcons.getIcon(cat.icon), color: color),
               title: Text(cat.name),
-              trailing: _selectedCategory?.id == cat.id ? const Icon(Icons.check_circle, color: Colors.green) : null,
+              trailing: _selectedCategory?.id == cat.id
+                  ? Icon(Icons.check, color: color)
+                  : null,
               onTap: () {
                 setState(() {
                   _selectedCategory = cat;
-                  // [SMOOTHNESS]: Automatically sync icon and color from category
-                  _selectedIcon = cat.icon;
-                  _selectedColor = cat.color;
+                  _selectedIcon = null;
+                  _selectedColor = null;
                 });
                 Navigator.pop(context);
               },
@@ -669,17 +949,24 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
     );
   }
 
-  void _showAccountPicker(List<Account> accounts, {bool isTransfer = false}) {
-    final selectedCurrency = ref.read(currencyProvider);
+  void _showAccountPicker(List<Account> accounts, {required bool isTransfer}) {
     showModalBottomSheet(
       context: context,
       builder: (context) => ListView.builder(
         itemCount: accounts.length,
         itemBuilder: (context, index) {
           final acc = accounts[index];
+          final color = acc.color.parseHexColor();
+          final isSelected = isTransfer
+              ? _selectedTransferAccount?.id == acc.id
+              : _selectedAccount?.id == acc.id;
+
           return ListTile(
+            leading: Icon(AppIcons.getIcon(acc.icon), color: color),
             title: Text(acc.name),
-            subtitle: Text('Balance: ${CurrencyEngine.formatCurrency(acc.balance, selectedCurrency)}'),
+            subtitle: Text(
+                '${acc.type.name.toUpperCase()} • ${CurrencyEngine.formatCurrency(acc.balance, ref.read(currencyProvider))}'),
+            trailing: isSelected ? Icon(Icons.check, color: color) : null,
             onTap: () {
               setState(() {
                 if (isTransfer) {
@@ -694,5 +981,50 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
         },
       ),
     );
+  }
+
+  Future<void> _pickIcon() async {
+    final icon = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => const IconPickerBottomSheet(),
+    );
+    if (icon != null) {
+      setState(() => _selectedIcon = icon);
+    }
+  }
+
+  Future<void> _pickColor() async {
+    Color pickerColor = _selectedColor != null
+        ? _selectedColor!.parseHexColor()
+        : _selectedCategory?.color.parseHexColor() ?? Colors.blue;
+
+    final color = await showColorPickerDialog(
+      context,
+      pickerColor,
+      title: Text('Select Color', style: Theme.of(context).textTheme.titleLarge),
+      width: 40,
+      height: 40,
+      spacing: 0,
+      runSpacing: 0,
+      borderRadius: 0,
+      wheelDiameter: 165,
+      enableOpacity: false,
+      showColorCode: false,
+      colorCodeHasColor: false,
+      pickersEnabled: <ColorPickerType, bool>{
+        ColorPickerType.both: false,
+        ColorPickerType.primary: true,
+        ColorPickerType.accent: false,
+        ColorPickerType.bw: false,
+        ColorPickerType.custom: false,
+        ColorPickerType.wheel: true,
+      },
+    );
+
+    setState(() {
+      _selectedColor =
+          '0x${color.value.toRadixString(16).padLeft(8, '0').toUpperCase()}';
+    });
   }
 }

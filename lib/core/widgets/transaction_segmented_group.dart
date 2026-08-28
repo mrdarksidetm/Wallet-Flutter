@@ -36,6 +36,7 @@ class TransactionSegmentedCard extends StatelessWidget {
   final void Function(TransactionModel)? onDelete;
   final void Function(TransactionModel)? onArchive;
   final bool isArchivedView;
+  final bool obscureAmount;
 
   const TransactionSegmentedCard({
     super.key,
@@ -46,6 +47,7 @@ class TransactionSegmentedCard extends StatelessWidget {
     this.onDelete,
     this.onArchive,
     this.isArchivedView = false,
+    this.obscureAmount = false,
   });
 
   @override
@@ -77,6 +79,7 @@ class TransactionSegmentedCard extends StatelessWidget {
             tx: tx,
             isGrouped: true,
             showDivider: !isLast,
+            obscureAmount: obscureAmount,
             onTap: () {
               if (onTap != null) {
                 onTap!(tx);
@@ -168,6 +171,7 @@ class TransactionGroupedList extends ConsumerWidget {
   final void Function(TransactionModel)? onDelete;
   final void Function(TransactionModel)? onArchive;
   final bool isArchivedView;
+  final bool obscureAmount;
 
   const TransactionGroupedList({
     super.key,
@@ -178,6 +182,7 @@ class TransactionGroupedList extends ConsumerWidget {
     this.onDelete,
     this.onArchive,
     this.isArchivedView = false,
+    this.obscureAmount = false,
   });
 
   @override
@@ -234,7 +239,9 @@ class TransactionGroupedList extends ConsumerWidget {
                     ),
                     if (dayTotal != 0)
                       Text(
-                        '${isPositive ? '+' : (isNegative ? '-' : '')}${CurrencyEngine.formatCurrency(dayTotal.abs(), selectedCurrency)}',
+                        obscureAmount
+                            ? '••••'
+                            : '${isPositive ? '+' : (isNegative ? '-' : '')}${CurrencyEngine.formatCurrency(dayTotal.abs(), selectedCurrency)}',
                         style: theme.textTheme.labelMedium?.copyWith(
                           fontWeight: FontWeight.w900,
                           color: isPositive
@@ -253,6 +260,7 @@ class TransactionGroupedList extends ConsumerWidget {
                 onDelete: onDelete,
                 onArchive: onArchive,
                 isArchivedView: isArchivedView,
+                obscureAmount: obscureAmount,
               ),
             ],
           ),

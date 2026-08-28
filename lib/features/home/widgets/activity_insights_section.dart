@@ -7,6 +7,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/database/models/transaction_model.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/services/currency_engine.dart';
+import '../../../core/theme/personalization_provider.dart';
 import '../../../core/widgets/expressive_shape.dart';
 
 class ActivityInsightsSection extends ConsumerStatefulWidget {
@@ -401,6 +402,8 @@ class _ActivityInsightsSectionState extends ConsumerState<ActivityInsightsSectio
   }
 
   Widget _buildTrendStat(ThemeData theme, String label, double amount, Color color, String currency) {
+    final isVisible = ref.watch(personalizationProvider.select((p) => p.isBalanceVisible));
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -414,7 +417,7 @@ class _ActivityInsightsSectionState extends ConsumerState<ActivityInsightsSectio
         ),
         const SizedBox(height: 4),
         Text(
-          CurrencyEngine.formatCurrency(amount, currency),
+          isVisible ? CurrencyEngine.formatCurrency(amount, currency) : '••••',
           style: theme.textTheme.titleMedium?.copyWith(
             color: color,
             fontWeight: FontWeight.w900,
