@@ -8,6 +8,7 @@ import '../../../core/database/models/auxiliary_models.dart';
 import '../../../core/database/models/transaction_model.dart';
 import '../../../core/services/currency_engine.dart';
 import '../../../core/services/haptic_service.dart';
+import '../../../core/services/notification_service.dart';
 import '../../../core/theme/personalization_provider.dart';
 import '../../../core/widgets/app_back_button.dart';
 import '../../../core/widgets/expressive_shape.dart';
@@ -69,6 +70,14 @@ class _LoansPageState extends ConsumerState<LoansPage> {
           ),
           loansAsync.when(
             data: (loans) {
+              // Trigger automated due debt alerts
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                ref.read(notificationServiceProvider).checkAndNotifyDueDebts(
+                      loans,
+                      selectedCurrency,
+                    );
+              });
+
               final borrowed =
                   loans.where((l) => l.type == LoanType.borrowed).toList();
               final lent = loans.where((l) => l.type == LoanType.lent).toList();
@@ -373,14 +382,8 @@ class _LoansPageState extends ConsumerState<LoansPage> {
                               ],
                             ),
                             const SizedBox(height: 2),
-                            Text(
-                              item.dueDate != null
-                                  ? 'Due: ${DateFormat.yMMMd().format(item.dueDate!)}'
-                                  : 'No due date',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
+                            _buildDueStatusBadge(
+                                item, isCompleted, theme, colorScheme),
                           ],
                         ),
                       ),
@@ -401,7 +404,7 @@ class _LoansPageState extends ConsumerState<LoansPage> {
                           Text(
                             isCompleted
                                 ? 'Fully Paid'
-                                : '${(progress * 100).toInt()}% covered',
+                                : '${(progress * 100).toInt()}% paid',
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
@@ -424,14 +427,54 @@ class _LoansPageState extends ConsumerState<LoansPage> {
                     ],
                   ),
 
-                  // Wavy Harmonic Progress Line Visualizer
+                  // When debt is fully cleared, remove the wavy line and place the completed logo there!
                   const SizedBox(height: 16),
-                  WavyDebtProgressLine(
-                    progress: progress,
-                    paidColor: paidColor,
-                    remainingColor: remainingColor,
-                    height: 32,
-                  ),
+                  if (isCompleted)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 14, horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: paidColor.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: paidColor.withValues(alpha: 0.35),
+                          width: 1.2,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ExpressiveShapeContainer(
+                            size: 32,
+                            shape: ShapeProfile.starburst,
+                            color: paidColor.withValues(alpha: 0.2),
+                            child: Icon(
+                              Symbols.verified_rounded,
+                              size: 20,
+                              color: paidColor,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Debt Fully Cleared & Settled',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 14,
+                              color: paidColor,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    WavyDebtProgressLine(
+                      progress: progress,
+                      paidColor: paidColor,
+                      remainingColor: remainingColor,
+                      height: 32,
+                    ),
 
                   // Paid vs Owes Now Indicator Row
                   const SizedBox(height: 12),
@@ -753,5 +796,103 @@ class _LoansPageState extends ConsumerState<LoansPage> {
         ),
       ),
     );
+  }
+
+  Widget _buildDueStatusBadge(
+      Loan item, bool isCompleted, ThemeData theme, ColorScheme colorScheme) {
+    if (item.dueDate == null) {
+      return Text(
+        'No due date',
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: colorScheme.onSurfaceVariant,
+        ),
+      );
+    }
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final due =
+        DateTime(item.dueDate!.year, item.dueDate!.month, item.dueDate!.day);
+    final diffDays = today.difference(due).inDays;
+
+    if (isCompleted) {
+      return Text(
+        'Cleared (Due was ${DateFormat.yMMMd().format(item.dueDate!)})',
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: colorScheme.onSurfaceVariant,
+        ),
+      );
+    }
+
+    if (diffDays > 0) {
+      // Overdue
+      return Container(
+        margin: const EdgeInsets.only(top: 3),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        decoration: BoxDecoration(
+          color: const Color(0xFFEF4444).withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: const Color(0xFFEF4444).withValues(alpha: 0.35),
+            width: 0.8,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Symbols.warning_rounded,
+                size: 12, color: Color(0xFFEF4444)),
+            const SizedBox(width: 4),
+            Text(
+              'Overdue by $diffDays day${diffDays == 1 ? '' : 's'} (${DateFormat.yMMMd().format(item.dueDate!)})',
+              style: const TextStyle(
+                color: Color(0xFFEF4444),
+                fontWeight: FontWeight.w800,
+                fontSize: 10.5,
+              ),
+            ),
+          ],
+        ),
+      );
+    } else if (diffDays == 0) {
+      // Due today
+      return Container(
+        margin: const EdgeInsets.only(top: 3),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF59E0B).withValues(alpha: 0.18),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: const Color(0xFFF59E0B).withValues(alpha: 0.4),
+            width: 0.8,
+          ),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Symbols.schedule_rounded, size: 12, color: Color(0xFFD97706)),
+            SizedBox(width: 4),
+            Text(
+              'Due Today!',
+              style: TextStyle(
+                color: Color(0xFFD97706),
+                fontWeight: FontWeight.w800,
+                fontSize: 10.5,
+              ),
+            ),
+          ],
+        ),
+      );
+    } else {
+      // Due in future
+      final daysLeft = -diffDays;
+      return Text(
+        'Due in $daysLeft day${daysLeft == 1 ? '' : 's'} (${DateFormat.yMMMd().format(item.dueDate!)})',
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: colorScheme.onSurfaceVariant,
+          fontWeight: FontWeight.w600,
+        ),
+      );
+    }
   }
 }

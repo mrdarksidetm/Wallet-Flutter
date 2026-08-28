@@ -8,6 +8,7 @@ import '../../../core/database/models/transaction_model.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/services/currency_engine.dart';
 import '../../../core/services/haptic_service.dart';
+import '../../../core/services/notification_service.dart';
 import '../../../core/theme/personalization_provider.dart';
 import '../../../core/widgets/expressive_bottom_sheet.dart';
 import '../../../core/widgets/primary_atelier_button.dart';
@@ -27,8 +28,8 @@ class AddDebtInstallmentSheet extends ConsumerStatefulWidget {
     BuildContext context, {
     required Loan loan,
     required double remainingAmount,
-  }) {
-    return showModalBottomSheet(
+  }) async {
+    await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -46,8 +47,8 @@ class AddDebtInstallmentSheet extends ConsumerStatefulWidget {
 
 class _AddDebtInstallmentSheetState
     extends ConsumerState<AddDebtInstallmentSheet> {
-  final _amountController = TextEditingController();
-  final _noteController = TextEditingController();
+  late final TextEditingController _amountController;
+  late final TextEditingController _noteController;
   Account? _selectedAccount;
   DateTime _selectedDate = DateTime.now();
   bool _isSaving = false;
@@ -55,11 +56,16 @@ class _AddDebtInstallmentSheetState
   @override
   void initState() {
     super.initState();
-    _amountController.text =
-        widget.remainingAmount > 0 ? widget.remainingAmount.toStringAsFixed(2) : '';
-    _noteController.text = widget.loan.type == LoanType.lent
-        ? 'Debt repayment from ${widget.loan.person.value?.name ?? 'borrower'}'
-        : 'Debt payment to ${widget.loan.person.value?.name ?? 'lender'}';
+    _amountController = TextEditingController(
+      text: widget.remainingAmount > 0
+          ? widget.remainingAmount.toStringAsFixed(2)
+          : '',
+    );
+    _noteController = TextEditingController(
+      text: widget.loan.type == LoanType.lent
+          ? 'Debt repayment from ${widget.loan.person.value?.name ?? 'borrower'}'
+          : 'Debt payment to ${widget.loan.person.value?.name ?? 'lender'}',
+    );
     _loadDefaultAccount();
   }
 
@@ -122,6 +128,9 @@ class _AddDebtInstallmentSheetState
         widget.loan.isPaid = true;
         widget.loan.updatedAt = DateTime.now();
         await loanRepo.save(widget.loan);
+        await ref
+            .read(notificationServiceProvider)
+            .cancelNotification(500000 + widget.loan.id);
       }
 
       final personalization = ref.read(personalizationProvider);

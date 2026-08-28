@@ -45,21 +45,57 @@ class _WavyDebtProgressLineState extends State<WavyDebtProgressLine>
   @override
   Widget build(BuildContext context) {
     final clampedProgress = widget.progress.clamp(0.0, 1.0);
+    final percentInt = (clampedProgress * 100).toInt();
 
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return CustomPaint(
-          size: Size(double.infinity, widget.height),
-          painter: _WavyProgressPainter(
-            progress: clampedProgress,
-            phase: _controller.value * 2 * pi,
-            paidColor: widget.paidColor,
-            remainingColor: widget.remainingColor,
-            strokeWidth: widget.strokeWidth,
-          ),
-        );
-      },
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: widget.paidColor.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '$percentInt% Paid',
+                style: TextStyle(
+                  color: widget.paidColor,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 11,
+                ),
+              ),
+            ),
+            Text(
+              '${100 - percentInt}% Remaining',
+              style: TextStyle(
+                color: widget.remainingColor,
+                fontWeight: FontWeight.w700,
+                fontSize: 11,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            return CustomPaint(
+              size: Size(double.infinity, widget.height),
+              painter: _WavyProgressPainter(
+                progress: clampedProgress,
+                phase: _controller.value * 2 * pi,
+                paidColor: widget.paidColor,
+                remainingColor: widget.remainingColor,
+                strokeWidth: widget.strokeWidth,
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -151,28 +152,57 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
             _buildTypeSelector(),
             const SizedBox(height: 28),
 
-            // Enlarged Clean Amount Input with low-opacity $ 0.00 watermark
+            // Enlarged Clean Amount Input with persistent active currency symbol and font variations
             _buildAmountInput(theme, colorScheme, effectiveColor),
 
             const SizedBox(height: 28),
-
-            // Debt Payment / Collection Integration Section
-            if (_transactionType == TransactionType.expense ||
-                _transactionType == TransactionType.income) ...[
-              _buildDebtIntegrationCard(theme, colorScheme),
-              const SizedBox(height: 16),
-            ],
 
             _buildNoteInput(),
             const SizedBox(height: 16),
             _buildDateTimePicker(colorScheme),
             const SizedBox(height: 16),
 
-            if (_transactionType != TransactionType.transfer) ...[
-              _buildCategorySelector(colorScheme),
+            // Debt Payment / Collection Integration Section (Placed below date & time)
+            if (_transactionType == TransactionType.expense ||
+                _transactionType == TransactionType.income) ...[
+              _buildDebtIntegrationCard(theme, colorScheme),
               const SizedBox(height: 16),
-              _buildIconAndColorOverrides(
-                  theme, colorScheme, effectiveIcon, effectiveColor),
+            ],
+
+            // Category & Icon section (Disabled/hidden when a debt repayment or collection is initiated)
+            if (_transactionType != TransactionType.transfer) ...[
+              if (_selectedLinkedLoan != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline_rounded, size: 18, color: colorScheme.onSurfaceVariant),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Category is not required for debt repayments or collections.',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else ...[
+                _buildCategorySelector(colorScheme),
+                const SizedBox(height: 16),
+                _buildIconAndColorOverrides(
+                    theme, colorScheme, effectiveIcon, effectiveColor),
+              ],
               const SizedBox(height: 24),
             ],
 
@@ -249,39 +279,70 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
     );
   }
 
-  // --- Large Clean Amount Input without dark background ---
+  // --- Large Clean Amount Input with persistent active currency symbol & font variations ---
   Widget _buildAmountInput(
       ThemeData theme, ColorScheme colorScheme, Color effectiveColor) {
     final selectedCurrency = ref.watch(currencyProvider);
     final symbol = CurrencyEngine.getSymbol(selectedCurrency);
 
+    const amountFontVariations = [
+      FontVariation('GRAD', 50.0),
+      FontVariation('wght', 585.0),
+      FontVariation('wdth', 120.0),
+      FontVariation('ROND', 19.0),
+      FontVariation('opsz', 68.0),
+    ];
+
     return Container(
       alignment: Alignment.center,
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: TextField(
-        controller: _amountController,
-        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        style: TextStyle(
-          fontSize: 48,
-          fontWeight: FontWeight.w900,
-          color: effectiveColor,
-          letterSpacing: -1.0,
-        ),
-        textAlign: TextAlign.center,
-        decoration: InputDecoration(
-          // Low-opacity watermark hint with symbol in front
-          hintText: '$symbol 0.00',
-          hintStyle: TextStyle(
-            fontSize: 48,
-            fontWeight: FontWeight.w900,
-            color: colorScheme.onSurface.withValues(alpha: 0.22),
-            letterSpacing: -1.0,
-          ),
-          filled: false,
-          border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          focusedBorder: InputBorder.none,
-          contentPadding: EdgeInsets.zero,
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Currency symbol stays permanently visible and active
+            Text(
+              symbol,
+              style: TextStyle(
+                fontSize: 48,
+                color: effectiveColor,
+                letterSpacing: -1.0,
+                fontVariations: amountFontVariations,
+              ),
+            ),
+            const SizedBox(width: 6),
+            IntrinsicWidth(
+              child: TextField(
+                controller: _amountController,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                textAlign: TextAlign.start,
+                style: TextStyle(
+                  fontSize: 48,
+                  color: effectiveColor,
+                  letterSpacing: -1.0,
+                  fontVariations: amountFontVariations,
+                ),
+                decoration: InputDecoration(
+                  hintText: '0.00',
+                  hintStyle: TextStyle(
+                    fontSize: 48,
+                    color: colorScheme.onSurface.withValues(alpha: 0.22),
+                    letterSpacing: -1.0,
+                    fontVariations: amountFontVariations,
+                  ),
+                  filled: false,
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -394,6 +455,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
                   setState(() {
                     _selectedLinkedLoan = loan;
                     if (loan != null) {
+                      _selectedCategory = null;
                       if (loan.person.value != null) {
                         _selectedPerson = loan.person.value;
                       }
@@ -666,15 +728,16 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
 
     if (_selectedAccount == null ||
         (_transactionType != TransactionType.transfer &&
+            _selectedLinkedLoan == null &&
             _selectedCategory == null)) {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select account and category')));
+          const SnackBar(content: Text('Please select an account and category')));
       return;
     }
 
     // Overbudget Check
     if (_transactionType == TransactionType.expense &&
-        _selectedCategory!.budgetLimit != null) {
+        _selectedCategory?.budgetLimit != null) {
       final stats =
           await ref.read(statisticsServiceProvider).watchBudgets().first;
       final categoryStat = stats.firstWhere(
