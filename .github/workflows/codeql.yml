@@ -51,6 +51,16 @@ jobs:
           flutter pub get
           dart run build_runner build --delete-conflicting-outputs || true
 
+      - name: Setup Signing Key for Build
+        run: |
+          mkdir -p android/app
+          mkdir -p ~/.android
+          if [ ! -f ~/.android/debug.keystore ]; then
+            keytool -genkey -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          fi
+          keytool -genkey -v -keystore android/app/upload-keystore.jks -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          printf "storePassword=android\nkeyPassword=android\nkeyAlias=androiddebugkey\nstoreFile=upload-keystore.jks\n" > android/key.properties
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
@@ -59,7 +69,7 @@ jobs:
       - name: Build Android Code for CodeQL Extraction
         run: |
           set -o pipefail
-          flutter build apk --debug --no-tree-shake-icons --android-skip-build-dependency-validation 2>&1 | tee build_codeql.log
+          flutter build apk --release --no-tree-shake-icons --android-skip-build-dependency-validation 2>&1 | tee build_codeql.log
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
