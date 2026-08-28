@@ -73,12 +73,23 @@ jobs:
           echo "Here are the compiler and build error messages:" >> $GITHUB_STEP_SUMMARY
           echo '```text' >> $GITHUB_STEP_SUMMARY
           if [ -f build_codeql.log ]; then
-            if grep -qE "(^e: |^FAILURE:|^\* What went wrong:|^> Task :app:compile|^> Compilation error|error:|Exception:|Error:)" build_codeql.log; then
-              grep -B 2 -A 5 -E "(^e: |^FAILURE:|^\* What went wrong:|^> Task :app:compile|^> Compilation error|error:|Exception:|Error:)" build_codeql.log | head -n 60 >> $GITHUB_STEP_SUMMARY
-            else
-              tail -n 40 build_codeql.log >> $GITHUB_STEP_SUMMARY
+            KEY_ERR=$(grep -B 2 -A 5 -E "(^e: |^FAILURE:|^\* What went wrong:|^> Task :app:compile|^> Compilation error|error:|Exception:|Error:)" build_codeql.log | head -n 30)
+            if [ -z "$KEY_ERR" ]; then
+              KEY_ERR=$(tail -n 30 build_codeql.log)
             fi
+            echo "$KEY_ERR" >> $GITHUB_STEP_SUMMARY
+            ANNOTATION_MSG=$(echo "$KEY_ERR" | tr '\r\n' ' | ' | sed 's/[^a-zA-Z0-9 ._:\/|-]/ /g' | cut -c 1-500)
+            echo "::error title=CodeQL Build Error::$ANNOTATION_MSG"
           else
             echo "No build log found or failure occurred in setup." >> $GITHUB_STEP_SUMMARY
           fi
           echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload CodeQL Build Failure Logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: codeql-build-failure-logs
+          path: "*.log"
+          if-no-files-found: ignore
+          retention-days: 2

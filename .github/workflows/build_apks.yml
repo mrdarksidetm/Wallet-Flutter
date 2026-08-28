@@ -290,11 +290,13 @@ jobs:
           fi
           
           if [ -n "$LOG_FILE" ] && [ -f "$LOG_FILE" ]; then
-            if grep -qE "(^e: |^FAILURE:|^\* What went wrong:|^> Task :app:compile|^> Compilation error|error:|Exception:|Error:)" "$LOG_FILE"; then
-              grep -B 2 -A 5 -E "(^e: |^FAILURE:|^\* What went wrong:|^> Task :app:compile|^> Compilation error|error:|Exception:|Error:)" "$LOG_FILE" | head -n 60 >> $GITHUB_STEP_SUMMARY
-            else
-              tail -n 40 "$LOG_FILE" >> $GITHUB_STEP_SUMMARY
+            KEY_ERR=$(grep -B 2 -A 5 -E "(^e: |^FAILURE:|^\* What went wrong:|^> Task :app:compile|^> Compilation error|error:|Exception:|Error:)" "$LOG_FILE" | head -n 30)
+            if [ -z "$KEY_ERR" ]; then
+              KEY_ERR=$(tail -n 30 "$LOG_FILE")
             fi
+            echo "$KEY_ERR" >> $GITHUB_STEP_SUMMARY
+            ANNOTATION_MSG=$(echo "$KEY_ERR" | tr '\r\n' ' | ' | sed 's/[^a-zA-Z0-9 ._:\/|-]/ /g' | cut -c 1-500)
+            echo "::error title=Build Error::$ANNOTATION_MSG"
           else
             echo "No build log found or failure occurred in a setup step." >> $GITHUB_STEP_SUMMARY
           fi
@@ -309,6 +311,15 @@ jobs:
             echo '```' >> $GITHUB_STEP_SUMMARY
             echo "</details>" >> $GITHUB_STEP_SUMMARY
           fi
+
+      - name: Upload Build Failure Logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-failure-logs
+          path: "*.log"
+          if-no-files-found: ignore
+          retention-days: 2
 
       - name: Publish Success to Job Summary
         if: success()
