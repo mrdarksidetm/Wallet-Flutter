@@ -324,8 +324,11 @@ class _AddDebtInstallmentSheetState
             // Submit Button
             PrimaryAtelierButton(
               onPressed: _isSaving ? null : _save,
-              label: _isSaving ? 'Recording...' : 'Record Installment',
-              icon: Symbols.check_rounded,
+              label: Text(
+                _isSaving ? 'Recording...' : 'Record Installment',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              icon: const Icon(Symbols.check_rounded, color: Colors.white),
             ),
 
             const SizedBox(height: 12),

@@ -634,8 +634,11 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
   Widget _buildSaveButton() {
     return PrimaryAtelierButton(
       onPressed: _save,
-      label: widget.transaction == null ? 'Save Transaction' : 'Update Transaction',
-      icon: Symbols.check_rounded,
+      label: Text(
+        widget.transaction == null ? 'Save Transaction' : 'Update Transaction',
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      ),
+      icon: const Icon(Symbols.check_rounded, color: Colors.white),
     );
   }
 

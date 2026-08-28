@@ -154,7 +154,7 @@ class PersonalizationState {
       selectedExpressiveShape: map['selectedExpressiveShape'] as String? ?? 'squircle',
       isWalletFlexEnabled: map['isWalletFlexEnabled'] as bool? ?? false,
       userName: map['userName'] as String?,
-      userPhoto: userPhoto ?? map['userPhoto'] as String?,
+      userPhoto: map['userPhoto'] as String?,
       defaultCurrency: map['defaultCurrency'] as String?,
       isBalanceVisible: map['isBalanceVisible'] as bool? ?? true,
       vibrateOnTransaction: map['vibrateOnTransaction'] as bool? ?? true,
