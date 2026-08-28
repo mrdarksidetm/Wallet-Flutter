@@ -6,6 +6,7 @@ import '../../../core/widgets/animated_counter.dart';
 import '../../../core/theme/personalization_provider.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/services/currency_engine.dart';
+import '../../../core/widgets/expressive_shape.dart';
 
 class TotalBalanceCard extends ConsumerWidget {
   final double totalBalance;
@@ -131,13 +132,11 @@ class TotalBalanceCard extends ConsumerWidget {
                     ),
                   )
                 else
-                  Text(
-                    '••••••',
-                    style: theme.textTheme.displayMedium?.copyWith(
-                      fontFamily: 'GoogleSansFlex',
-                      fontVariations: _getBalanceFontVariations(totalBalance),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: ExpressiveObscuredBalance(
+                      dotSize: 26,
                       color: colorScheme.onSurface,
-                      letterSpacing: 4,
                     ),
                   ),
                 const Spacer(),

@@ -5,6 +5,7 @@ import '../../../core/database/models/transaction_model.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/widgets/app_back_button.dart';
 import '../../../core/widgets/transaction_segmented_group.dart';
+import '../../../core/widgets/expressive_shape.dart';
 
 class ActivityHeatmapPage extends ConsumerWidget {
   const ActivityHeatmapPage({super.key});
@@ -286,18 +287,15 @@ class _CalendarGrid extends StatelessWidget {
                   }
                 }
               : null,
-          child: Container(
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: isSelected
-                    ? colorScheme.primary
-                    : colorScheme.outlineVariant.withValues(alpha: hasEntry ? 0.3 : 0.1),
-                width: isSelected ? 2.0 : 1.0,
-              ),
-            ),
-            alignment: Alignment.center,
+          child: ExpressiveShapeContainer(
+            color: color,
+            borderColor: isSelected
+                ? colorScheme.primary
+                : (color == Colors.transparent
+                    ? colorScheme.outlineVariant
+                        .withValues(alpha: hasEntry ? 0.3 : 0.1)
+                    : null),
+            borderWidth: isSelected ? 2.0 : 1.0,
             child: Text(
               day.toString(),
               style: TextStyle(

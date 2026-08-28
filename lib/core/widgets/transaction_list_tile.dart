@@ -10,6 +10,7 @@ import '../theme/colors.dart';
 import '../services/currency_engine.dart';
 import 'icon_picker.dart';
 import 'expressive_bottom_sheet.dart';
+import 'expressive_shape.dart';
 import '../../features/people/widgets/person_avatar.dart';
 
 class TransactionListTile extends ConsumerWidget {
@@ -119,13 +120,9 @@ class TransactionListTile extends ConsumerWidget {
       ),
       leading: Hero(
         tag: 'tx_icon_${tx.id}',
-        child: Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: categoryColor.withValues(alpha: isDark ? 0.2 : 0.12),
-            borderRadius: BorderRadius.circular(14),
-          ),
+        child: ExpressiveShapeContainer(
+          size: 44,
+          color: categoryColor.withValues(alpha: isDark ? 0.2 : 0.12),
           child: Icon(
             icon,
             color: categoryColor,

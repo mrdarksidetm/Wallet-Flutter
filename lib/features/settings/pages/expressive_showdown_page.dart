@@ -2,17 +2,19 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/theme/personalization_provider.dart';
 import '../../../core/theme/theme_provider.dart';
 import '../../../core/widgets/app_back_button.dart';
+import '../../../core/widgets/expressive_shape.dart';
 import '../widgets/settings_segmented_card.dart';
+import '../widgets/expressive_backdrop_banner.dart';
 
 /// Expressive Showdown Page
-/// Showcases Material 3 Expressive design tokens, dynamic organic geometry,
-/// blueprint grid overlays, variable font scaling, and expressive motion dynamics.
+/// Showcases Material 3 Expressive design tokens, multi-speed animated SVG backdrop,
+/// dynamic organic shape morphology everywhere in the app, tactile spring dynamics,
+/// Atelier palettes, and the Expressive Flex ("Wallet Flex") variable axis engine.
 class ExpressiveShowdownPage extends ConsumerStatefulWidget {
   const ExpressiveShowdownPage({super.key});
 
@@ -23,52 +25,50 @@ class ExpressiveShowdownPage extends ConsumerStatefulWidget {
 
 class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
     with TickerProviderStateMixin {
-  late final AnimationController _motionController;
   late final AnimationController _shapeMorphController;
   late final AnimationController _springPadController;
 
-  int _selectedShapeIndex = 0;
   double _springDragOffset = 0.0;
 
   static const List<_ShapeDescriptor> _expressiveShapes = [
     _ShapeDescriptor(
       name: 'Squircle',
-      type: _ShapeType.squircle,
+      type: ExpressiveShapeType.squircle,
       subtitle: 'Smooth super-ellipse with continuous curvature',
       badge: 'Continuous C2',
       icon: Symbols.crop_square_rounded,
     ),
     _ShapeDescriptor(
       name: '4-Leaf Petal',
-      type: _ShapeType.petal,
+      type: ExpressiveShapeType.petal,
       subtitle: 'Intersecting organic clover quadrants',
       badge: 'Floral Emblem',
       icon: Symbols.local_florist_rounded,
     ),
     _ShapeDescriptor(
       name: '8-Point Starburst',
-      type: _ShapeType.starburst,
+      type: ExpressiveShapeType.starburst,
       subtitle: 'Radial badge with smoothed vertices',
       badge: 'Accent Badge',
       icon: Symbols.auto_awesome_rounded,
     ),
     _ShapeDescriptor(
       name: 'Scallop Medallion',
-      type: _ShapeType.scallop,
+      type: ExpressiveShapeType.scallop,
       subtitle: 'Circular container with 12-wave harmonic edge',
       badge: 'Harmonic',
       icon: Symbols.military_tech_rounded,
     ),
     _ShapeDescriptor(
       name: 'Pill Capsule',
-      type: _ShapeType.pill,
+      type: ExpressiveShapeType.pill,
       subtitle: 'Extended stadium container with maximal fillet',
       badge: 'Action Target',
       icon: Symbols.pill_rounded,
     ),
     _ShapeDescriptor(
       name: 'Asymmetric Arch',
-      type: _ShapeType.asymmetric,
+      type: ExpressiveShapeType.asymmetric,
       subtitle: 'Contrasting diagonal corner radii for editorial layout',
       badge: 'Editorial',
       icon: Symbols.interests_rounded,
@@ -78,11 +78,6 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
   @override
   void initState() {
     super.initState();
-    _motionController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 8),
-    );
-
     _shapeMorphController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 650),
@@ -94,12 +89,10 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
     );
 
     _shapeMorphController.forward();
-    _motionController.repeat();
   }
 
   @override
   void dispose() {
-    _motionController.dispose();
     _shapeMorphController.dispose();
     _springPadController.dispose();
     super.dispose();
@@ -111,12 +104,11 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
     _springPadController.forward();
   }
 
-  void _selectShape(int index) {
-    if (_selectedShapeIndex == index) return;
+  void _selectShape(ExpressiveShapeType shapeType) {
     HapticFeedback.selectionClick();
-    setState(() {
-      _selectedShapeIndex = index;
-    });
+    ref
+        .read(personalizationProvider.notifier)
+        .setExpressiveShape(shapeType.name);
     _shapeMorphController.reset();
     _shapeMorphController.forward();
   }
@@ -127,12 +119,8 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
     final colorScheme = theme.colorScheme;
     final personalization = ref.watch(personalizationProvider);
     final isExpressive = personalization.isExpressiveDiversificationEnabled;
-
-    if (!isExpressive && _motionController.isAnimating) {
-      _motionController.stop();
-    } else if (isExpressive && !_motionController.isAnimating) {
-      _motionController.repeat();
-    }
+    final activeShapeType = ExpressiveShapeType.fromString(
+        personalization.selectedExpressiveShape);
 
     final double outerRadius =
         personalization.roundness > 0 ? personalization.roundness : 28.0;
@@ -154,46 +142,13 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
             ),
           ),
 
-          // Expressive Showcase Hero Banner (The ONLY backdrop banner on the page)
+          // Expressive Showcase Hero Banner (Multi-speed, multi-direction animated SVG)
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-              child: AnimatedBuilder(
-                animation: _motionController,
-                builder: (context, child) {
-                  final scale = isExpressive
-                      ? 1.0 + (sin(_motionController.value * 2 * pi) * 0.012)
-                      : 1.0;
-                  return Transform.scale(
-                    scale: scale,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: colorScheme.surfaceContainerLow,
-                        borderRadius: BorderRadius.circular(outerRadius),
-                        border: Border.all(
-                          color: colorScheme.outlineVariant
-                              .withValues(alpha: 0.25),
-                          width: 1.0,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: colorScheme.shadow.withValues(alpha: 0.04),
-                            blurRadius: 16,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      child: AspectRatio(
-                        aspectRatio: 412 / 190,
-                        child: SvgPicture.asset(
-                          'assets/images/expressive_showdown_banner.svg',
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                    ),
-                  );
-                },
+              child: ExpressiveBackdropBanner(
+                isExpressive: isExpressive,
+                borderRadius: outerRadius,
               ),
             ),
           ),
@@ -202,7 +157,7 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 36),
             sliver: SliverList.list(
               children: [
-                // Primary Setting: Expressive Diversification Switch Card (Matching skeleton)
+                // Primary Master Setting: Expressive Diversification Switch Card (Skeleton Wireframe)
                 _buildExpressiveDiversificationCard(
                   context,
                   theme,
@@ -211,112 +166,167 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
                   isExpressive,
                 ),
 
-                const SizedBox(height: 28),
-
-                // Section 1: Expressive Shape Morphology Playground
-                _buildSectionHeader(
-                  theme,
-                  colorScheme,
-                  title: 'EXPRESSIVE SHAPE MORPHOLOGY',
-                  badgeText: 'Interactive',
-                  icon: Symbols.shapes_rounded,
-                ),
-                const SizedBox(height: 12),
-                _buildShapePlaygroundCard(
-                  theme,
-                  colorScheme,
-                  personalization,
-                  outerRadius,
-                  isExpressive,
-                ),
-
-                const SizedBox(height: 28),
-
-                // Section 2: Spring Dynamics & Tactile Physics
-                _buildSectionHeader(
-                  theme,
-                  colorScheme,
-                  title: 'SPRING DYNAMICS & TACTILE PHYSICS',
-                  badgeText: isExpressive ? 'Active' : 'M3 Linear',
-                  icon: Symbols.motion_photos_on_rounded,
-                ),
-                const SizedBox(height: 12),
-                _buildSpringDynamicsCard(
-                  theme,
-                  colorScheme,
-                  personalization,
-                  outerRadius,
-                  isExpressive,
-                ),
-
-                const SizedBox(height: 28),
-
-                // Section 3: Atelier Color Harmonies
-                _buildSectionHeader(
-                  theme,
-                  colorScheme,
-                  title: 'ATELIER COLOR HARMONIES',
-                  badgeText: personalization.colorSchemeVariant.toUpperCase(),
-                  icon: Symbols.palette_rounded,
-                ),
-                const SizedBox(height: 12),
-                _buildAtelierColorSection(
-                  theme,
-                  colorScheme,
-                  personalization,
-                  outerRadius,
-                ),
-
-                const SizedBox(height: 28),
-
-                // Section 4: Variable Typography Engine
-                _buildSectionHeader(
-                  theme,
-                  colorScheme,
-                  title: 'VARIABLE TYPOGRAPHY DYNAMICS',
-                  badgeText: 'Google Sans Flex',
-                  icon: Symbols.font_download_rounded,
-                ),
-                const SizedBox(height: 12),
-                _buildVariableTypographyCard(
-                  theme,
-                  colorScheme,
-                  personalization,
-                  outerRadius,
-                ),
-
-                const SizedBox(height: 28),
-
-                // Section 5: Design Token Metrics Inspector
-                _buildSectionHeader(
-                  theme,
-                  colorScheme,
-                  title: 'MATERIAL 3 EXPRESSIVE TOKENS',
-                  icon: Symbols.token_rounded,
-                ),
-                const SizedBox(height: 12),
-                _buildDesignTokensCard(
-                  theme,
-                  colorScheme,
-                  personalization,
-                  outerRadius,
-                  isExpressive,
-                ),
-
                 const SizedBox(height: 24),
 
-                // Quick Navigation Card to Full Personalization
-                SettingsSegmentedGroup(
-                  children: [
-                    SettingsActionTile(
-                      icon: Symbols.tune_rounded,
-                      title: 'All Appearance & Sliders',
-                      subtitle:
-                          'Fine-tune variable optical size, grade, slant and corner fillets',
-                      showDivider: false,
-                      onTap: () => context.push('/personalization'),
+                // Entire Page Body (Only interactive when Expressive Diversification is active)
+                IgnorePointer(
+                  ignoring: !isExpressive,
+                  child: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 300),
+                    opacity: isExpressive ? 1.0 : 0.38,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (!isExpressive) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
+                            margin: const EdgeInsets.only(bottom: 20),
+                            decoration: BoxDecoration(
+                              color: colorScheme.surfaceContainerHighest
+                                  .withValues(alpha: 0.6),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: colorScheme.outlineVariant
+                                    .withValues(alpha: 0.4),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Symbols.lock_rounded,
+                                  size: 18,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    'Enable Expressive Diversification above to unlock custom morphology, tactile physics, atelier palettes & Wallet Flex.',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+
+                        // Section 1: Expressive Shape Morphology Playground
+                        _buildSectionHeader(
+                          theme,
+                          colorScheme,
+                          title: 'EXPRESSIVE SHAPE MORPHOLOGY',
+                          badgeText: 'Applied Everywhere',
+                          icon: Symbols.shapes_rounded,
+                        ),
+                        const SizedBox(height: 12),
+                        _buildShapePlaygroundCard(
+                          theme,
+                          colorScheme,
+                          personalization,
+                          outerRadius,
+                          isExpressive,
+                          activeShapeType,
+                        ),
+
+                        const SizedBox(height: 28),
+
+                        // Section 2: Expressive Flex (Replacing Variable Typography Dynamic)
+                        _buildSectionHeader(
+                          theme,
+                          colorScheme,
+                          title: 'EXPRESSIVE FLEX',
+                          badgeText: personalization.isWalletFlexEnabled
+                              ? 'Active: 5 Axes'
+                              : 'Standard',
+                          icon: Symbols.font_download_rounded,
+                        ),
+                        const SizedBox(height: 12),
+                        _buildExpressiveFlexCard(
+                          theme,
+                          colorScheme,
+                          personalization,
+                          outerRadius,
+                          isExpressive,
+                        ),
+
+                        const SizedBox(height: 28),
+
+                        // Section 3: Spring Dynamics & Tactile Physics
+                        _buildSectionHeader(
+                          theme,
+                          colorScheme,
+                          title: 'SPRING DYNAMICS & TACTILE PHYSICS',
+                          badgeText: isExpressive ? 'Active' : 'Linear',
+                          icon: Symbols.motion_photos_on_rounded,
+                        ),
+                        const SizedBox(height: 12),
+                        _buildSpringDynamicsCard(
+                          theme,
+                          colorScheme,
+                          personalization,
+                          outerRadius,
+                          isExpressive,
+                        ),
+
+                        const SizedBox(height: 28),
+
+                        // Section 4: Atelier Color Harmonies
+                        _buildSectionHeader(
+                          theme,
+                          colorScheme,
+                          title: 'ATELIER COLOR HARMONIES',
+                          badgeText:
+                              personalization.colorSchemeVariant.toUpperCase(),
+                          icon: Symbols.palette_rounded,
+                        ),
+                        const SizedBox(height: 12),
+                        _buildAtelierColorSection(
+                          theme,
+                          colorScheme,
+                          personalization,
+                          outerRadius,
+                        ),
+
+                        const SizedBox(height: 28),
+
+                        // Section 5: Design Token Metrics Inspector
+                        _buildSectionHeader(
+                          theme,
+                          colorScheme,
+                          title: 'MATERIAL 3 EXPRESSIVE TOKENS',
+                          icon: Symbols.token_rounded,
+                        ),
+                        const SizedBox(height: 12),
+                        _buildDesignTokensCard(
+                          theme,
+                          colorScheme,
+                          personalization,
+                          outerRadius,
+                          isExpressive,
+                          activeShapeType,
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        // Quick Navigation Card to Full Personalization
+                        SettingsSegmentedGroup(
+                          children: [
+                            SettingsActionTile(
+                              icon: Symbols.tune_rounded,
+                              title: 'All Appearance & Sliders',
+                              subtitle:
+                                  'Fine-tune variable optical size, grade, slant and corner fillets',
+                              showDivider: false,
+                              onTap: () => context.push('/personalization'),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ],
             ),
@@ -401,45 +411,34 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
             children: [
-              // Icon Badge with subtle rotation when active
-              AnimatedBuilder(
-                animation: _motionController,
-                builder: (context, child) {
-                  final rotation = isExpressive
-                      ? sin(_motionController.value * 2 * pi) * 0.15
-                      : 0.0;
-                  return Transform.rotate(
-                    angle: rotation,
-                    child: Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: isExpressive
-                            ? colorScheme.primaryContainer
-                            : colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: isExpressive
-                            ? [
-                                BoxShadow(
-                                  color: colorScheme.primary
-                                      .withValues(alpha: 0.2),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ]
-                            : null,
-                      ),
-                      child: Icon(
-                        Symbols.auto_awesome_rounded,
-                        size: 24,
-                        color: isExpressive
-                            ? colorScheme.onPrimaryContainer
-                            : colorScheme.onSurfaceVariant,
-                        fill: personalization.fillIcons ? 1.0 : 0.0,
-                      ),
-                    ),
-                  );
-                },
+              // Icon Badge
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: isExpressive
+                      ? colorScheme.primaryContainer
+                      : colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: isExpressive
+                      ? [
+                          BoxShadow(
+                            color:
+                                colorScheme.primary.withValues(alpha: 0.25),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Icon(
+                  Symbols.auto_awesome_rounded,
+                  size: 24,
+                  color: isExpressive
+                      ? colorScheme.onPrimaryContainer
+                      : colorScheme.onSurfaceVariant,
+                  fill: personalization.fillIcons ? 1.0 : 0.0,
+                ),
               ),
 
               const SizedBox(width: 16),
@@ -504,8 +503,12 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
     PersonalizationState personalization,
     double outerRadius,
     bool isExpressive,
+    ExpressiveShapeType activeShapeType,
   ) {
-    final currentDescriptor = _expressiveShapes[_selectedShapeIndex];
+    final currentDescriptor = _expressiveShapes.firstWhere(
+      (s) => s.type == activeShapeType,
+      orElse: () => _expressiveShapes.first,
+    );
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -520,42 +523,32 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Live Shape Canvas Preview
+          // Live Shape Canvas Preview with Spring Morph Animation
           Center(
             child: SizedBox(
-              height: 150,
-              width: 150,
+              height: 140,
+              width: 140,
               child: AnimatedBuilder(
-                animation: Listenable.merge(
-                    [_shapeMorphController, _motionController]),
+                animation: _shapeMorphController,
                 builder: (context, child) {
                   final morphProgress = CurvedAnimation(
                     parent: _shapeMorphController,
                     curve: Curves.easeOutBack,
                   ).value;
 
-                  final breathScale = isExpressive
-                      ? 1.0 + (sin(_motionController.value * 2 * pi) * 0.02)
-                      : 1.0;
-
                   return Transform.scale(
-                    scale: breathScale,
-                    child: CustomPaint(
-                      painter: _ExpressiveShapePainter(
-                        shapeType: currentDescriptor.type,
-                        progress: morphProgress,
-                        primaryColor: colorScheme.primary,
-                        containerColor: colorScheme.primaryContainer,
-                        accentColor: colorScheme.tertiaryContainer,
-                        outlineColor:
-                            colorScheme.primary.withValues(alpha: 0.35),
-                      ),
-                      child: Center(
-                        child: Icon(
-                          currentDescriptor.icon,
-                          size: 36,
-                          color: colorScheme.onPrimaryContainer,
-                        ),
+                    scale: 0.92 + (morphProgress * 0.08),
+                    child: ExpressiveShapeContainer(
+                      size: 140,
+                      shapeType: currentDescriptor.type,
+                      isExpressive: true,
+                      color: colorScheme.primaryContainer,
+                      borderColor: colorScheme.primary.withValues(alpha: 0.4),
+                      borderWidth: 2.0,
+                      child: Icon(
+                        currentDescriptor.icon,
+                        size: 42,
+                        color: colorScheme.onPrimaryContainer,
                       ),
                     ),
                   );
@@ -570,16 +563,38 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
           Center(
             child: Column(
               children: [
-                Text(
-                  currentDescriptor.name,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 17,
-                  ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      currentDescriptor.name,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 17,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        'Active Globally',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  currentDescriptor.subtitle,
+                  '${currentDescriptor.subtitle} • Shown on transactions, heatmap, accounts, budgets & tiles',
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
@@ -598,7 +613,8 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
             runSpacing: 8,
             children: List.generate(_expressiveShapes.length, (index) {
               final shape = _expressiveShapes[index];
-              final isSelected = index == _selectedShapeIndex;
+              final isSelected = shape.type == activeShapeType;
+
               return ChoiceChip(
                 label: Text(shape.name),
                 selected: isSelected,
@@ -622,11 +638,12 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
                   color: isSelected
                       ? colorScheme.primary
                       : colorScheme.outlineVariant.withValues(alpha: 0.3),
+                  width: isSelected ? 1.5 : 1.0,
                 ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
-                onSelected: (_) => _selectShape(index),
+                onSelected: (_) => _selectShape(shape.type),
               );
             }),
           ),
@@ -635,7 +652,223 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
     );
   }
 
-  // --- Section 2: Spring Dynamics & Tactile Physics Card ---
+  // --- Section 2: Expressive Flex Card (Replaces Variable Typography Dynamic) ---
+  Widget _buildExpressiveFlexCard(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    PersonalizationState personalization,
+    double outerRadius,
+    bool isExpressive,
+  ) {
+    final isFlexOn = personalization.isWalletFlexEnabled;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(outerRadius),
+        border: Border.all(
+          color: isFlexOn
+              ? colorScheme.primary.withValues(alpha: 0.4)
+              : colorScheme.outlineVariant.withValues(alpha: 0.25),
+          width: isFlexOn ? 1.5 : 1.0,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Wallet Flex Switch Header Tile
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: isFlexOn
+                  ? colorScheme.primaryContainer.withValues(alpha: 0.35)
+                  : colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: isFlexOn
+                    ? colorScheme.primary.withValues(alpha: 0.3)
+                    : Colors.transparent,
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: isFlexOn
+                        ? colorScheme.primary
+                        : colorScheme.surfaceContainerHigh,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(
+                    Symbols.fit_screen_rounded,
+                    size: 22,
+                    color: isFlexOn
+                        ? colorScheme.onPrimary
+                        : colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Wallet Flex',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 16,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Grad=50 • wgth=585 • wdth=120% • rond=19% • opsz=68pt',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: isFlexOn
+                              ? colorScheme.primary
+                              : colorScheme.onSurfaceVariant,
+                          fontWeight:
+                              isFlexOn ? FontWeight.bold : FontWeight.normal,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Switch(
+                  value: isFlexOn,
+                  thumbIcon: WidgetStateProperty.resolveWith<Icon?>((states) {
+                    if (states.contains(WidgetState.selected)) {
+                      return Icon(
+                        Icons.check_rounded,
+                        size: 16,
+                        color: colorScheme.onPrimary,
+                      );
+                    }
+                    return null;
+                  }),
+                  onChanged: isExpressive
+                      ? (value) {
+                          HapticFeedback.mediumImpact();
+                          ref
+                              .read(personalizationProvider.notifier)
+                              .toggleWalletFlex(value);
+                        }
+                      : null,
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Live Variable Font Preview Box
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Wallet Flex Dynamic Axis',
+                  style: TextStyle(
+                    fontFamily: 'GoogleSansFlex',
+                    fontSize: 22,
+                    fontVariations: [
+                      FontVariation('GRAD', personalization.grade),
+                      FontVariation('wght', personalization.weight),
+                      FontVariation('wdth', personalization.width),
+                      FontVariation('ROND', personalization.fontRoundness),
+                      FontVariation('opsz', personalization.opticalSize),
+                    ],
+                    letterSpacing: -0.5,
+                    color: colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'When Wallet Flex is toggled, Google Sans Flex dynamically synchronizes across every screen, balance tile, transaction and menu in the app.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 14),
+
+          // 5 Axis Metric Chips
+          Row(
+            children: [
+              _buildFlexMetricChip(
+                  theme, colorScheme, 'GRAD', '${personalization.grade.toInt()}'),
+              const SizedBox(width: 6),
+              _buildFlexMetricChip(
+                  theme, colorScheme, 'wght', '${personalization.weight.toInt()}'),
+              const SizedBox(width: 6),
+              _buildFlexMetricChip(
+                  theme, colorScheme, 'wdth', '${personalization.width.toInt()}%'),
+              const SizedBox(width: 6),
+              _buildFlexMetricChip(theme, colorScheme, 'rond',
+                  '${personalization.fontRoundness.toInt()}%'),
+              const SizedBox(width: 6),
+              _buildFlexMetricChip(theme, colorScheme, 'opsz',
+                  '${personalization.opticalSize.toInt()}pt'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFlexMetricChip(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    String axis,
+    String value,
+  ) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          children: [
+            Text(
+              axis,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              value,
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontWeight: FontWeight.w900,
+                color: colorScheme.primary,
+                fontSize: 11,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // --- Section 3: Spring Dynamics & Tactile Physics Card ---
   Widget _buildSpringDynamicsCard(
     ThemeData theme,
     ColorScheme colorScheme,
@@ -823,7 +1056,7 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
     );
   }
 
-  // --- Section 3: Atelier Color Harmonies ---
+  // --- Section 4: Atelier Color Harmonies ---
   Widget _buildAtelierColorSection(
     ThemeData theme,
     ColorScheme colorScheme,
@@ -1035,127 +1268,6 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
     }
   }
 
-  // --- Section 4: Variable Typography Engine Card ---
-  Widget _buildVariableTypographyCard(
-    ThemeData theme,
-    ColorScheme colorScheme,
-    PersonalizationState personalization,
-    double outerRadius,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(outerRadius),
-        border: Border.all(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.25),
-          width: 1.0,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Live Variable Font Preview Sample
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Expressive Typography',
-                  style: TextStyle(
-                    fontFamily: 'GoogleSansFlex',
-                    fontSize: 22,
-                    fontWeight: FontWeight.values[
-                        ((personalization.weight / 100).clamp(1, 9).toInt()) -
-                            1],
-                    letterSpacing: -0.5,
-                    color: colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Weight: ${personalization.weight.toInt()} • Grade: ${personalization.grade.toInt()} • Width: ${personalization.width.toInt()}%',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // Font Weight Slider
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Weight (wght)',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                '${personalization.weight.toInt()}',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: colorScheme.primary,
-                ),
-              ),
-            ],
-          ),
-          Slider(
-            value: personalization.weight,
-            min: 100,
-            max: 900,
-            divisions: 8,
-            label: '${personalization.weight.toInt()}',
-            onChanged: (v) {
-              ref.read(personalizationProvider.notifier).updateWeight(v);
-            },
-          ),
-
-          // Grade Slider
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Grade (GRAD)',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                '${personalization.grade.toInt()}',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: colorScheme.primary,
-                ),
-              ),
-            ],
-          ),
-          Slider(
-            value: personalization.grade,
-            min: -200,
-            max: 200,
-            divisions: 16,
-            label: '${personalization.grade.toInt()}',
-            onChanged: (v) {
-              ref.read(personalizationProvider.notifier).updateGrade(v);
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
   // --- Section 5: Design Token Metrics Inspector ---
   Widget _buildDesignTokensCard(
     ThemeData theme,
@@ -1163,6 +1275,7 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
     PersonalizationState personalization,
     double outerRadius,
     bool isExpressive,
+    ExpressiveShapeType activeShapeType,
   ) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -1200,24 +1313,31 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
               _buildTokenChip(
                 theme,
                 colorScheme,
+                'Shape',
+                activeShapeType.name.toUpperCase(),
+              ),
+              const SizedBox(width: 6),
+              _buildTokenChip(
+                theme,
+                colorScheme,
+                'Flex',
+                personalization.isWalletFlexEnabled ? 'ON' : 'OFF',
+              ),
+              const SizedBox(width: 6),
+              _buildTokenChip(
+                theme,
+                colorScheme,
                 'Fillet',
                 '${personalization.roundness.toInt()}dp',
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               _buildTokenChip(
                 theme,
                 colorScheme,
                 'Weight',
                 '${personalization.weight.toInt()}',
               ),
-              const SizedBox(width: 8),
-              _buildTokenChip(
-                theme,
-                colorScheme,
-                'Grade',
-                '${personalization.grade.toInt()}',
-              ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               _buildTokenChip(
                 theme,
                 colorScheme,
@@ -1239,10 +1359,10 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
   ) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
         decoration: BoxDecoration(
           color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
         ),
         child: Column(
           children: [
@@ -1250,16 +1370,19 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
               label,
               style: theme.textTheme.labelSmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
-                fontSize: 11,
+                fontSize: 10,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               value,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: theme.textTheme.labelMedium?.copyWith(
                 fontWeight: FontWeight.w800,
                 color: colorScheme.onSurface,
-                fontSize: 12,
+                fontSize: 11,
               ),
             ),
           ],
@@ -1269,20 +1392,9 @@ class _ExpressiveShowdownPageState extends ConsumerState<ExpressiveShowdownPage>
   }
 }
 
-// --- Supporting Shape Data Classes & Custom Painters ---
-
-enum _ShapeType {
-  squircle,
-  petal,
-  starburst,
-  scallop,
-  pill,
-  asymmetric,
-}
-
 class _ShapeDescriptor {
   final String name;
-  final _ShapeType type;
+  final ExpressiveShapeType type;
   final String subtitle;
   final String badge;
   final IconData icon;
@@ -1294,137 +1406,6 @@ class _ShapeDescriptor {
     required this.badge,
     required this.icon,
   });
-}
-
-class _ExpressiveShapePainter extends CustomPainter {
-  final _ShapeType shapeType;
-  final double progress;
-  final Color primaryColor;
-  final Color containerColor;
-  final Color accentColor;
-  final Color outlineColor;
-
-  _ExpressiveShapePainter({
-    required this.shapeType,
-    required this.progress,
-    required this.primaryColor,
-    required this.containerColor,
-    required this.accentColor,
-    required this.outlineColor,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = min(size.width / 2, size.height / 2) * 0.9 * progress;
-
-    final Path path = Path();
-
-    switch (shapeType) {
-      case _ShapeType.squircle:
-        final r = radius * 0.95;
-        final rect = Rect.fromCenter(
-            center: center, width: r * 2, height: r * 2);
-        path.addRRect(RRect.fromRectAndRadius(rect, Radius.circular(r * 0.45)));
-        break;
-
-      case _ShapeType.petal:
-        // 4-leaf organic flower (matching left emblem on SVG backdrop)
-        final lobeRadius = radius * 0.52;
-        path.addOval(Rect.fromCircle(
-            center: center + Offset(-lobeRadius * 0.6, 0), radius: lobeRadius));
-        path.addOval(Rect.fromCircle(
-            center: center + Offset(lobeRadius * 0.6, 0), radius: lobeRadius));
-        path.addOval(Rect.fromCircle(
-            center: center + Offset(0, -lobeRadius * 0.6), radius: lobeRadius));
-        path.addOval(Rect.fromCircle(
-            center: center + Offset(0, lobeRadius * 0.6), radius: lobeRadius));
-        break;
-
-      case _ShapeType.starburst:
-        // 8-point smooth starburst (matching right emblem on SVG backdrop)
-        const int points = 8;
-        final outerR = radius;
-        final innerR = radius * 0.62;
-        for (int i = 0; i < points * 2; i++) {
-          final r = i.isEven ? outerR : innerR;
-          final angle = (i * pi) / points - (pi / 2);
-          final x = center.dx + r * cos(angle);
-          final y = center.dy + r * sin(angle);
-          if (i == 0) {
-            path.moveTo(x, y);
-          } else {
-            path.lineTo(x, y);
-          }
-        }
-        path.close();
-        break;
-
-      case _ShapeType.scallop:
-        // 12-wave circular medallion
-        const int waves = 12;
-        for (int i = 0; i <= 360; i += 2) {
-          final rad = i * pi / 180;
-          final waveR = radius * 0.85 + (sin(rad * waves) * radius * 0.12);
-          final x = center.dx + waveR * cos(rad);
-          final y = center.dy + waveR * sin(rad);
-          if (i == 0) {
-            path.moveTo(x, y);
-          } else {
-            path.lineTo(x, y);
-          }
-        }
-        path.close();
-        break;
-
-      case _ShapeType.pill:
-        final w = radius * 2.0;
-        final h = radius * 1.25;
-        final rect = Rect.fromCenter(center: center, width: w, height: h);
-        path.addRRect(RRect.fromRectAndRadius(rect, Radius.circular(h / 2)));
-        break;
-
-      case _ShapeType.asymmetric:
-        final r = radius * 0.95;
-        final rect = Rect.fromCenter(
-            center: center, width: r * 2, height: r * 2);
-        path.addRRect(RRect.fromRectAndCorners(
-          rect,
-          topLeft: Radius.circular(r * 0.65),
-          bottomRight: Radius.circular(r * 0.65),
-          topRight: Radius.circular(r * 0.15),
-          bottomLeft: Radius.circular(r * 0.15),
-        ));
-        break;
-    }
-
-    // Fill with expressive gradient
-    final paintFill = Paint()
-      ..shader = LinearGradient(
-        colors: [containerColor, accentColor],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ).createShader(Rect.fromCircle(center: center, radius: radius))
-      ..style = PaintingStyle.fill;
-
-    canvas.drawPath(path, paintFill);
-
-    // Outline stroke
-    final paintStroke = Paint()
-      ..color = outlineColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0;
-
-    canvas.drawPath(path, paintStroke);
-  }
-
-  @override
-  bool shouldRepaint(covariant _ExpressiveShapePainter oldDelegate) {
-    return oldDelegate.shapeType != shapeType ||
-        oldDelegate.progress != progress ||
-        oldDelegate.primaryColor != primaryColor ||
-        oldDelegate.containerColor != containerColor;
-  }
 }
 
 /// A custom painter that draws a circle split into three colored segments for palette previews

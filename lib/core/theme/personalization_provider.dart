@@ -26,6 +26,8 @@ class PersonalizationState {
   final bool useDynamicColor;
   final bool isErrorCollectorEnabled;
   final bool isExpressiveDiversificationEnabled;
+  final String selectedExpressiveShape; // 'squircle', 'petal', 'starburst', 'scallop', 'pill', 'asymmetric'
+  final bool isWalletFlexEnabled;
 
   PersonalizationState({
     this.grade = 50,
@@ -42,6 +44,8 @@ class PersonalizationState {
     this.useDynamicColor = true,
     this.isErrorCollectorEnabled = false,
     this.isExpressiveDiversificationEnabled = true,
+    this.selectedExpressiveShape = 'squircle',
+    this.isWalletFlexEnabled = false,
     this.userName,
     this.userPhoto,
     this.defaultCurrency,
@@ -66,6 +70,8 @@ class PersonalizationState {
     bool? useDynamicColor,
     bool? isErrorCollectorEnabled,
     bool? isExpressiveDiversificationEnabled,
+    String? selectedExpressiveShape,
+    bool? isWalletFlexEnabled,
     String? userName,
     String? userPhoto,
     String? defaultCurrency,
@@ -89,6 +95,8 @@ class PersonalizationState {
       useDynamicColor: useDynamicColor ?? this.useDynamicColor,
       isErrorCollectorEnabled: isErrorCollectorEnabled ?? this.isErrorCollectorEnabled,
       isExpressiveDiversificationEnabled: isExpressiveDiversificationEnabled ?? this.isExpressiveDiversificationEnabled,
+      selectedExpressiveShape: selectedExpressiveShape ?? this.selectedExpressiveShape,
+      isWalletFlexEnabled: isWalletFlexEnabled ?? this.isWalletFlexEnabled,
       userName: userName ?? this.userName,
       userPhoto: userPhoto ?? this.userPhoto,
       defaultCurrency: defaultCurrency ?? this.defaultCurrency,
@@ -115,6 +123,8 @@ class PersonalizationState {
       'useDynamicColor': useDynamicColor,
       'isErrorCollectorEnabled': isErrorCollectorEnabled,
       'isExpressiveDiversificationEnabled': isExpressiveDiversificationEnabled,
+      'selectedExpressiveShape': selectedExpressiveShape,
+      'isWalletFlexEnabled': isWalletFlexEnabled,
       'userName': userName,
       'userPhoto': userPhoto,
       'defaultCurrency': defaultCurrency,
@@ -141,8 +151,10 @@ class PersonalizationState {
       useDynamicColor: map['useDynamicColor'] as bool? ?? true,
       isErrorCollectorEnabled: map['isErrorCollectorEnabled'] as bool? ?? false,
       isExpressiveDiversificationEnabled: map['isExpressiveDiversificationEnabled'] as bool? ?? true,
+      selectedExpressiveShape: map['selectedExpressiveShape'] as String? ?? 'squircle',
+      isWalletFlexEnabled: map['isWalletFlexEnabled'] as bool? ?? false,
       userName: map['userName'] as String?,
-      userPhoto: map['userPhoto'] as String?,
+      userPhoto: userPhoto ?? map['userPhoto'] as String?,
       defaultCurrency: map['defaultCurrency'] as String?,
       isBalanceVisible: map['isBalanceVisible'] as bool? ?? true,
       vibrateOnTransaction: map['vibrateOnTransaction'] as bool? ?? true,
@@ -257,6 +269,37 @@ class PersonalizationNotifier extends Notifier<PersonalizationState> {
 
   void toggleErrorCollector() {
     state = state.copyWith(isErrorCollectorEnabled: !state.isErrorCollectorEnabled);
+    _save();
+  }
+
+  void setExpressiveShape(String shape) {
+    state = state.copyWith(selectedExpressiveShape: shape);
+    _save();
+  }
+
+  void toggleWalletFlex([bool? value]) {
+    final enabled = value ?? !state.isWalletFlexEnabled;
+    if (enabled) {
+      state = state.copyWith(
+        isWalletFlexEnabled: true,
+        grade: 50,
+        weight: 585,
+        width: 120,
+        roundness: 19,
+        fontRoundness: 19,
+        opticalSize: 68,
+      );
+    } else {
+      state = state.copyWith(
+        isWalletFlexEnabled: false,
+        grade: 50,
+        weight: 400,
+        width: 100,
+        roundness: 32,
+        fontRoundness: 100,
+        opticalSize: 12,
+      );
+    }
     _save();
   }
 

@@ -7,6 +7,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/database/models/transaction_model.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/services/currency_engine.dart';
+import '../../../core/widgets/expressive_shape.dart';
 
 class ActivityInsightsSection extends ConsumerStatefulWidget {
   const ActivityInsightsSection({super.key});
@@ -222,16 +223,14 @@ class _ActivityInsightsSectionState extends ConsumerState<ActivityInsightsSectio
               _selectedDate = cellDate;
             });
           },
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            decoration: BoxDecoration(
-              color: cellColor,
-              borderRadius: BorderRadius.circular(12.0),
-              border: isSelected 
-                  ? Border.all(color: colorScheme.primary, width: 2.0)
-                  : Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.3), width: 1.0), 
-            ),
-            alignment: Alignment.center,
+          child: ExpressiveShapeContainer(
+            color: cellColor,
+            borderColor: isSelected
+                ? colorScheme.primary
+                : (cellColor == Colors.transparent
+                    ? colorScheme.outlineVariant.withValues(alpha: 0.3)
+                    : null),
+            borderWidth: isSelected ? 2.0 : 1.0,
             child: Text(
               day.toString(),
               style: TextStyle(

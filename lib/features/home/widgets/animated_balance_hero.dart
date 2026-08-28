@@ -5,6 +5,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/theme/personalization_provider.dart';
 import '../../../core/services/currency_engine.dart';
+import '../../../core/widgets/expressive_shape.dart';
 
 class AnimatedBalanceHero extends ConsumerStatefulWidget {
   final double totalBalance;
@@ -215,13 +216,11 @@ class _AnimatedBalanceHeroState extends ConsumerState<AnimatedBalanceHero>
                       ),
                     )
                   else
-                    Text(
-                      '••••••',
-                      style: theme.textTheme.displayMedium?.copyWith(
-                        fontFamily: 'GoogleSansFlex',
-                        fontVariations: _getBalanceFontVariations(widget.totalBalance),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: ExpressiveObscuredBalance(
+                        dotSize: 26,
                         color: colorScheme.onSurface,
-                        letterSpacing: 4,
                       ),
                     ),
                   

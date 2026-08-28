@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/widgets/expressive_shape.dart';
 
 class OverviewCard extends StatelessWidget {
   final IconData icon;
@@ -45,12 +46,9 @@ class OverviewCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: effectiveAccent.withValues(alpha: isDark ? 0.2 : 0.12),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                    ExpressiveShapeContainer(
+                      size: 38,
+                      color: effectiveAccent.withValues(alpha: isDark ? 0.2 : 0.12),
                       child: Icon(
                         icon,
                         size: 20,
