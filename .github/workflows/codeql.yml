@@ -50,7 +50,6 @@ jobs:
           flutter doctor -v
           yes | flutter doctor --android-licenses || true
           flutter pub get
-          find ~/.pub-cache -name "ReceiveIntentPlugin.kt" -exec sed -i 's/this::activityBinding.isInitialized/::activityBinding.isInitialized/g' {} + 2>/dev/null || true
           dart run build_runner build --delete-conflicting-outputs || true
 
       - name: Setup Signing Key for Build
@@ -84,10 +83,10 @@ jobs:
           echo "## ❌ CodeQL Build Failure Summary" >> $GITHUB_STEP_SUMMARY
           echo "Here are the compiler and build error messages:" >> $GITHUB_STEP_SUMMARY
           echo '```text' >> $GITHUB_STEP_SUMMARY
-          if [ -f build_codeql.log ]; then
-            KEY_ERR=$(grep -B 2 -A 5 -E "(^e: |^FAILURE:|^\* What went wrong:|^> Task :app:compile|^> Compilation error|error:|Exception:|Error:)" build_codeql.log | head -n 30)
+          if [ -f build_codeql.log ] && [ -s build_codeql.log ]; then
+            KEY_ERR=$(grep -A 25 -E "(FAILURE: Build failed with an exception|^\* What went wrong:|^e: env:|^e: file:|^e: /|^Exception:)" build_codeql.log | tail -n 40)
             if [ -z "$KEY_ERR" ]; then
-              KEY_ERR=$(tail -n 30 build_codeql.log)
+              KEY_ERR=$(tail -n 40 build_codeql.log)
             fi
             echo "$KEY_ERR" >> $GITHUB_STEP_SUMMARY
             ANNOTATION_MSG=$(echo "$KEY_ERR" | tr '\r\n' ' | ' | sed 's/[^a-zA-Z0-9 ._:\/|-]/ /g' | cut -c 1-500)

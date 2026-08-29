@@ -41,7 +41,6 @@ jobs:
           flutter doctor -v
           yes | flutter doctor --android-licenses || true
           flutter pub get
-          find ~/.pub-cache -name "ReceiveIntentPlugin.kt" -exec sed -i 's/this::activityBinding.isInitialized/::activityBinding.isInitialized/g' {} + 2>/dev/null || true
 
       - name: Setup Signing (Optional)
         env:
@@ -285,16 +284,16 @@ jobs:
           echo '```text' >> $GITHUB_STEP_SUMMARY
           
           LOG_FILE=""
-          if [ -f build_split.log ] && grep -qE "(^e: |^FAILURE:|^\* What went wrong:|^> Task :app:compile|^> Compilation error|error:|Exception:|Error:)" build_split.log; then
+          if [ -f build_split.log ] && [ -s build_split.log ]; then
             LOG_FILE="build_split.log"
-          elif [ -f build_universal.log ]; then
+          elif [ -f build_universal.log ] && [ -s build_universal.log ]; then
             LOG_FILE="build_universal.log"
           fi
           
           if [ -n "$LOG_FILE" ] && [ -f "$LOG_FILE" ]; then
-            KEY_ERR=$(grep -B 2 -A 5 -E "(^e: |^FAILURE:|^\* What went wrong:|^> Task :app:compile|^> Compilation error|error:|Exception:|Error:)" "$LOG_FILE" | head -n 30)
+            KEY_ERR=$(grep -A 25 -E "(FAILURE: Build failed with an exception|^\* What went wrong:|^e: env:|^e: file:|^e: /|^Exception:)" "$LOG_FILE" | tail -n 40)
             if [ -z "$KEY_ERR" ]; then
-              KEY_ERR=$(tail -n 30 "$LOG_FILE")
+              KEY_ERR=$(tail -n 40 "$LOG_FILE")
             fi
             echo "$KEY_ERR" >> $GITHUB_STEP_SUMMARY
             ANNOTATION_MSG=$(echo "$KEY_ERR" | tr '\r\n' ' | ' | sed 's/[^a-zA-Z0-9 ._:\/|-]/ /g' | cut -c 1-500)
@@ -309,7 +308,7 @@ jobs:
             echo "<details><summary><b>📋 Full Build Log Tail (Click to expand)</b></summary>" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo '```text' >> $GITHUB_STEP_SUMMARY
-            tail -n 100 "$LOG_FILE" >> $GITHUB_STEP_SUMMARY
+            tail -n 200 "$LOG_FILE" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
             echo "</details>" >> $GITHUB_STEP_SUMMARY
           fi

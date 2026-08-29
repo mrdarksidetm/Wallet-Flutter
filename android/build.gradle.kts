@@ -1,14 +1,3 @@
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        classpath("com.android.tools.build:gradle:8.11.1")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.24")
-    }
-}
-
 allprojects {
     repositories {
         google()
@@ -31,16 +20,10 @@ subprojects {
 }
 
 subprojects {
-    if (project.name != "app") {
-        project.evaluationDependsOn(":app")
-    }
-    afterEvaluate {
-        if (project.hasProperty("android")) {
-            dependencies.add("implementation", "org.jetbrains.kotlin:kotlin-reflect:1.9.24")
-        }
-    }
+    project.evaluationDependsOn(":app")
 }
 
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }
+
