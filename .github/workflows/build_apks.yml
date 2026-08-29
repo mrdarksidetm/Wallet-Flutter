@@ -296,12 +296,8 @@ jobs:
           fi
           
           if [ -n "$LOG_FILE" ] && [ -f "$LOG_FILE" ]; then
-            KEY_ERR=$(grep -B 40 -A 10 -E "(FAILURE: Build failed with an exception|^\* What went wrong:)" "$LOG_FILE" | head -n 45)
-            if [ -z "$KEY_ERR" ]; then
-              KEY_ERR=$(tail -n 60 "$LOG_FILE")
-            fi
-            echo "$KEY_ERR" >> $GITHUB_STEP_SUMMARY
-            ANNOTATION_MSG=$(echo "$KEY_ERR" | tr '\r\n' ' | ' | sed 's/[^a-zA-Z0-9 ._:\/|-]/ /g' | cut -c 1-500)
+            tail -n 120 "$LOG_FILE" >> $GITHUB_STEP_SUMMARY
+            ANNOTATION_MSG=$(tail -n 30 "$LOG_FILE" | tr '\r\n' ' | ' | sed 's/[^a-zA-Z0-9 ._:\/|-]/ /g' | cut -c 1-500)
             echo "::error title=Build Error::$ANNOTATION_MSG"
           else
             echo "No build log found or failure occurred in a setup step." >> $GITHUB_STEP_SUMMARY
