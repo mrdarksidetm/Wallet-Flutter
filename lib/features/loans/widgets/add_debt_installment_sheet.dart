@@ -169,30 +169,44 @@ class _AddDebtInstallmentSheetState
     return ExpressiveBottomSheet(
       title: isLent ? 'Record Repayment' : 'Make Payment',
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             // Info Header Banner
             Container(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
                 color: (isLent ? const Color(0xFF10B981) : const Color(0xFFEF4444))
                     .withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: (isLent ? const Color(0xFF10B981) : const Color(0xFFEF4444))
+                      .withValues(alpha: 0.25),
+                  width: 1.0,
+                ),
               ),
               child: Row(
                 children: [
-                  Icon(
-                    isLent
-                        ? Symbols.arrow_downward_rounded
-                        : Symbols.arrow_upward_rounded,
-                    color: isLent
-                        ? const Color(0xFF10B981)
-                        : const Color(0xFFEF4444),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: (isLent ? const Color(0xFF10B981) : const Color(0xFFEF4444))
+                          .withValues(alpha: 0.18),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      isLent
+                          ? Symbols.arrow_downward_rounded
+                          : Symbols.arrow_upward_rounded,
+                      color: isLent
+                          ? const Color(0xFF10B981)
+                          : const Color(0xFFEF4444),
+                      size: 22,
+                    ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -202,14 +216,16 @@ class _AddDebtInstallmentSheetState
                               ? '${widget.loan.person.value?.name ?? 'Person'} is paying you back'
                               : 'Paying back ${widget.loan.person.value?.name ?? 'Person'}',
                           style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 15,
                           ),
                         ),
+                        const SizedBox(height: 4),
                         Text(
                           'Remaining debt: ${CurrencyEngine.formatCurrency(widget.remainingAmount, selectedCurrency)}',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
@@ -219,7 +235,7 @@ class _AddDebtInstallmentSheetState
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 22),
 
             // Amount Input Field
             TextField(
@@ -239,7 +255,8 @@ class _AddDebtInstallmentSheetState
                   fontWeight: FontWeight.bold,
                 ),
                 filled: true,
-                fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+                fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
                   borderSide: BorderSide(
@@ -249,7 +266,7 @@ class _AddDebtInstallmentSheetState
               ),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
 
             // Account Selector
             accountsAsync.when(
@@ -264,9 +281,11 @@ class _AddDebtInstallmentSheetState
                     prefixIcon: const Icon(Symbols.account_balance_rounded),
                     filled: true,
                     fillColor:
-                        colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+                        colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(18),
                     ),
                   ),
                   items: accounts.map((acc) {
@@ -284,7 +303,7 @@ class _AddDebtInstallmentSheetState
               error: (_, __) => const SizedBox.shrink(),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
 
             // Note Input
             TextField(
@@ -294,17 +313,20 @@ class _AddDebtInstallmentSheetState
                 prefixIcon: const Icon(Symbols.notes_rounded),
                 filled: true,
                 fillColor:
-                    colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+                    colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(18),
                 ),
               ),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
 
             // Date Picker Tile
             ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               onTap: () async {
                 final date = await showDatePicker(
                   context: context,
@@ -317,11 +339,11 @@ class _AddDebtInstallmentSheetState
                 }
               },
               leading: const Icon(Symbols.calendar_today_rounded),
-              title: const Text('Payment Date'),
+              title: const Text('Payment Date', style: TextStyle(fontWeight: FontWeight.bold)),
               subtitle: Text(DateFormat.yMMMd().format(_selectedDate)),
               trailing: const Icon(Symbols.edit_calendar_rounded, size: 20),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(18),
                 side: BorderSide(
                   color: colorScheme.outlineVariant.withValues(alpha: 0.3),
                 ),
@@ -340,7 +362,7 @@ class _AddDebtInstallmentSheetState
               icon: const Icon(Symbols.check_rounded, color: Colors.white),
             ),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
           ],
         ),
       ),

@@ -488,7 +488,7 @@ class _LoansPageState extends ConsumerState<LoansPage> {
                         ],
                       ),
                     )
-                  else
+                  else if (progress > 0.001)
                     WavyDebtProgressLine(
                       progress: progress,
                       paidColor: paidColor,

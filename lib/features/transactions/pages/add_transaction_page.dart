@@ -42,7 +42,8 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
   String? _selectedColor;
 
   // People & Debt/Loan Integration
-  Person? _selectedPerson;
+  List<Person> _selectedPeople = [];
+  bool _splitEqually = true;
   Loan? _selectedLinkedLoan;
   bool _isDebtToggleOn = false;
   bool _isNewLoanCreation = false;
@@ -90,15 +91,25 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
       cat = await ref.read(categoryRepositoryProvider).getById(tx.categoryId);
     }
 
-    // Check if this transaction has a linked loan tag
+    // Check if this transaction has a linked loan tag and person tags
     Loan? linkedLoan;
+    final loadedPeople = <Person>[];
+    if (tx.person.value != null) {
+      loadedPeople.add(tx.person.value!);
+    }
+
     if (tx.tags != null) {
       for (final tag in tx.tags!) {
         if (tag.startsWith('loan_')) {
           final loanId = int.tryParse(tag.replaceFirst('loan_', ''));
           if (loanId != null) {
             linkedLoan = await ref.read(loanRepositoryProvider).getById(loanId);
-            if (linkedLoan != null) break;
+          }
+        } else if (tag.startsWith('person_')) {
+          final personId = int.tryParse(tag.replaceFirst('person_', ''));
+          if (personId != null && !loadedPeople.any((p) => p.id == personId)) {
+            final p = await ref.read(personRepositoryProvider).getById(personId);
+            if (p != null) loadedPeople.add(p);
           }
         }
       }
@@ -114,7 +125,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
         _selectedAccount = acc;
         _selectedCategory = cat;
         _selectedTransferAccount = tx.transferAccount.value;
-        _selectedPerson = tx.person.value;
+        _selectedPeople = loadedPeople;
         _selectedDateTime = tx.date;
         _selectedLinkedLoan = linkedLoan;
         _isDebtToggleOn = linkedLoan != null;
@@ -280,10 +291,43 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
                       height: 1,
                       color: colorScheme.outlineVariant.withValues(alpha: 0.15),
                     ),
-                    const SizedBox(height: 8),
-                    _buildIconAndColorOverrides(
-                        theme, colorScheme, effectiveIcon, effectiveColor),
-                    const SizedBox(height: 4),
+                    _buildIconSelector(
+                        colorScheme, effectiveIcon, effectiveColor),
+                    Divider(
+                      height: 1,
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.15),
+                    ),
+                    _buildColorSelector(colorScheme, effectiveColor),
+                    const SizedBox(height: 6),
+                    Divider(
+                      height: 1,
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.12),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8, bottom: 4),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.info_outline_rounded,
+                            size: 15,
+                            color: colorScheme.onSurfaceVariant
+                                .withValues(alpha: 0.75),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Icon and color default to the chosen category, but can be customized above.',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant
+                                    .withValues(alpha: 0.8),
+                                fontSize: 11.5,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               const SizedBox(height: 16),
@@ -324,6 +368,12 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
   Widget _buildTypeSelector() {
     return Center(
       child: SegmentedButton<TransactionType>(
+        style: SegmentedButton.styleFrom(
+          textStyle: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 13,
+          ),
+        ),
         segments: const [
           ButtonSegment(
               value: TransactionType.expense,
@@ -526,24 +576,37 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
     final isExpense = _transactionType == TransactionType.expense;
     final targetLoanType = isExpense ? LoanType.borrowed : LoanType.lent;
     final loansAsync = ref.watch(loansStreamProvider);
+    final transactionsAsync = ref.watch(transactionsStreamProvider);
     final selectedCurrency = ref.watch(currencyProvider);
 
     return loansAsync.when(
       data: (loans) {
-        final activeDebts =
-            loans.where((l) => l.type == targetLoanType && !l.isPaid).toList();
+        final allTransactions = transactionsAsync.valueOrNull ?? [];
+        final activeDebts = loans.where((l) {
+          if (l.type != targetLoanType || l.isPaid || l.isDeleted) return false;
+          final installments = allTransactions.where((t) =>
+              t.tags != null &&
+              t.tags!.contains('loan_${l.id}') &&
+              !t.isDeleted);
+          final paidAmount =
+              installments.fold<double>(0.0, (sum, t) => sum + t.amount);
+          final remaining = l.amount - paidAmount;
+          return remaining > 0.01;
+        }).toList();
 
         return Container(
-          padding: const EdgeInsets.all(14),
+          margin: const EdgeInsets.only(top: 10, bottom: 4),
+          padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
             color: (isExpense ? const Color(0xFFEF4444) : const Color(0xFF10B981))
                 .withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: (isExpense
                       ? const Color(0xFFEF4444)
                       : const Color(0xFF10B981))
-                  .withValues(alpha: 0.3),
+                  .withValues(alpha: 0.35),
+              width: 1.2,
             ),
           ),
           child: Column(
@@ -553,39 +616,60 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
                 isExpense
                     ? 'Select existing loan or record new'
                     : 'Select existing debt or record new',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
                   color: colorScheme.onSurface,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 14),
 
               // Dropdown to pick active debt
               DropdownButtonFormField<Loan?>(
                 value: _selectedLinkedLoan,
+                isExpanded: true,
                 decoration: InputDecoration(
-                  labelText: isExpense ? 'Existing Loan to Repay' : 'Existing Debt to Collect',
-                  hintText: 'None (Create new entry below)',
+                  labelText: isExpense
+                      ? 'Existing Loan to Repay'
+                      : 'Existing Debt to Collect',
+                  hintText: 'None (Record new debt / loan)',
                   filled: true,
-                  fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                  fillColor: colorScheme.surfaceContainerHighest
+                      .withValues(alpha: 0.65),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide.none,
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                    ),
                   ),
                   contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 ),
                 items: [
                   const DropdownMenuItem<Loan?>(
                     value: null,
-                    child: Text('None (New Loan/Debt)'),
+                    child: Text('None (Record new debt / loan)'),
                   ),
                   ...activeDebts.map((loan) {
                     final personName = loan.person.value?.name ?? 'Contact';
+                    final installments = allTransactions.where((t) =>
+                        t.tags != null &&
+                        t.tags!.contains('loan_${loan.id}') &&
+                        !t.isDeleted);
+                    final paidAmount = installments.fold<double>(
+                        0.0, (sum, t) => sum + t.amount);
+                    final remaining =
+                        (loan.amount - paidAmount).clamp(0.0, double.infinity);
                     return DropdownMenuItem<Loan?>(
                       value: loan,
                       child: Text(
-                        '$personName - ${CurrencyEngine.formatCurrency(loan.amount, selectedCurrency)}',
+                        '$personName - Remaining: ${CurrencyEngine.formatCurrency(remaining, selectedCurrency)} (Total: ${CurrencyEngine.formatCurrency(loan.amount, selectedCurrency)})',
+                        overflow: TextOverflow.ellipsis,
                       ),
                     );
                   }),
@@ -596,8 +680,10 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
                     _selectedCategory = null;
                     if (loan != null) {
                       _isNewLoanCreation = false;
-                      if (loan.person.value != null) {
-                        _selectedPerson = loan.person.value;
+                      if (loan.person.value != null &&
+                          !_selectedPeople
+                              .any((p) => p.id == loan.person.value!.id)) {
+                        _selectedPeople = [loan.person.value!];
                       }
                       if (_noteController.text.isEmpty) {
                         _noteController.text = isExpense
@@ -610,45 +696,76 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
               ),
 
               if (_selectedLinkedLoan != null) ...[
-                const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Total: ${CurrencyEngine.formatCurrency(_selectedLinkedLoan!.amount, selectedCurrency)}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.bold,
+                const SizedBox(height: 14),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerHighest
+                        .withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Total: ${CurrencyEngine.formatCurrency(_selectedLinkedLoan!.amount, selectedCurrency)}',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurface,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          _amountController.text =
-                              _selectedLinkedLoan!.amount.toStringAsFixed(2);
-                        });
-                      },
-                      style: TextButton.styleFrom(
-                        visualDensity: VisualDensity.compact,
+                      FilledButton.tonal(
+                        onPressed: () {
+                          final installments = allTransactions.where((t) =>
+                              t.tags != null &&
+                              t.tags!.contains('loan_${_selectedLinkedLoan!.id}') &&
+                              !t.isDeleted);
+                          final paidAmount = installments.fold<double>(
+                              0.0, (sum, t) => sum + t.amount);
+                          final remaining =
+                              (_selectedLinkedLoan!.amount - paidAmount)
+                                  .clamp(0.0, double.infinity);
+                          setState(() {
+                            _amountController.text = remaining > 0
+                                ? remaining.toStringAsFixed(2)
+                                : _selectedLinkedLoan!.amount.toStringAsFixed(2);
+                          });
+                        },
+                        style: FilledButton.styleFrom(
+                          visualDensity: VisualDensity.compact,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                        ),
+                        child: const Text('Fill Remaining'),
                       ),
-                      child: const Text('Fill Full Amount'),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ] else ...[
-                const SizedBox(height: 8),
-                CheckboxListTile(
-                  contentPadding: EdgeInsets.zero,
-                  value: _isNewLoanCreation,
-                  onChanged: (val) =>
-                      setState(() => _isNewLoanCreation = val ?? false),
-                  title: Text(
-                    isExpense
-                        ? 'Create new loan entry in Loans page'
-                        : 'Create new debt entry in Loans page',
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                const SizedBox(height: 12),
+                Container(
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerHighest
+                        .withValues(alpha: 0.35),
+                    borderRadius: BorderRadius.circular(14),
                   ),
-                  controlAffinity: ListTileControlAffinity.leading,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                  child: CheckboxListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+                    value: _isNewLoanCreation,
+                    onChanged: (val) =>
+                        setState(() => _isNewLoanCreation = val ?? false),
+                    title: Text(
+                      isExpense
+                          ? 'Create new loan entry in Loans & Debts'
+                          : 'Create new debt entry in Loans & Debts',
+                      style: const TextStyle(
+                          fontSize: 13.5, fontWeight: FontWeight.w600),
+                    ),
+                    controlAffinity: ListTileControlAffinity.leading,
+                  ),
                 ),
               ],
             ],
@@ -673,54 +790,151 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
     );
   }
 
-  Widget _buildIconAndColorOverrides(ThemeData theme, ColorScheme colorScheme,
-      String effectiveIcon, Color effectiveColor) {
-    return Row(
-      children: [
-        Expanded(
-          child: ListTile(
-            contentPadding: EdgeInsets.zero,
-            onTap: _pickIcon,
-            leading:
-                Icon(AppIcons.getIcon(effectiveIcon), color: effectiveColor),
-            title: const Text('Icon',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-            subtitle: Text(effectiveIcon, style: const TextStyle(fontSize: 11)),
-            trailing: const Icon(Icons.edit_rounded, size: 16),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: ListTile(
-            contentPadding: EdgeInsets.zero,
-            onTap: _pickColor,
-            leading: CircleAvatar(backgroundColor: effectiveColor, radius: 12),
-            title: const Text('Color',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-            subtitle: Text(_selectedColor != null ? 'Custom' : 'Category',
-                style: const TextStyle(fontSize: 11)),
-            trailing: const Icon(Icons.palette_rounded, size: 16),
-          ),
-        ),
-      ],
+  Widget _buildIconSelector(
+      ColorScheme colorScheme, String effectiveIcon, Color effectiveColor) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      onTap: _pickIcon,
+      leading: Icon(AppIcons.getIcon(effectiveIcon), color: effectiveColor),
+      title: const Text('Icon', style: TextStyle(fontWeight: FontWeight.w700)),
+      subtitle: Text(_selectedIcon != null
+          ? effectiveIcon
+          : 'Default (${_selectedCategory?.name ?? "Category"})'),
+      trailing: const Icon(Icons.chevron_right_rounded),
+    );
+  }
+
+  Widget _buildColorSelector(ColorScheme colorScheme, Color effectiveColor) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      onTap: _pickColor,
+      leading: CircleAvatar(backgroundColor: effectiveColor, radius: 14),
+      title: const Text('Color', style: TextStyle(fontWeight: FontWeight.w700)),
+      subtitle: Text(_selectedColor != null
+          ? 'Custom color'
+          : 'Default (${_selectedCategory?.name ?? "Category"})'),
+      trailing: const Icon(Icons.chevron_right_rounded),
     );
   }
 
   Widget _buildPeopleSection(ThemeData theme, ColorScheme colorScheme) {
     final peopleAsync = ref.watch(personsStreamProvider);
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      onTap: () => _showPersonPicker(peopleAsync.value ?? []),
-      leading: const Icon(Icons.person_outline_rounded),
-      title: const Text('Person / Contact',
-          style: TextStyle(fontWeight: FontWeight.w700)),
-      subtitle: Text(_selectedPerson?.name ?? 'None (Optional)'),
-      trailing: _selectedPerson != null
-          ? IconButton(
-              icon: const Icon(Icons.close_rounded, size: 18),
-              onPressed: () => setState(() => _selectedPerson = null),
-            )
-          : const Icon(Icons.chevron_right_rounded),
+    final selectedCurrency = ref.watch(currencyProvider);
+    final amount = double.tryParse(_amountController.text) ?? 0.0;
+
+    if (_selectedPeople.isEmpty) {
+      return ListTile(
+        contentPadding: EdgeInsets.zero,
+        onTap: () => _showPersonPicker(peopleAsync.value ?? []),
+        leading: const Icon(Icons.people_outline_rounded),
+        title: const Text('People / Contacts',
+            style: TextStyle(fontWeight: FontWeight.w700)),
+        subtitle: const Text('None (Optional)'),
+        trailing: const Icon(Icons.chevron_right_rounded),
+      );
+    }
+
+    final perPersonAmount = _selectedPeople.isNotEmpty
+        ? amount / _selectedPeople.length
+        : 0.0;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.people_rounded, size: 20),
+                  const SizedBox(width: 10),
+                  Text(
+                    'People (${_selectedPeople.length})',
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w700, fontSize: 14),
+                  ),
+                ],
+              ),
+              TextButton.icon(
+                onPressed: () => _showPersonPicker(peopleAsync.value ?? []),
+                icon: const Icon(Icons.add_rounded, size: 16),
+                label: const Text('Add / Edit'),
+                style:
+                    TextButton.styleFrom(visualDensity: VisualDensity.compact),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _selectedPeople.map((p) {
+              final pColor = p.color.parseHexColor();
+              return InputChip(
+                avatar: PersonAvatar(person: p, radius: 10, fontSize: 8),
+                label: Text(p.name,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 12)),
+                backgroundColor: pColor.withValues(alpha: 0.12),
+                side: BorderSide(
+                    color: pColor.withValues(alpha: 0.3), width: 0.6),
+                onDeleted: () {
+                  setState(() {
+                    _selectedPeople.removeWhere((item) => item.id == p.id);
+                  });
+                },
+                deleteIconColor: pColor,
+              );
+            }).toList(),
+          ),
+          if (_isDebtToggleOn && _selectedPeople.length > 1) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: colorScheme.primaryContainer.withValues(alpha: 0.25),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: colorScheme.primary.withValues(alpha: 0.3),
+                  width: 1.0,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.call_split_rounded,
+                      size: 20, color: colorScheme.primary),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Split bill equally (${CurrencyEngine.formatCurrency(perPersonAmount, selectedCurrency)} each)',
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 13),
+                        ),
+                        Text(
+                          'Add separate ${_transactionType == TransactionType.income ? "debts" : "loans"} for each person',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Switch(
+                    value: _splitEqually,
+                    onChanged: (val) => setState(() => _splitEqually = val),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 
@@ -865,6 +1079,12 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
       if (_selectedLinkedLoan != null) {
         tags.add('loan_${_selectedLinkedLoan!.id}');
       }
+      for (final p in _selectedPeople) {
+        tags.add('person_${p.id}');
+      }
+
+      final primaryPerson =
+          _selectedPeople.isNotEmpty ? _selectedPeople.first : null;
 
       if (widget.transaction != null) {
         final updatedTx = TransactionModel()
@@ -884,7 +1104,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
         updatedTx.account.value = _selectedAccount;
         updatedTx.category.value = _selectedCategory;
         updatedTx.transferAccount.value = _selectedTransferAccount;
-        updatedTx.person.value = _selectedPerson;
+        updatedTx.person.value = primaryPerson;
 
         await service.updateTransaction(widget.transaction!, updatedTx);
       } else {
@@ -900,23 +1120,49 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
           transferAccount: _selectedTransferAccount,
           icon: _selectedIcon,
           color: _selectedColor,
-          person: _selectedPerson,
+          person: primaryPerson,
           tags: tags,
         );
 
-        // New Loan creation if checkbox was ticked
-        if (_isNewLoanCreation && _selectedPerson != null) {
+        // New Loan / Debt creation
+        if ((_isNewLoanCreation ||
+                (_isDebtToggleOn && _selectedLinkedLoan == null)) &&
+            _selectedPeople.isNotEmpty) {
           final loanService = ref.read(loanServiceProvider);
-          final loan = Loan()
-            ..amount = amount
-            ..type = _transactionType == TransactionType.income
-                ? LoanType.borrowed
-                : LoanType.lent
-            ..note = _noteController.text
-            ..createdAt = _selectedDateTime
-            ..updatedAt = DateTime.now();
-          loan.person.value = _selectedPerson;
-          await loanService.saveLoan(loan);
+          final loanType = _transactionType == TransactionType.income
+              ? LoanType.borrowed
+              : LoanType.lent;
+
+          if (_splitEqually && _selectedPeople.length > 1) {
+            final splitAmount = amount / _selectedPeople.length;
+            for (final p in _selectedPeople) {
+              final loan = Loan()
+                ..amount = splitAmount
+                ..type = loanType
+                ..note = _noteController.text.isNotEmpty
+                    ? '${_noteController.text} (Split ${p.name})'
+                    : 'Split bill with ${p.name}'
+                ..createdAt = _selectedDateTime
+                ..updatedAt = DateTime.now();
+              loan.person.value = p;
+              await loanService.saveLoan(loan);
+            }
+          } else {
+            for (final p in _selectedPeople) {
+              final loan = Loan()
+                ..amount = _selectedPeople.length > 1
+                    ? (amount / _selectedPeople.length)
+                    : amount
+                ..type = loanType
+                ..note = _noteController.text.isNotEmpty
+                    ? _noteController.text
+                    : 'Debt with ${p.name}'
+                ..createdAt = _selectedDateTime
+                ..updatedAt = DateTime.now();
+              loan.person.value = p;
+              await loanService.saveLoan(loan);
+            }
+          }
         }
       }
 
@@ -972,57 +1218,78 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (context) => ExpressiveBottomSheet(
-        title: 'Select Person',
-        child: Column(
-          children: [
-            ListTile(
-              leading: CircleAvatar(
-                backgroundColor:
-                    Theme.of(context).colorScheme.primaryContainer,
-                child: Icon(Icons.add_rounded,
-                    color:
-                        Theme.of(context).colorScheme.onPrimaryContainer),
-              ),
-              title: const Text('Add New Person',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              onTap: () {
-                Navigator.pop(context);
-                _showAddPersonDialog();
-              },
-            ),
-            const Divider(height: 1),
-            if (people.isEmpty)
-              const Padding(
-                padding: EdgeInsets.all(32.0),
-                child: Column(
-                  children: [
-                    Icon(Symbols.person_off, size: 48, color: Colors.grey),
-                    SizedBox(height: 16),
-                    Text('No people found.'),
-                  ],
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (context, setSheetState) {
+          return ExpressiveBottomSheet(
+            title: 'Select People',
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor:
+                        Theme.of(context).colorScheme.primaryContainer,
+                    child: Icon(Icons.person_add_rounded,
+                        color:
+                            Theme.of(context).colorScheme.onPrimaryContainer),
+                  ),
+                  title: const Text('Add New Person',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  onTap: () {
+                    Navigator.pop(sheetContext);
+                    _showAddPersonDialog();
+                  },
                 ),
-              ),
-            ...people.map((p) {
-              final color = p.color.parseHexColor();
-              final isSelected = _selectedPerson?.id == p.id;
-              return ListTile(
-                leading: PersonAvatar(person: p, radius: 20),
-                title: Text(p.name,
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: p.contact != null ? Text(p.contact!) : null,
-                trailing:
-                    isSelected ? Icon(Icons.check_circle, color: color) : null,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16)),
-                onTap: () {
-                  setState(() => _selectedPerson = p);
-                  Navigator.pop(context);
-                },
-              );
-            }),
-          ],
-        ),
+                const Divider(height: 1),
+                if (people.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.all(32.0),
+                    child: Column(
+                      children: [
+                        Icon(Symbols.person_off, size: 48, color: Colors.grey),
+                        SizedBox(height: 16),
+                        Text('No people found. Add a person above.'),
+                      ],
+                    ),
+                  ),
+                ...people.map((p) {
+                  final color = p.color.parseHexColor();
+                  final isSelected =
+                      _selectedPeople.any((item) => item.id == p.id);
+                  return CheckboxListTile(
+                    value: isSelected,
+                    onChanged: (checked) {
+                      setState(() {
+                        if (checked == true) {
+                          if (!_selectedPeople.any((item) => item.id == p.id)) {
+                            _selectedPeople.add(p);
+                          }
+                        } else {
+                          _selectedPeople.removeWhere((item) => item.id == p.id);
+                        }
+                      });
+                      setSheetState(() {});
+                    },
+                    secondary: PersonAvatar(person: p, radius: 20),
+                    title: Text(p.name,
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: p.contact != null ? Text(p.contact!) : null,
+                    activeColor: color,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)),
+                  );
+                }),
+                const SizedBox(height: 16),
+                PrimaryAtelierButton(
+                  onPressed: () => Navigator.pop(sheetContext),
+                  label: Text('Done (${_selectedPeople.length} Selected)'),
+                  icon: const Icon(Icons.check_rounded, color: Colors.white),
+                ),
+                const SizedBox(height: 10),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -1055,7 +1322,9 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
                   ..updatedAt = DateTime.now();
                 await ref.read(personServiceProvider).savePerson(person);
                 setState(() {
-                  _selectedPerson = person;
+                  if (!_selectedPeople.any((p) => p.name == person.name)) {
+                    _selectedPeople.add(person);
+                  }
                 });
                 if (dialogContext.mounted) Navigator.pop(dialogContext);
               }
@@ -1143,7 +1412,8 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
       context: context,
       isScrollControlled: true,
       builder: (context) => IconPickerWidget(
-        selectedIcon: _selectedIcon ?? _selectedCategory?.icon ?? 'shopping_cart',
+        selectedIcon:
+            _selectedIcon ?? _selectedCategory?.icon ?? 'shopping_cart',
         selectedColor: _selectedColor != null
             ? _selectedColor!.parseHexColor()
             : _selectedCategory?.color.parseHexColor() ?? Colors.blue,
@@ -1171,14 +1441,14 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
       borderRadius: 0,
       wheelDiameter: 165,
       enableOpacity: false,
-      showColorCode: false,
-      colorCodeHasColor: false,
-      pickersEnabled: <ColorPickerType, bool>{
+      showColorCode: true,
+      colorCodeHasColor: true,
+      pickersEnabled: const <ColorPickerType, bool>{
         ColorPickerType.both: false,
         ColorPickerType.primary: true,
-        ColorPickerType.accent: false,
-        ColorPickerType.bw: false,
-        ColorPickerType.custom: false,
+        ColorPickerType.accent: true,
+        ColorPickerType.bw: true,
+        ColorPickerType.custom: true,
         ColorPickerType.wheel: true,
       },
     );

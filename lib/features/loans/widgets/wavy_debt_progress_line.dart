@@ -45,6 +45,9 @@ class _WavyDebtProgressLineState extends State<WavyDebtProgressLine>
   @override
   Widget build(BuildContext context) {
     final clampedProgress = widget.progress.clamp(0.0, 1.0);
+    if (clampedProgress <= 0.0) {
+      return const SizedBox.shrink();
+    }
     final percentInt = (clampedProgress * 100).toInt();
 
     return Column(
@@ -117,6 +120,8 @@ class _WavyProgressPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    if (progress <= 0.0) return;
+
     final width = size.width;
     final height = size.height;
     final midY = height / 2;
@@ -125,86 +130,54 @@ class _WavyProgressPainter extends CustomPainter {
 
     const double wavelength = 42.0; // Wave frequency
 
-    // --- 1. Background Grid / Base Track (Subtle guide track) ---
-    final trackPaint = Paint()
-      ..color = remainingColor.withValues(alpha: 0.12)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth * 0.8
-      ..strokeCap = StrokeCap.round;
-
-    final baseWavePath = Path();
-    for (double x = 0; x <= width; x += 2) {
-      final y = midY + sin((x / wavelength * 2 * pi) + phase) * amplitude;
-      if (x == 0) {
-        baseWavePath.moveTo(x, y);
-      } else {
-        baseWavePath.lineTo(x, y);
-      }
+    // --- 1. Subtle Remaining Baseline Track ---
+    if (splitX < width) {
+      final trackPaint = Paint()
+        ..color = remainingColor.withValues(alpha: 0.18)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.8
+        ..strokeCap = StrokeCap.round;
+      canvas.drawLine(Offset(splitX, midY), Offset(width, midY), trackPaint);
     }
-    canvas.drawPath(baseWavePath, trackPaint);
 
     // --- 2. Paid Wave Path (0 -> splitX) ---
-    if (progress > 0) {
-      final paidPath = Path();
-      for (double x = 0; x <= splitX; x += 2) {
-        final y = midY + sin((x / wavelength * 2 * pi) + phase) * amplitude;
-        if (x == 0) {
-          paidPath.moveTo(x, y);
-        } else {
-          paidPath.lineTo(x, y);
-        }
+    final paidPath = Path();
+    for (double x = 0; x <= splitX; x += 2) {
+      final y = midY + sin((x / wavelength * 2 * pi) + phase) * amplitude;
+      if (x == 0) {
+        paidPath.moveTo(x, y);
+      } else {
+        paidPath.lineTo(x, y);
       }
-
-      // Fill area under paid wave
-      final fillPath = Path.from(paidPath)
-        ..lineTo(splitX, height)
-        ..lineTo(0, height)
-        ..close();
-
-      final fillPaint = Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            paidColor.withValues(alpha: 0.25),
-            paidColor.withValues(alpha: 0.02),
-          ],
-        ).createShader(Rect.fromLTWH(0, 0, width, height))
-        ..style = PaintingStyle.fill;
-      canvas.drawPath(fillPath, fillPaint);
-
-      // Stroke for Paid Wave
-      final paidPaint = Paint()
-        ..color = paidColor
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeWidth
-        ..strokeCap = StrokeCap.round;
-      canvas.drawPath(paidPath, paidPaint);
     }
 
-    // --- 3. Remaining Wave Path (splitX -> width) ---
-    if (progress < 1.0) {
-      final remainingPath = Path();
-      bool isFirst = true;
-      for (double x = splitX; x <= width; x += 2) {
-        final y = midY + sin((x / wavelength * 2 * pi) + phase) * amplitude;
-        if (isFirst) {
-          remainingPath.moveTo(x, y);
-          isFirst = false;
-        } else {
-          remainingPath.lineTo(x, y);
-        }
-      }
+    // Fill area under paid wave
+    final fillPath = Path.from(paidPath)
+      ..lineTo(splitX, height)
+      ..lineTo(0, height)
+      ..close();
 
-      final remainingPaint = Paint()
-        ..color = remainingColor.withValues(alpha: 0.65)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeWidth * 0.9
-        ..strokeCap = StrokeCap.round;
-      canvas.drawPath(remainingPath, remainingPaint);
-    }
+    final fillPaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          paidColor.withValues(alpha: 0.25),
+          paidColor.withValues(alpha: 0.02),
+        ],
+      ).createShader(Rect.fromLTWH(0, 0, width, height))
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(fillPath, fillPaint);
 
-    // --- 4. Glowing Node Indicator at Split Point ---
+    // Stroke for Paid Wave
+    final paidPaint = Paint()
+      ..color = paidColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round;
+    canvas.drawPath(paidPath, paidPaint);
+
+    // --- 3. Glowing Node Indicator at Split Point ---
     if (progress > 0.0 && progress < 1.0) {
       final nodeY = midY + sin((splitX / wavelength * 2 * pi) + phase) * amplitude;
       final nodeCenter = Offset(splitX, nodeY);
