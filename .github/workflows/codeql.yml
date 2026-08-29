@@ -84,9 +84,9 @@ jobs:
           echo "Here are the compiler and build error messages:" >> $GITHUB_STEP_SUMMARY
           echo '```text' >> $GITHUB_STEP_SUMMARY
           if [ -f build_codeql.log ] && [ -s build_codeql.log ]; then
-            KEY_ERR=$(grep -A 25 -E "(FAILURE: Build failed with an exception|^\* What went wrong:|^e: env:|^e: file:|^e: /|^Exception:)" build_codeql.log | tail -n 40)
+            KEY_ERR=$(grep -B 40 -A 10 -E "(FAILURE: Build failed with an exception|^\* What went wrong:)" build_codeql.log | head -n 45)
             if [ -z "$KEY_ERR" ]; then
-              KEY_ERR=$(tail -n 40 build_codeql.log)
+              KEY_ERR=$(tail -n 60 build_codeql.log)
             fi
             echo "$KEY_ERR" >> $GITHUB_STEP_SUMMARY
             ANNOTATION_MSG=$(echo "$KEY_ERR" | tr '\r\n' ' | ' | sed 's/[^a-zA-Z0-9 ._:\/|-]/ /g' | cut -c 1-500)

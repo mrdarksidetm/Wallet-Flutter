@@ -177,7 +177,7 @@ jobs:
         run: |
           set -o pipefail
           echo "Building Universal (Fat) APK..."
-          flutter build apk --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --verbose --android-skip-build-dependency-validation 2>&1 | tee build_universal.log
+          flutter build apk --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --android-skip-build-dependency-validation 2>&1 | tee build_universal.log
           
           # Immediately preserve universal APK before split-abi build overwrites outputs
           echo "Locating Universal APK..."
@@ -199,7 +199,7 @@ jobs:
         run: |
           set -o pipefail
           echo "Building Split-ABI APKs..."
-          flutter build apk --split-per-abi --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --verbose --android-skip-build-dependency-validation 2>&1 | tee build_split.log
+          flutter build apk --split-per-abi --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --android-skip-build-dependency-validation 2>&1 | tee build_split.log
           
           # Preserve split APKs
           echo "Locating Split APKs..."
@@ -291,9 +291,9 @@ jobs:
           fi
           
           if [ -n "$LOG_FILE" ] && [ -f "$LOG_FILE" ]; then
-            KEY_ERR=$(grep -A 25 -E "(FAILURE: Build failed with an exception|^\* What went wrong:|^e: env:|^e: file:|^e: /|^Exception:)" "$LOG_FILE" | tail -n 40)
+            KEY_ERR=$(grep -B 40 -A 10 -E "(FAILURE: Build failed with an exception|^\* What went wrong:)" "$LOG_FILE" | head -n 45)
             if [ -z "$KEY_ERR" ]; then
-              KEY_ERR=$(tail -n 40 "$LOG_FILE")
+              KEY_ERR=$(tail -n 60 "$LOG_FILE")
             fi
             echo "$KEY_ERR" >> $GITHUB_STEP_SUMMARY
             ANNOTATION_MSG=$(echo "$KEY_ERR" | tr '\r\n' ' | ' | sed 's/[^a-zA-Z0-9 ._:\/|-]/ /g' | cut -c 1-500)
