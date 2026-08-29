@@ -153,7 +153,7 @@ class TransactionListTile extends ConsumerWidget {
           tag: 'tx_icon_${tx.id}',
           child: ExpressiveShapeContainer(
             size: 44,
-            shape: ShapeProfile.values[tx.id.abs() % ShapeProfile.values.length],
+            shapeType: ExpressiveShapeType.values[tx.id.abs() % ExpressiveShapeType.values.length],
             color: txColor.withValues(alpha: isDark ? 0.22 : 0.14),
             child: Icon(
               icon,

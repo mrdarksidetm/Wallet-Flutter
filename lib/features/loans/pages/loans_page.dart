@@ -467,7 +467,7 @@ class _LoansPageState extends ConsumerState<LoansPage> {
                         children: [
                           ExpressiveShapeContainer(
                             size: 32,
-                            shape: ShapeProfile.starburst,
+                            shapeType: ExpressiveShapeType.starburst,
                             color: paidColor.withValues(alpha: 0.2),
                             child: Icon(
                               Symbols.verified_rounded,
