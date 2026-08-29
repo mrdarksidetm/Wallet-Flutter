@@ -217,6 +217,7 @@ class TransactionListTile extends ConsumerWidget {
                 fontSize: 15,
               ),
             ),
+      ),
     );
 
     if (isGrouped) {
