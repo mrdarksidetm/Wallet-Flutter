@@ -47,7 +47,7 @@ dependencies:
   dynamic_color: ^1.7.0
 
   # Security (Phase 13)
-  local_auth: ^2.3.0
+  local_auth: ^3.0.2
 
   # File / Permissions
   csv: 6.0.0
