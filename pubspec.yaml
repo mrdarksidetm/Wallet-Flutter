@@ -22,7 +22,7 @@ dependencies:
   # Database
   isar: ^3.1.0+1
   isar_flutter_libs: ^3.1.0+1
-  path_provider: 2.1.2
+  path_provider: 2.1.6
 
   # UI
   flutter_animate: 4.5.0
