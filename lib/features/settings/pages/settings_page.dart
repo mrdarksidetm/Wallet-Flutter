@@ -16,7 +16,7 @@ class SettingsPage extends ConsumerStatefulWidget {
 }
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
-  String _currentVersion = '4.0.5';
+  String _currentVersion = '4.5.5';
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
@@ -70,12 +70,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         onTap: (ctx) => ctx.push('/currency_selection'),
       ),
       _SearchableSetting(
-        title: 'Categories',
-        subtitle: 'Manage income and expense tags, colors and symbols',
-        keywords: ['category', 'categories', 'tags', 'labels', 'organize', 'spending'],
+        title: 'Expressive Showdown',
+        subtitle: 'Make the experince more expressive',
+        keywords: ['expressive', 'showdown', 'animation', 'style', 'experience', 'material 3', 'motion', 'diversification'],
         category: 'General',
-        icon: Symbols.category_rounded,
-        onTap: (ctx) => ctx.push('/categories'),
+        icon: Symbols.auto_awesome_rounded,
+        onTap: (ctx) => ctx.push('/expressive_showdown'),
       ),
       _SearchableSetting(
         title: 'Send Feedback',
@@ -442,7 +442,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             // App Version Footer
             Center(
               child: Text(
-                'Wallet v$_currentVersion (June 2026)',
+                'Wallet v$_currentVersion (September 2026)',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
                   fontWeight: FontWeight.w500,

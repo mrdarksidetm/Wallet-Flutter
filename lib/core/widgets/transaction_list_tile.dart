@@ -10,6 +10,7 @@ import '../theme/colors.dart';
 import '../services/currency_engine.dart';
 import 'icon_picker.dart';
 import 'expressive_bottom_sheet.dart';
+import 'expressive_shape.dart';
 import '../../features/people/widgets/person_avatar.dart';
 
 class TransactionListTile extends ConsumerWidget {
@@ -17,6 +18,7 @@ class TransactionListTile extends ConsumerWidget {
   final VoidCallback? onTap;
   final bool isGrouped;
   final bool showDivider;
+  final bool obscureAmount;
 
   const TransactionListTile({
     super.key,
@@ -24,6 +26,7 @@ class TransactionListTile extends ConsumerWidget {
     this.onTap,
     this.isGrouped = false,
     this.showDivider = false,
+    this.obscureAmount = false,
   });
 
   void _showContextMenu(BuildContext context, WidgetRef ref) {
@@ -106,45 +109,71 @@ class TransactionListTile extends ConsumerWidget {
 
     final category = tx.category.value;
     final icon = AppIcons.getIcon(tx.icon ?? category?.icon ?? 'category');
-    final categoryColor =
-        (tx.color ?? category?.color ?? '0xFF9E9E9E').parseHexColor();
 
-    final tileContent = ListTile(
-      onTap: onTap,
-      onLongPress: () => _showContextMenu(context, ref),
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(isGrouped ? 0 : 20),
+    // Distinct Expressive Palette for every transaction
+    const distinctColors = [
+      Color(0xFF3B82F6), // Vibrant Blue
+      Color(0xFF10B981), // Emerald Green
+      Color(0xFF8B5CF6), // Purple
+      Color(0xFFF59E0B), // Amber
+      Color(0xFFEC4899), // Pink
+      Color(0xFF06B6D4), // Cyan
+      Color(0xFFF97316), // Orange
+      Color(0xFF6366F1), // Indigo
+      Color(0xFF14B8A6), // Teal
+      Color(0xFFE11D48), // Rose
+      Color(0xFF84CC16), // Lime
+      Color(0xFFA855F7), // Violet
+    ];
+
+    final Color txColor;
+    if (tx.color != null && tx.color!.isNotEmpty) {
+      txColor = tx.color!.parseHexColor();
+    } else if (category?.color != null && category!.color.isNotEmpty) {
+      txColor = category.color.parseHexColor();
+    } else {
+      txColor = distinctColors[tx.id.abs() % distinctColors.length];
+    }
+
+    final tileContent = Container(
+      decoration: BoxDecoration(
+        color: isGrouped
+            ? txColor.withValues(alpha: isDark ? 0.08 : 0.045)
+            : null,
       ),
-      leading: Hero(
-        tag: 'tx_icon_${tx.id}',
-        child: Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: categoryColor.withValues(alpha: isDark ? 0.2 : 0.12),
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Icon(
-            icon,
-            color: categoryColor,
-            size: 22,
+      child: ListTile(
+        onTap: onTap,
+        onLongPress: () => _showContextMenu(context, ref),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(isGrouped ? 0 : 20),
+        ),
+        leading: Hero(
+          tag: 'tx_icon_${tx.id}',
+          child: ExpressiveShapeContainer(
+            size: 44,
+            shapeType: ExpressiveShapeType.values[tx.id.abs() % ExpressiveShapeType.values.length],
+            color: txColor.withValues(alpha: isDark ? 0.22 : 0.14),
+            child: Icon(
+              icon,
+              color: txColor,
+              size: 22,
+            ),
           ),
         ),
-      ),
-      title: Text(
-        tx.note?.isNotEmpty == true
-            ? tx.note!
-            : (category?.name ?? 'Transaction'),
-        style: theme.textTheme.titleMedium?.copyWith(
-          fontWeight: FontWeight.w800,
-          letterSpacing: -0.3,
-          fontSize: 15,
+        title: Text(
+          tx.note?.isNotEmpty == true
+              ? tx.note!
+              : (category?.name ?? 'Transaction'),
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.3,
+            fontSize: 15,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -169,14 +198,25 @@ class TransactionListTile extends ConsumerWidget {
           ],
         ],
       ),
-      trailing: Text(
-        '${isIncome ? '+' : '-'}${CurrencyEngine.formatCurrency(tx.amount, selectedCurrency)}',
-        style: theme.textTheme.titleMedium?.copyWith(
-          fontWeight: FontWeight.w900,
-          color: isIncome ? AppColors.income : AppColors.expense,
-          letterSpacing: -0.3,
-          fontSize: 15,
-        ),
+      trailing: obscureAmount
+          ? Text(
+              '••••',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w900,
+                color: isIncome ? AppColors.income : AppColors.expense,
+                letterSpacing: 2,
+                fontSize: 15,
+              ),
+            )
+          : Text(
+              '${isIncome ? '+' : '-'}${CurrencyEngine.formatCurrency(tx.amount, selectedCurrency)}',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w900,
+                color: isIncome ? AppColors.income : AppColors.expense,
+                letterSpacing: -0.3,
+                fontSize: 15,
+              ),
+            ),
       ),
     );
 

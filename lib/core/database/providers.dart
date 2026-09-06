@@ -22,6 +22,7 @@ import 'services/recurring_service.dart';
 import 'services/backup_service.dart';
 import 'services/performance_audit_service.dart';
 import '../services/exchange_rate_service.dart';
+import '../services/notification_service.dart';
 import 'models/account.dart';
 import 'models/category.dart';
 import 'models/transaction_model.dart';
@@ -151,7 +152,12 @@ final goalServiceProvider = Provider<GoalService>((ref) {
 final recurringServiceProvider = Provider<RecurringService>((ref) {
   final isar = ref.watch(isarProvider).value!;
   final trxService = ref.watch(transactionServiceProvider);
-  return RecurringService(isar: isar, transactionService: trxService);
+  final notifService = ref.watch(notificationServiceProvider);
+  return RecurringService(
+    isar: isar,
+    transactionService: trxService,
+    notificationService: notifService,
+  );
 });
 
 final csvServiceProvider = Provider<CsvService>((ref) {

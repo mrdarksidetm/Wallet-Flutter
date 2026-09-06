@@ -59,10 +59,11 @@ class RecurringPage extends ConsumerWidget {
                 direction: DismissDirection.horizontal,
                 confirmDismiss: (direction) async {
                   if (direction == DismissDirection.startToEnd) {
-                    
                     item.isActive = !isActive;
                     item.updatedAt = DateTime.now();
-                    await ref.read(recurringRepositoryProvider).save(item);
+                    await ref
+                        .read(recurringServiceProvider)
+                        .saveRecurring(item);
                     return false;
                   } else {
                     return await showDialog<bool>(
@@ -88,8 +89,9 @@ class RecurringPage extends ConsumerWidget {
                 },
                 onDismissed: (direction) async {
                   if (direction == DismissDirection.endToStart) {
-                    
-                    await ref.read(recurringRepositoryProvider).delete(item.id);
+                    await ref
+                        .read(recurringServiceProvider)
+                        .deleteRecurring(item.id);
                   }
                 },
                 background: Container(
@@ -153,7 +155,7 @@ class RecurringPage extends ConsumerWidget {
                       ),
                     ),
                     subtitle: Text(
-                      'Next: ${DateFormat('MMM d').format(item.nextDate)} • ${item.frequency.name.toUpperCase()}',
+                      'Next: ${DateFormat('MMM d').format(item.nextDate)} • ${item.frequency.name.toUpperCase()} • ${item.notifyOneDayBefore ? '1d before' : 'Same day'}',
                       style: TextStyle(color: isActive ? null : Colors.grey),
                     ),
                     trailing: Column(

@@ -18,17 +18,18 @@ class AllTransactionsPage extends ConsumerStatefulWidget {
 class _AllTransactionsPageState extends ConsumerState<AllTransactionsPage> {
   bool _ascending = false;
   bool _showArchived = false;
+  TransactionType? _typeFilter;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final transactionsAsync = _showArchived 
+    final transactionsAsync = _showArchived
         ? ref.watch(archivedTransactionsStreamProvider)
         : ref.watch(allTransactionsStreamProvider);
-    
+
     final sortType = ref.watch(transactionSortProvider);
     final accountsAsync = ref.watch(accountsStreamProvider);
-    
+
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
@@ -45,86 +46,141 @@ class _AllTransactionsPageState extends ConsumerState<AllTransactionsPage> {
                 letterSpacing: -0.5,
               ),
             ),
-            actions: [
-              IconButton(
-                onPressed: () => setState(() => _showArchived = !_showArchived),
-                icon: Icon(_showArchived ? Symbols.inbox : Symbols.archive),
-                tooltip: _showArchived ? 'Show Active' : 'Show Archived',
-              ),
-              PopupMenuButton<TransactionSort>(
-                icon: const Icon(Symbols.sort),
-                tooltip: 'Sort Transactions',
-                onSelected: (value) {
-                  ref.read(transactionSortProvider.notifier).state = value;
-                },
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    value: TransactionSort.date,
-                    child: Row(
-                      children: [
-                        Icon(Symbols.calendar_month, color: sortType == TransactionSort.date ? colorScheme.primary : null),
-                        const SizedBox(width: 8),
-                        const Text('Date'),
-                      ],
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 4, bottom: 16),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    _buildPill(
+                      context: context,
+                      icon: Symbols.calendar_month_rounded,
+                      label: 'Date',
+                      isSelected: sortType == TransactionSort.date,
+                      onTap: () {
+                        ref.read(transactionSortProvider.notifier).state =
+                            TransactionSort.date;
+                      },
                     ),
-                  ),
-                  PopupMenuItem(
-                    value: TransactionSort.account,
-                    child: Row(
-                      children: [
-                        Icon(Symbols.account_balance_wallet, color: sortType == TransactionSort.account ? colorScheme.primary : null),
-                        const SizedBox(width: 8),
-                        const Text('Account'),
-                      ],
+                    const SizedBox(width: 8),
+                    _buildPill(
+                      context: context,
+                      icon: Symbols.account_balance_wallet_rounded,
+                      label: 'Account',
+                      isSelected: sortType == TransactionSort.account,
+                      onTap: () {
+                        ref.read(transactionSortProvider.notifier).state =
+                            TransactionSort.account;
+                      },
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 8),
+                    _buildPill(
+                      context: context,
+                      icon: _ascending
+                          ? Symbols.arrow_upward_rounded
+                          : Symbols.arrow_downward_rounded,
+                      label: _ascending ? 'Oldest' : 'Newest',
+                      isSelected: _ascending,
+                      onTap: () => setState(() => _ascending = !_ascending),
+                    ),
+                    const SizedBox(width: 8),
+                    _buildPill(
+                      context: context,
+                      icon: _typeFilter == null
+                          ? Symbols.filter_list_rounded
+                          : _typeFilter == TransactionType.income
+                              ? Symbols.arrow_downward_rounded
+                              : _typeFilter == TransactionType.expense
+                                  ? Symbols.arrow_upward_rounded
+                                  : Symbols.sync_alt_rounded,
+                      label: _typeFilter == null
+                          ? 'All Types'
+                          : _typeFilter!.name.toUpperCase(),
+                      isSelected: _typeFilter != null,
+                      onTap: () {
+                        setState(() {
+                          if (_typeFilter == null) {
+                            _typeFilter = TransactionType.expense;
+                          } else if (_typeFilter == TransactionType.expense) {
+                            _typeFilter = TransactionType.income;
+                          } else if (_typeFilter == TransactionType.income) {
+                            _typeFilter = TransactionType.transfer;
+                          } else {
+                            _typeFilter = null;
+                          }
+                        });
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                    _buildPill(
+                      context: context,
+                      icon: _showArchived
+                          ? Symbols.archive_rounded
+                          : Symbols.inbox_rounded,
+                      label: _showArchived ? 'Archived' : 'Active',
+                      isSelected: _showArchived,
+                      onTap: () =>
+                          setState(() => _showArchived = !_showArchived),
+                    ),
+                  ],
+                ),
               ),
-              IconButton(
-                onPressed: () => setState(() => _ascending = !_ascending),
-                icon: Icon(_ascending ? Symbols.arrow_upward : Symbols.arrow_downward),
-                tooltip: 'Toggle Order',
-              ),
-              const SizedBox(width: 8),
-            ],
+            ),
           ),
           transactionsAsync.when(
             data: (transactions) {
-              if (transactions.isEmpty) {
+              var filteredTxs = transactions;
+              if (_typeFilter != null) {
+                filteredTxs =
+                    filteredTxs.where((t) => t.type == _typeFilter).toList();
+              }
+
+              if (filteredTxs.isEmpty) {
                 return SliverFillRemaining(
                   hasScrollBody: false,
                   child: Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Symbols.receipt_long, size: 64, color: colorScheme.outline),
+                        Icon(Symbols.receipt_long,
+                            size: 64, color: colorScheme.outline),
                         const SizedBox(height: 16),
-                        Text('No transactions found', style: theme.textTheme.titleMedium),
+                        Text('No transactions found',
+                            style: theme.textTheme.titleMedium),
                       ],
                     ),
                   ),
                 );
               }
 
-              final sortedTxs = [...transactions];
-              
+              final sortedTxs = [...filteredTxs];
+
               if (sortType == TransactionSort.date) {
-                sortedTxs.sort((a, b) => _ascending 
-                    ? a.date.compareTo(b.date) 
+                sortedTxs.sort((a, b) => _ascending
+                    ? a.date.compareTo(b.date)
                     : b.date.compareTo(a.date));
               } else if (sortType == TransactionSort.account) {
                 accountsAsync.whenData((accounts) {
                   sortedTxs.sort((a, b) {
-                    final accA = accounts.where((acc) => acc.id == a.accountId).firstOrNull;
-                    final accB = accounts.where((acc) => acc.id == b.accountId).firstOrNull;
-                    
+                    final accA = accounts
+                        .where((acc) => acc.id == a.accountId)
+                        .firstOrNull;
+                    final accB = accounts
+                        .where((acc) => acc.id == b.accountId)
+                        .firstOrNull;
+
                     final nameA = accA?.name ?? '';
                     final nameB = accB?.name ?? '';
-                    
-                    final accountCompare = _ascending ? nameA.compareTo(nameB) : nameB.compareTo(nameA);
-                    
+
+                    final accountCompare = _ascending
+                        ? nameA.compareTo(nameB)
+                        : nameB.compareTo(nameA);
+
                     if (accountCompare != 0) return accountCompare;
-                    
+
                     return b.date.compareTo(a.date);
                   });
                 });
@@ -197,5 +253,60 @@ class _AllTransactionsPageState extends ConsumerState<AllTransactionsPage> {
         SnackBar(content: Text( _showArchived ? 'Transaction unarchived' : 'Transaction archived')),
       );
     }
+  }
+
+  Widget _buildPill({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    return Material(
+      color: isSelected
+          ? colorScheme.primaryContainer
+          : colorScheme.surfaceContainerHighest.withValues(alpha: 0.55),
+      borderRadius: BorderRadius.circular(100),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(100),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(100),
+            border: Border.all(
+              color: isSelected
+                  ? colorScheme.primary.withValues(alpha: 0.4)
+                  : colorScheme.outlineVariant.withValues(alpha: 0.3),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 16,
+                color: isSelected
+                    ? colorScheme.primary
+                    : colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                  color: isSelected
+                      ? colorScheme.onPrimaryContainer
+                      : colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

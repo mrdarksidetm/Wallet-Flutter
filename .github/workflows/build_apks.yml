@@ -2,9 +2,9 @@ name: Build Wallet APKs
 
 on:
   push:
-    branches: [ main, develop, Improv, 'sandbox/**' ]
+    branches: [ main, develop, Improv, 'Improv-Sandbox', 'sandbox/**', 'sandbox/*', '*sandbox*', '*Sandbox*' ]
   pull_request:
-    branches: [ main, develop, Improv, 'sandbox/**' ]
+    branches: [ main, develop, Improv, 'Improv-Sandbox', 'sandbox/**', 'sandbox/*', '*sandbox*', '*Sandbox*' ]
   workflow_dispatch: # Allows manual trigger
 
 jobs:
@@ -30,10 +30,19 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          cache: true
+          cache: false
+
+      - name: Setup Android SDK Platform
+        run: |
+          yes | sdkmanager --licenses || true
+          sdkmanager "platforms;android-36" "build-tools;36.0.0" || true
+
+      - name: Grant Execute Permission for Gradlew
+        run: test -f android/gradlew && chmod +x android/gradlew || true
 
       - name: Install Dependencies
         run: |
+          flutter clean
           flutter doctor -v
           yes | flutter doctor --android-licenses || true
           flutter pub get
@@ -171,21 +180,9 @@ jobs:
 
       - name: Build Universal APK
         run: |
+          set -o pipefail
           echo "Building Universal (Fat) APK..."
-          flutter build apk --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --verbose --android-skip-build-dependency-validation 2>&1 | tee build_universal.log
-          BUILD_STATUS="${PIPESTATUS[0]}"
-          if [ "$BUILD_STATUS" -ne 0 ]; then
-            ERR_MSG=$(grep -i -E "error:|exception:|failed" build_universal.log | tail -n 15 | tr '\n' ' | ' | sed 's/[^a-zA-Z0-9 ._:\/|-]/ /g')
-            if [ -z "$ERR_MSG" ]; then
-              ERR_MSG=$(tail -n 25 build_universal.log | tr '\n' ' | ' | sed 's/[^a-zA-Z0-9 ._:\/|-]/ /g')
-            fi
-            echo "::error title=Universal APK Build Failed::$ERR_MSG"
-            echo "### ❌ Universal APK Build Failed" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            tail -n 80 build_universal.log >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            exit "$BUILD_STATUS"
-          fi
+          flutter build apk --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --android-skip-build-dependency-validation 2>&1 | tee build_universal.log
           
           # Immediately preserve universal APK before split-abi build overwrites outputs
           echo "Locating Universal APK..."
@@ -205,21 +202,9 @@ jobs:
 
       - name: Build Split APKs
         run: |
+          set -o pipefail
           echo "Building Split-ABI APKs..."
-          flutter build apk --split-per-abi --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --verbose --android-skip-build-dependency-validation 2>&1 | tee build_split.log
-          BUILD_STATUS="${PIPESTATUS[0]}"
-          if [ "$BUILD_STATUS" -ne 0 ]; then
-            ERR_MSG=$(grep -i -E "error:|exception:|failed" build_split.log | tail -n 15 | tr '\n' ' | ' | sed 's/[^a-zA-Z0-9 ._:\/|-]/ /g')
-            if [ -z "$ERR_MSG" ]; then
-              ERR_MSG=$(tail -n 25 build_split.log | tr '\n' ' | ' | sed 's/[^a-zA-Z0-9 ._:\/|-]/ /g')
-            fi
-            echo "::error title=Split APK Build Failed::$ERR_MSG"
-            echo "### ❌ Split APK Build Failed" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            tail -n 80 build_split.log >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            exit "$BUILD_STATUS"
-          fi
+          flutter build apk --split-per-abi --obfuscate --split-debug-info=build/app/outputs/symbols --release --no-tree-shake-icons --android-skip-build-dependency-validation 2>&1 | tee build_split.log
           
           # Preserve split APKs
           echo "Locating Split APKs..."
@@ -295,3 +280,51 @@ jobs:
           path: build/app/outputs/symbols/*
           if-no-files-found: warn
           retention-days: 7
+
+      - name: Publish Errors to Job Summary
+        if: failure()
+        run: |
+          echo "## ❌ Build Failure Summary" >> $GITHUB_STEP_SUMMARY
+          echo "Here are the compiler and build error messages:" >> $GITHUB_STEP_SUMMARY
+          echo '```text' >> $GITHUB_STEP_SUMMARY
+          
+          LOG_FILE=""
+          if [ -f build_split.log ] && [ -s build_split.log ]; then
+            LOG_FILE="build_split.log"
+          elif [ -f build_universal.log ] && [ -s build_universal.log ]; then
+            LOG_FILE="build_universal.log"
+          fi
+          
+          if [ -n "$LOG_FILE" ] && [ -f "$LOG_FILE" ]; then
+            tail -n 120 "$LOG_FILE" >> $GITHUB_STEP_SUMMARY
+            ANNOTATION_MSG=$(tail -n 30 "$LOG_FILE" | tr '\r\n' ' | ' | sed 's/[^a-zA-Z0-9 ._:\/|-]/ /g' | cut -c 1-500)
+            echo "::error title=Build Error::$ANNOTATION_MSG"
+          else
+            echo "No build log found or failure occurred in a setup step." >> $GITHUB_STEP_SUMMARY
+          fi
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          
+          if [ -n "$LOG_FILE" ] && [ -f "$LOG_FILE" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "<details><summary><b>📋 Full Build Log Tail (Click to expand)</b></summary>" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo '```text' >> $GITHUB_STEP_SUMMARY
+            tail -n 200 "$LOG_FILE" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "</details>" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload Build Failure Logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-failure-logs
+          path: "*.log"
+          if-no-files-found: ignore
+          retention-days: 2
+
+      - name: Publish Success to Job Summary
+        if: success()
+        run: |
+          echo "## ✅ Build Succeeded!" >> $GITHUB_STEP_SUMMARY
+          echo "Wallet APKs have been compiled successfully and uploaded as artifacts below." >> $GITHUB_STEP_SUMMARY

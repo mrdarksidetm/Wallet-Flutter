@@ -279,3 +279,76 @@ ont_awesome_flutter\ v11 APIs.
   - **Toolchain & CI/CD:** Stabilized AGP 8.11.1 / 8.13.0 and Gradle 8.11.1 / 8.14.5 targeting SDK 35/36 with fallback keystore generation, CodeQL workflow, and multi-ABI APK verification.
 - **Status:** 100% (All features verified, release notes generated, ready for merge).
 
+## [2026-08-26 23:20] - Version 4.5.5: Typography, Recurring Notifications & Calendar Heatmap Navigation
+- **Action:** Upgraded project to version 4.5.5 (September 2026) with dynamic balance variable typography, recurring bill notification system with customizable timing, home heatmap month navigation, full history expansion, and contrast-aware theme rendering.
+- **Changes:**
+  - **Version Upgrade:** Bumped application version to `v4.5.5+1 (September 2026)` across `pubspec.yaml`, `about_page.dart`, and `settings_page.dart`.
+  - **Variable Font Typography:**
+    - Live Preview type tester sample text updated to include numeric sequence `1234567890` after `...lazy dog`.
+    - Dynamic variable font variations for Home Screen total balance cards (`AnimatedBalanceHero` and `TotalBalanceCard`):
+      - 1-4 digits: `GRAD=59.0`, `wght=797.0`, `wdth=131.0`, `ROND=42.0`, `opsz=86.0`.
+      - 12+ digits: `wght=100.0`, `wdth=50.0`.
+      - Smooth linear interpolation scaling between 4 and 12 digits, fitted with `BoxFit.scaleDown` to ensure flawless rendering across all screen sizes.
+  - **Recurring Bill Notifications & Scheduling:**
+    - Added `notifyOneDayBefore` field to `Recurring` model with full Isar schema and serialization support.
+    - Updated `AddEditRecurringPage` with Material 3 Expressive `SegmentedButton` to select reminder timing: "Same Day" vs "One Day Before".
+    - Enhanced `NotificationService` with `scheduleRecurringBillNotification` and `cancelNotification` targeting exact 9:00 AM alarm triggers.
+    - Integrated `RecurringService` with `NotificationService` to automatically dispatch instant notifications ("Bill Due" / "Your <frequency> payment for <name> is due") upon occurrence processing and reschedule for upcoming cycles.
+    - Added automatic due recurring checks on database ready in `main.dart`.
+    - Displayed reminder timing metadata in `RecurringPage` list items.
+  - **Calendar Heatmap & Activity History Navigation:**
+    - Added month-switching navigation buttons (`<` and `>`) to the Home Screen `ActivityInsightsSection` allowing users to browse past and future months directly.
+    - Header arrow on Home Screen expands to the full `ActivityHeatmapPage` showing complete multi-year, multi-month history.
+    - Fixed contrast color rendering in both Home Heatmap and Activity History:
+      - Light mode: Date text inside active/highlighted squares switches to crisp white (`Colors.white`).
+      - Dark mode: Date text inside active/highlighted squares switches to crisp black (`Colors.black`) for optimal legibility.
+- **Status:** 100% (All features implemented, static analysis verified with 0 errors).
+
+## [2026-08-27 00:05] - Recent Transactions Upper Squircle Section, Pill Filters & Heatmap Stream Fix
+- **Action:** Implemented contrasting upper-squircle Recent Transactions section on Home, redesigned filter bar with interactive pill-shaped controls across Home and All Transactions, fixed calendar heatmap stream hydration for past months, and stabilized AboutPage back navigation.
+- **Changes:**
+  - **Home Screen Recent Transactions Section:**
+    - Wrapped Recent Transactions in an elevated upper-squircle container (`borderRadius: BorderRadius.vertical(top: Radius.circular(32))`) with contrasting background (`surfaceContainerLow` / `surfaceContainerHigh`) and drag handle accent.
+    - Placed pill-shaped filter buttons (Date, Account, Type) directly beneath the heading in a horizontal scrollable row.
+    - Integrated "View all" quick text action in the heading and a full-width tonal button at the bottom.
+  - **All Transactions Filter Expansion:**
+    - Added a horizontally scrollable pill filter bar below the AppBar header featuring:
+      - **Date Sort Pill** (`Symbols.calendar_month_rounded`)
+      - **Account Sort Pill** (`Symbols.account_balance_wallet_rounded`)
+      - **Sort Order Toggle Pill** (`Symbols.arrow_upward_rounded` / `Symbols.arrow_downward_rounded`, 'Oldest' vs 'Newest')
+      - **Type Filter Pill** (`All`, `Income`, `Expense`, `Transfer`)
+      - **Archive Toggle Pill** (`Active` vs `Archived`)
+    - Cleaned up redundant AppBar action popups.
+  - **Calendar Heatmap Past Month Stream Fix:**
+    - Switched `ActivityInsightsSection` and `ActivityHeatmapPage` to `allTransactionsStreamProvider` (from 50-limit `transactionsStreamProvider`), allowing historical transactions from all previous months and years to hydrate accurately.
+  - **About Page Navigation Fix:**
+    - Placed `AppBackButton` in standard `AppBar.leading` slot, preventing back arrow shifting when content aligns.
+- **Status:** 100% (All features implemented, static analysis verified with 0 errors).
+
+## [2026-08-27 00:11] - CI/CD Workflow Branch Trigger Expansion
+- **Action:** Expanded branch triggers in GitHub Actions workflows to guarantee automated builds on all sandbox branch naming variations.
+- **Changes:**
+  - Updated `.github/workflows/build_apks.yml` and `.github/workflows/codeql.yml` to trigger on `Improv-Sandbox`, `sandbox/**`, `sandbox/*`, and wildcard sandbox patterns (`*sandbox*`, `*Sandbox*`).
+- **Status:** 100% (Workflows updated and pushed).
+
+## [2026-08-27 01:15] - Expressive Showdown Setting & Showcase Screen
+- **Action:** Added "Expressive Showdown" setting to General Settings replacing Categories, created dedicated Material 3 Expressive showcase screen with native Canvas organic shapes, blueprint grid overlays, concentric circles, and interactive diversification toggle.
+- **Changes:**
+  - **General Settings:** Replaced 'Categories' action tile with 'Expressive Showdown' (`Symbols.auto_awesome_rounded`) and subtitle "Make the experince more expressive" navigating to `/expressive_showdown`.
+  - **Showcase Screen (`ExpressiveShowdownPage`):**
+    - `SliverAppBar.medium` with `AppBackButton` squircle navigation and flexible headline title.
+    - Native `CustomPainter` (`_ExpressiveHeroPainter`) drawing organic blooming geometry (tertiary clover petal, primary 12-point starburst, center scallop), concentric circle grid lines (radii 29 to 166), and blueprint wireframes matching the design reference `Android Compact - 1.svg`.
+    - Floating squircle card badge with wallet/card outline and currency emblem featuring subtle perpetual micro-motion.
+    - Pill squircle switch tile (`height: 72`, `rx: 36`) for 'Expressive Diversification' with haptic feedback and dynamic state binding.
+    - Added Expressive capabilities overview (spring physics, Atelier color harmonies, variable typography) and live design token metrics chips.
+  - **State & Persistence:** Added `isExpressiveDiversificationEnabled` to `PersonalizationState` and `PersonalizationNotifier` with SharedPreferences persistence.
+  - **Navigation & Search:** Added `/expressive_showdown` and `/settings/expressive_showdown` routes in `router.dart`, and updated searchable settings index.
+- **Status:** 100% (Verified with `flutter analyze` with 0 issues).
+
+## [2026-08-28 20:45] - Build Pipeline Stabilization & SDK 36 Subproject Override
+- **Action:** Resolved CI build failure in GitHub Actions Universal APK step by stabilizing Gradle build layout and ensuring all library subprojects compile against SDK 36.
+- **Changes:**
+  - **Gradle Directory Layout:** Fixed `newBuildDir` in `android/build.gradle.kts` to reference `rootProject.layout.projectDirectory.dir("../build")` to avoid lazy property resolution errors in Gradle 8.14.
+  - **Evaluation Guard:** Guarded `project.evaluationDependsOn(":app")` in `subprojects` block so `:app` does not evaluate against itself.
+  - **Subproject SDK 36 Override:** Added `compileSdkVersion(36)` overrides for all `com.android.library` and `com.android.application` subprojects to resolve modern AndroidX dependency constraints in third-party plugins.
+- **Status:** 100% (Toolchain configured and ready for CI validation).

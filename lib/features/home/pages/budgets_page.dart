@@ -5,6 +5,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/category.dart';
 import '../../../core/widgets/icon_picker.dart';
+import '../../../core/widgets/expressive_shape.dart';
 import '../../../core/widgets/app_back_button.dart';
 import '../../../core/theme/color_extension.dart';
 
@@ -139,13 +140,9 @@ class _BudgetCard extends ConsumerWidget {
           children: [
             Row(
               children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: isDark ? 0.2 : 0.12),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
+                ExpressiveShapeContainer(
+                  size: 44,
+                  color: color.withValues(alpha: isDark ? 0.2 : 0.12),
                   child: Icon(AppIcons.getIcon(category.icon), color: color, size: 22),
                 ),
                 const SizedBox(width: 16),

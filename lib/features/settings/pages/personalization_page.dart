@@ -873,7 +873,7 @@ class _TypeTester extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           Text(
-            'The quick brown fox jumps over the lazy dog.',
+            'The quick brown fox jumps over the lazy dog 1234567890',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontFamily: state.useGoogleSansFlex ? 'GoogleSansFlex' : null,
                   fontWeight: FontWeight.w900,

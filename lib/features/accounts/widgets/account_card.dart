@@ -7,6 +7,7 @@ import '../../../core/theme/personalization_provider.dart';
 import '../../../core/theme/color_extension.dart';
 import '../../../core/database/models/account.dart';
 import '../../../core/widgets/icon_picker.dart';
+import '../../../core/widgets/expressive_shape.dart';
 import '../../../core/services/currency_engine.dart';
 
 class AccountCard extends ConsumerStatefulWidget {
@@ -128,12 +129,9 @@ class _AccountCardState extends ConsumerState<AccountCard> with SingleTickerProv
                       children: [
                         Row(
                           children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: color.withValues(alpha: 0.1),
-                                shape: BoxShape.circle,
-                              ),
+                            ExpressiveShapeContainer(
+                              size: 36,
+                              color: color.withValues(alpha: 0.15),
                               child: Icon(
                                 AppIcons.getIcon(widget.account.icon),
                                 color: color,
@@ -183,12 +181,11 @@ class _AccountCardState extends ConsumerState<AccountCard> with SingleTickerProv
                         },
                       )
                     else
-                      Text(
-                        '••••••',
-                        style: theme.textTheme.displaySmall?.copyWith(
-                          fontWeight: FontWeight.w900,
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 6.0),
+                        child: ExpressiveObscuredBalance(
+                          dotSize: 22,
                           color: colorScheme.onSurface,
-                          letterSpacing: 4,
                         ),
                       ),
                   ],

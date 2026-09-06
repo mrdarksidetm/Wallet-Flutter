@@ -8,6 +8,7 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../widgets/activity_insights_section.dart';
 import '../../../core/database/providers.dart';
+import '../../../core/database/models/transaction_model.dart';
 import '../../../core/widgets/transaction_segmented_group.dart';
 import '../../../core/services/currency_engine.dart';
 import '../../../core/theme/personalization_provider.dart';
@@ -142,64 +143,9 @@ class HomePage extends ConsumerWidget {
                   const SliverToBoxAdapter(child: SizedBox(height: 32)),
                   const _SectionHeader(title: 'Activity Insights'),
                   const SliverToBoxAdapter(child: ActivityInsightsSection()),
-                  _SectionHeader(
-                    title: 'Recent Transactions',
-                    trailing: Consumer(
-                      builder: (context, ref, _) {
-                        final sortType = ref.watch(transactionSortProvider);
-                        final colorScheme = Theme.of(context).colorScheme;
-                        return PopupMenuButton<TransactionSort>(
-                          icon: const Icon(Symbols.sort, size: 20),
-                          tooltip: 'Sort Transactions',
-                          onSelected: (value) {
-                            ref.read(transactionSortProvider.notifier).state = value;
-                          },
-                          itemBuilder: (context) => [
-                            PopupMenuItem(
-                              value: TransactionSort.date,
-                              child: Row(
-                                children: [
-                                  Icon(Symbols.calendar_month, size: 18, color: sortType == TransactionSort.date ? colorScheme.primary : null),
-                                  const SizedBox(width: 8),
-                                  const Text('Date'),
-                                ],
-                              ),
-                            ),
-                            PopupMenuItem(
-                              value: TransactionSort.account,
-                              child: Row(
-                                children: [
-                                  Icon(Symbols.account_balance_wallet, size: 18, color: sortType == TransactionSort.account ? colorScheme.primary : null),
-                                  const SizedBox(width: 8),
-                                  const Text('Account'),
-                                ],
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
-                  const _HomeRecentTransactions(),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-                      child: FilledButton.tonal(
-                        onPressed: () => context.push('/all_transactions'),
-                        style: FilledButton.styleFrom(
-                          minimumSize: const Size.fromHeight(56),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                          backgroundColor: colorScheme.primaryContainer.withValues(alpha: 0.4),
-                          foregroundColor: colorScheme.primary,
-                        ),
-                        child: const Text(
-                          'View All Transactions',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                  const SliverToBoxAdapter(
+                      child: _HomeRecentTransactionsSection()),
+                  const SliverToBoxAdapter(child: SizedBox(height: 60)),
                 ],
               ),
             ),
@@ -212,26 +158,19 @@ class HomePage extends ConsumerWidget {
 
 class _SectionHeader extends StatelessWidget {
   final String title;
-  final Widget? trailing;
-  const _SectionHeader({required this.title, this.trailing});
+  const _SectionHeader({required this.title});
 
   @override
   Widget build(BuildContext context) {
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 32, 24, 16),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              title,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w900,
-                letterSpacing: -0.5,
-              ),
-            ),
-            if (trailing != null) trailing!,
-          ],
+        child: Text(
+          title,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w900,
+            letterSpacing: -0.5,
+          ),
         ),
       ),
     );
@@ -281,6 +220,7 @@ class _HomeFinanceGrid extends ConsumerWidget {
     // Watch accountsStreamProvider to ensure the grid updates when accounts change
     ref.watch(accountsStreamProvider);
     final selectedCurrency = ref.watch(currencyProvider);
+    final isVisible = ref.watch(personalizationProvider.select((p) => p.isBalanceVisible));
 
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -299,7 +239,9 @@ class _HomeFinanceGrid extends ConsumerWidget {
             title: 'Accounts',
             accentColor: colorScheme.primary,
             subtitle: totalAssetBalanceAsync.when(
-              data: (v) => '${CurrencyEngine.formatCurrency(v, selectedCurrency)} total',
+              data: (v) => isVisible
+                  ? '${CurrencyEngine.formatCurrency(v, selectedCurrency)} total'
+                  : '•••• total',
               loading: () => '...',
               error: (_, __) => 'Error',
             ),
@@ -360,61 +302,276 @@ class _HomeFinanceGrid extends ConsumerWidget {
   }
 }
 
-class _HomeRecentTransactions extends ConsumerWidget {
-  const _HomeRecentTransactions();
+class _HomeRecentTransactionsSection extends ConsumerStatefulWidget {
+  const _HomeRecentTransactionsSection();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final transactionsAsync = ref.watch(transactionsStreamProvider);
+  ConsumerState<_HomeRecentTransactionsSection> createState() =>
+      _HomeRecentTransactionsSectionState();
+}
+
+class _HomeRecentTransactionsSectionState
+    extends ConsumerState<_HomeRecentTransactionsSection> {
+  TransactionType? _typeFilter;
+
+  @override
+  Widget build(BuildContext context) {
+    final transactionsAsync = ref.watch(allTransactionsStreamProvider);
     final sortType = ref.watch(transactionSortProvider);
     final accountsAsync = ref.watch(accountsStreamProvider);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
-    return transactionsAsync.when(
-      data: (transactions) {
-        if (transactions.isEmpty) {
-          return const SliverToBoxAdapter(
-            child: Center(
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 32),
-                child: Text('No activity found'),
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(top: 24),
+      decoration: BoxDecoration(
+        color: isDark
+            ? colorScheme.surfaceContainerHigh.withValues(alpha: 0.65)
+            : colorScheme.surfaceContainerLow,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        border: Border(
+          top: BorderSide(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+            width: 1.5,
+          ),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Heading row
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 16, 10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Recent Transactions',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 19,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: () => context.push('/all_transactions'),
+                  icon: const Icon(Symbols.chevron_right_rounded, size: 18),
+                  label: const Text(
+                    'View all',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  style: TextButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Pill-shaped filters row below heading
+          Padding(
+            padding: const EdgeInsets.only(bottom: 14),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  _buildPill(
+                    context: context,
+                    icon: Symbols.calendar_month_rounded,
+                    label: 'Date',
+                    isSelected: sortType == TransactionSort.date,
+                    onTap: () {
+                      ref.read(transactionSortProvider.notifier).state =
+                          TransactionSort.date;
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  _buildPill(
+                    context: context,
+                    icon: Symbols.account_balance_wallet_rounded,
+                    label: 'Account',
+                    isSelected: sortType == TransactionSort.account,
+                    onTap: () {
+                      ref.read(transactionSortProvider.notifier).state =
+                          TransactionSort.account;
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  _buildPill(
+                    context: context,
+                    icon: _typeFilter == null
+                        ? Symbols.filter_list_rounded
+                        : _typeFilter == TransactionType.income
+                            ? Symbols.arrow_downward_rounded
+                            : _typeFilter == TransactionType.expense
+                                ? Symbols.arrow_upward_rounded
+                                : Symbols.sync_alt_rounded,
+                    label: _typeFilter == null
+                        ? 'All'
+                        : _typeFilter!.name.toUpperCase(),
+                    isSelected: _typeFilter != null,
+                    onTap: () {
+                      setState(() {
+                        if (_typeFilter == null) {
+                          _typeFilter = TransactionType.expense;
+                        } else if (_typeFilter == TransactionType.expense) {
+                          _typeFilter = TransactionType.income;
+                        } else if (_typeFilter == TransactionType.income) {
+                          _typeFilter = TransactionType.transfer;
+                        } else {
+                          _typeFilter = null;
+                        }
+                      });
+                    },
+                  ),
+                ],
               ),
             ),
-          );
-        }
-
-        final sortedTxs = [...transactions];
-        
-        if (sortType == TransactionSort.date) {
-          // Already sorted by date desc from provider
-        } else if (sortType == TransactionSort.account) {
-          accountsAsync.whenData((accounts) {
-            sortedTxs.sort((a, b) {
-              final accA = accounts.where((acc) => acc.id == a.accountId).firstOrNull;
-              final accB = accounts.where((acc) => acc.id == b.accountId).firstOrNull;
-              
-              final nameA = accA?.name ?? '';
-              final nameB = accB?.name ?? '';
-              
-              final accountCompare = nameA.compareTo(nameB);
-              if (accountCompare != 0) return accountCompare;
-              return b.date.compareTo(a.date);
-            });
-          });
-        }
-
-        final recentTxs = sortedTxs.take(10).toList();
-        return SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          sliver: SliverTransactionGroupedList(
-            transactions: recentTxs,
-            onTap: (tx) => context.push('/add_transaction', extra: tx),
           ),
-        );
-      },
-      loading: () => const SliverToBoxAdapter(
-          child: Center(child: CircularProgressIndicator())),
-      error: (err, _) =>
-          SliverToBoxAdapter(child: Center(child: Text('Error: $err'))),
+          // Transactions list
+          transactionsAsync.when(
+            data: (transactions) {
+              var filtered = transactions;
+              if (_typeFilter != null) {
+                filtered =
+                    filtered.where((t) => t.type == _typeFilter).toList();
+              }
+              if (filtered.isEmpty) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 36),
+                    child: Text('No activity found'),
+                  ),
+                );
+              }
+
+              final sortedTxs = [...filtered];
+              if (sortType == TransactionSort.date) {
+                // date desc
+              } else if (sortType == TransactionSort.account) {
+                accountsAsync.whenData((accounts) {
+                  sortedTxs.sort((a, b) {
+                    final accA = accounts
+                        .where((acc) => acc.id == a.accountId)
+                        .firstOrNull;
+                    final accB = accounts
+                        .where((acc) => acc.id == b.accountId)
+                        .firstOrNull;
+
+                    final nameA = accA?.name ?? '';
+                    final nameB = accB?.name ?? '';
+
+                    final accountCompare = nameA.compareTo(nameB);
+                    if (accountCompare != 0) return accountCompare;
+                    return b.date.compareTo(a.date);
+                  });
+                });
+              }
+
+              final isVisible = ref.watch(personalizationProvider.select((p) => p.isBalanceVisible));
+              final recentTxs = sortedTxs.take(10).toList();
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: TransactionGroupedList(
+                  transactions: recentTxs,
+                  obscureAmount: !isVisible,
+                  onTap: (tx) => context.push('/add_transaction', extra: tx),
+                ),
+              );
+            },
+            loading: () => const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 32),
+                child: CircularProgressIndicator(),
+              ),
+            ),
+            error: (err, _) => Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 32),
+                child: Text('Error: $err'),
+              ),
+            ),
+          ),
+          // View All Button
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+            child: FilledButton.tonal(
+              onPressed: () => context.push('/all_transactions'),
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(52),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                backgroundColor:
+                    colorScheme.primaryContainer.withValues(alpha: 0.4),
+                foregroundColor: colorScheme.primary,
+              ),
+              child: const Text(
+                'View All Transactions',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPill({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    return Material(
+      color: isSelected
+          ? colorScheme.primaryContainer
+          : colorScheme.surfaceContainerHighest.withValues(alpha: 0.55),
+      borderRadius: BorderRadius.circular(100),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(100),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(100),
+            border: Border.all(
+              color: isSelected
+                  ? colorScheme.primary.withValues(alpha: 0.4)
+                  : colorScheme.outlineVariant.withValues(alpha: 0.3),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 16,
+                color: isSelected
+                    ? colorScheme.primary
+                    : colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                  color: isSelected
+                      ? colorScheme.onPrimaryContainer
+                      : colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

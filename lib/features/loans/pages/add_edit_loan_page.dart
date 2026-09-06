@@ -6,6 +6,7 @@ import '../../../core/database/models/auxiliary_models.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/theme/personalization_provider.dart';
 import '../../../core/services/haptic_service.dart';
+import '../../../core/services/notification_service.dart';
 import '../../../core/services/currency_engine.dart';
 import '../../../core/widgets/app_back_button.dart';
 
@@ -73,6 +74,26 @@ class _AddEditLoanPageState extends ConsumerState<AddEditLoanPage> {
           .read(loanServiceProvider)
           .saveLoan(loan, personName: _personController.text);
       
+      if (_dueDate != null && !loan.isPaid) {
+        final currency = ref.read(currencyProvider);
+        await ref
+            .read(notificationServiceProvider)
+            .scheduleDebtDueNotification(
+              id: loan.id,
+              personName: _personController.text.isNotEmpty
+                  ? _personController.text
+                  : 'Contact',
+              amount: loan.amount,
+              currency: currency,
+              isBorrowed: _type == LoanType.borrowed,
+              dueDate: _dueDate!,
+            );
+      } else {
+        await ref
+            .read(notificationServiceProvider)
+            .cancelNotification(500000 + loan.id);
+      }
+
       final personalization = ref.read(personalizationProvider);
       await ref.read(hapticServiceProvider).transaction(personalization.vibrateOnTransaction);
 
