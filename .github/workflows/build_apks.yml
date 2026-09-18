@@ -167,8 +167,6 @@ jobs:
           fi
           
           echo "SIGNING_MODE=$SIGNING_MODE" >> $GITHUB_ENV
-          echo "### 🔑 Signing Setup" >> $GITHUB_STEP_SUMMARY
-          echo "- **Mode**: $SIGNING_MODE" >> $GITHUB_STEP_SUMMARY
 
       - name: Code Generation (Build Runner)
         run: dart run build_runner build --delete-conflicting-outputs || true
@@ -255,14 +253,9 @@ jobs:
           SIGNER_ISSUER=$(echo "$CERT_INFO" | grep -i "Issuer:" | head -n 1 | sed 's/[Ii]ssuer:\s*//')
           SIGNER_SHA256=$(echo "$CERT_INFO" | grep -i "SHA256:" | head -n 1 | sed 's/.*SHA256:\s*//')
           
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 🔐 APK Signature Verification" >> $GITHUB_STEP_SUMMARY
-          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
-          echo "| :--- | :--- |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Signing Mode** | $SIGNING_MODE |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Certificate Owner** | \`$SIGNER_OWNER\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Certificate Issuer** | \`$SIGNER_ISSUER\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| **SHA-256 Fingerprint** | \`$SIGNER_SHA256\` |" >> $GITHUB_STEP_SUMMARY
+          echo "SIGNER_OWNER=$SIGNER_OWNER" >> $GITHUB_ENV
+          echo "SIGNER_ISSUER=$SIGNER_ISSUER" >> $GITHUB_ENV
+          echo "SIGNER_SHA256=$SIGNER_SHA256" >> $GITHUB_ENV
           echo "============================================================"
 
       - name: Upload Build Artifacts
@@ -284,10 +277,26 @@ jobs:
       - name: Publish Errors to Job Summary
         if: failure()
         run: |
-          echo "## ❌ Build Failure Summary" >> $GITHUB_STEP_SUMMARY
-          echo "Here are the compiler and build error messages:" >> $GITHUB_STEP_SUMMARY
-          echo '```text' >> $GITHUB_STEP_SUMMARY
-          
+          cat << 'EOF' >> $GITHUB_STEP_SUMMARY
+          # ❌ Wallet Flutter — Build Failed
+
+          <p align="center">
+            <a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">
+              <img src="https://raw.githubusercontent.com/${{ github.repository }}/main/assets/images/Testing%20APK%20Fail.svg" alt="Testing APK Fail" height="100" />
+            </a>
+          </p>
+
+          > [!WARNING]
+          > **Build Execution Failure**:
+          > One or more compilation, build, or packaging tasks failed during workflow execution.
+          > Review the compiler error diagnostics below or download the failure logs from the Artifacts section below to troubleshoot.
+
+          ---
+
+          ### 🔍 Compiler & Build Diagnostics
+          ```text
+          EOF
+
           LOG_FILE=""
           if [ -f build_split.log ] && [ -s build_split.log ]; then
             LOG_FILE="build_split.log"
@@ -306,13 +315,22 @@ jobs:
           
           if [ -n "$LOG_FILE" ] && [ -f "$LOG_FILE" ]; then
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "<details><summary><b>📋 Full Build Log Tail (Click to expand)</b></summary>" >> $GITHUB_STEP_SUMMARY
+            echo "<details><summary>📋 <b>Full Build Log Tail</b> (Click to expand)</summary>" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo '```text' >> $GITHUB_STEP_SUMMARY
             tail -n 200 "$LOG_FILE" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
             echo "</details>" >> $GITHUB_STEP_SUMMARY
           fi
+
+          cat << 'EOF' >> $GITHUB_STEP_SUMMARY
+
+          ---
+
+          ### 📦 Diagnostic Artifacts
+          - 📄 **Build Failure Logs**: `build-failure-logs` *(Available in the Artifacts section below)*
+          - ⚙️ **Workflow Run Details**: [Workflow Run #${{ github.run_number }}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          EOF
 
       - name: Upload Build Failure Logs
         if: failure()
@@ -326,5 +344,80 @@ jobs:
       - name: Publish Success to Job Summary
         if: success()
         run: |
-          echo "## ✅ Build Succeeded!" >> $GITHUB_STEP_SUMMARY
-          echo "Wallet APKs have been compiled successfully and uploaded as artifacts below." >> $GITHUB_STEP_SUMMARY
+          cat << 'EOF' >> $GITHUB_STEP_SUMMARY
+          # 🚀 Wallet Flutter — Production Build Summary
+
+          <p align="center">
+            <a href="https://github.com/${{ github.repository }}/releases/latest/download/wallet-arm64-v8a.apk">
+              <img src="https://raw.githubusercontent.com/${{ github.repository }}/main/assets/images/Testing%20APK%20Pass.svg" alt="Testing APK Pass" height="100" />
+            </a>
+          </p>
+
+          > [!NOTE]
+          > **Notice regarding downloaded formats**:
+          > Clicking on any of the build artifacts in the **Artifacts** section at the bottom of this Actions page will download them packaged inside a `.zip` file.
+          > To download the standalone, pure `.apk` directly to your phone/device ready to install without extracting any zip files, click the **Testing APK Pass** badge above (ARM64-v8a) or use the direct links below!
+
+          ---
+
+          ### 📦 Build Artifacts & Direct Downloads
+          - 📱 **Direct ARM64 APK**: [**wallet-arm64-v8a.apk**](https://github.com/${{ github.repository }}/releases/latest/download/wallet-arm64-v8a.apk) *(Pure `.apk` for 64-bit devices, no unzipping required)*
+          - 🌐 **Direct Universal APK**: [**wallet-universal.apk**](https://github.com/${{ github.repository }}/releases/latest/download/wallet-universal.apk) *(Pure `.apk` with all architectures bundled)*
+          - 🏷️ **GitHub Releases Portal**: [Latest Releases Page](https://github.com/${{ github.repository }}/releases/latest)
+          - 📦 **Actions Build Artifacts**: `Wallet-APKs` *(Available in the Artifacts section below — contains ARM64, ARMv7, x86_64, and Universal APKs)*
+          - 🔍 **Debug Symbols**: `Debug-Symbols` *(Available in the Artifacts section below)*
+
+          ---
+
+          <details>
+          <summary>🛠️ <b>Build & Architecture Specifications</b> (Click to expand)</summary>
+
+          <br/>
+
+          | Attribute | Specification | Notes |
+          | :--- | :--- | :--- |
+          | **Target Platform** | Android 5.0+ to Android 15 (API 21–35/36) | Min SDK 21, Target/Compile SDK 36 |
+          | **Target ABIs** | `arm64-v8a`, `armeabi-v7a`, `x86_64` | Split-per-ABI + Fat Universal |
+          | **Framework** | **Flutter** (Stable Channel) | Dart 3.x with AOT compilation |
+          | **Code Obfuscation** | Enabled (`--obfuscate`) | Symbols preserved in `Debug-Symbols` |
+          | **State Management** | **Riverpod 2.0** | Generator-driven reactive state |
+          | **Local Database** | **Isar Database** | Fast, ACID-compliant local NoSQL engine |
+          | **Design Language** | **Material 3 Expressive** | Expressive geometry, smooth animations, dynamic color tokens |
+
+          </details>
+
+          <details>
+          <summary>🔐 <b>APK Signature & Security Details</b> (Click to expand)</summary>
+
+          <br/>
+
+          EOF
+
+          MODE="${SIGNING_MODE:-CI Fallback (Debug Keystore)}"
+          OWNER="${SIGNER_OWNER:-Android Debug}"
+          ISSUER="${SIGNER_ISSUER:-Android Debug}"
+          SHA256="${SIGNER_SHA256:-N/A}"
+
+          cat << EOF >> $GITHUB_STEP_SUMMARY
+          | Property | Value |
+          | :--- | :--- |
+          | **Signing Mode** | $MODE |
+          | **Certificate Owner** | \`$OWNER\` |
+          | **Certificate Issuer** | \`$ISSUER\` |
+          | **SHA-256 Fingerprint** | \`$SHA256\` |
+
+          </details>
+
+          <details>
+          <summary>✨ <b>Key Features & Highlights</b> (Click to expand)</summary>
+
+          <br/>
+
+          - 💳 **Expressive Account Cards**: Smooth gesture cards with dynamic color accents and balance privacy toggle.
+          - 📊 **Canvas-Rendered Visualizations**: Custom canvas financial charts and spending analytics.
+          - ⚡ **Offline-First High Performance**: Sub-millisecond queries powered by Isar local storage.
+          - 🔀 **Split-ABI Lightweight Binaries**: Minimal download footprint optimized per device architecture.
+          - 🔒 **Obfuscated Production Builds**: Symbol table stripping and mapping preservation for release security.
+
+          </details>
+          EOF

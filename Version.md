@@ -364,3 +364,20 @@ ont_awesome_flutter\ v11 APIs.
     - Updated `README.md` in `main` under `## 📲 Download Links` with `Direct Link Frame Badge.svg` (`height="100"`, `alt="Direct Downloader Badge"`).
     - Linked the badge directly to the latest universal production APK release binary: `https://github.com/mrdarksidetm/Wallet-Flutter/releases/latest/download/wallet-universal.apk`.
 - **Status:** 100% (Branches merged in order sandbox -> Improv -> main, README updated).
+
+## [2026-09-18 11:10] - Workflow Job Summary Overhaul & Pass/Fail Badge Architecture
+- **Action:** Upgraded and beautified the GitHub Actions CI/CD job summary in `.github/workflows/build_apks.yml` with centered pass/fail SVG badges, direct release APK downloads, format notifications, and collapsible architectural specifications matching the reference standard.
+- **Changes:**
+  - **Asset Integration:**
+    - Copied `Testing APK Pass.svg` and `Testing APK Fail.svg` into `assets/images/` of `Wallet-Flutter/main`.
+  - **Workflow Job Summary Overhaul (`.github/workflows/build_apks.yml`):**
+    - **Step Summary Decoupling:** Removed premature `$GITHUB_STEP_SUMMARY` logging from `Setup Signing` and `Verify Output APKs`, exporting verification attributes (`SIGNER_OWNER`, `SIGNER_ISSUER`, `SIGNER_SHA256`, `SIGNING_MODE`) into `$GITHUB_ENV` to maintain clean visual ordering.
+    - **Success Summary (`Publish Success to Job Summary`):**
+      - Rendered centered `Testing APK Pass.svg` (`height="100"`) linking directly to the arm64-v8a production APK: `https://github.com/${{ github.repository }}/releases/latest/download/wallet-arm64-v8a.apk`.
+      - Added GitHub Flavored Markdown `> [!NOTE]` alert informing users that Actions Artifacts are packaged in `.zip` archives, and directing them to click the badge or direct links for pure `.apk` binaries.
+      - Provided structured download links for ARM64, Universal APK, GitHub Releases page, Actions artifacts (`Wallet-APKs`), and debug symbols (`Debug-Symbols`).
+      - Added expandable `<details>` blocks for Build & Architecture Specifications, APK Signature & Security Details, and Key Features & Highlights.
+    - **Failure Summary (`Publish Errors to Job Summary`):**
+      - Rendered centered `Testing APK Fail.svg` (`height="100"`) linking directly to the specific workflow run (`${{ github.repository }}/actions/runs/${{ github.run_id }}`).
+      - Added `> [!WARNING]` alert and structured compiler error diagnostics with full build log tail details.
+- **Status:** 100% (Workflow updated, badges staged, ready for push).
