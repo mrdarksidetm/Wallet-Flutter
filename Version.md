@@ -352,3 +352,15 @@ ont_awesome_flutter\ v11 APIs.
   - **Evaluation Guard:** Guarded `project.evaluationDependsOn(":app")` in `subprojects` block so `:app` does not evaluate against itself.
   - **Subproject SDK 36 Override:** Added `compileSdkVersion(36)` overrides for all `com.android.library` and `com.android.application` subprojects to resolve modern AndroidX dependency constraints in third-party plugins.
 - **Status:** 100% (Toolchain configured and ready for CI validation).
+
+## [2026-09-18 10:20] - Branch Consolidation & Direct APK Downloader Badge Integration
+- **Action:** Consolidated development branch streams across Wallet-Flutter and integrated the direct universal APK download badge into project documentation.
+- **Changes:**
+  - **Branch Merges:**
+    - Committed `assets/images/Direct Link Frame Badge.svg` in `Improv-sandbox` (`sandbox/Improv`).
+    - Merged `sandbox/Improv` into `Improv`.
+    - Merged `Improv` into `main`.
+  - **Documentation & Release Ergonomics:**
+    - Updated `README.md` in `main` under `## 📲 Download Links` with `Direct Link Frame Badge.svg` (`height="100"`, `alt="Direct Downloader Badge"`).
+    - Linked the badge directly to the latest universal production APK release binary: `https://github.com/mrdarksidetm/Wallet-Flutter/releases/latest/download/wallet-universal.apk`.
+- **Status:** 100% (Branches merged in order sandbox -> Improv -> main, README updated).
